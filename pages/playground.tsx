@@ -125,13 +125,13 @@ struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
             </VStack>
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} h="400" marginTop={1}>
-            <Heading>Input MLIR Dialect</Heading>
+            <Heading>Input</Heading>
             <Box borderWidth="2px" height="100%">
               {inputMLIRViewer}
             </Box>
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} h="400" marginTop={6}>
-            <Heading>Output MLIR Dialect</Heading>
+            <Heading>Output</Heading>
             <Box borderWidth="2px" height="100%">
               {outputMLIRViewer}
             </Box>
