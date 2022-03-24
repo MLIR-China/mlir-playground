@@ -16,10 +16,38 @@ import {
 
 const Playground: NextPage = () => {
 
-  const defaultCode = "fjsdlak;\nfjasd;\nlfals;\njfiopajfpoasdjfopiasd"
+  const defaultCode = `// type your MLIR lower pass logic here
 
-  const defaultMLIRInput = ""
-  const defaultMLIROutput = ""
+struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
+
+  void getDependentDialects(DialectRegistry &registry) const override {
+    registry.insert<vector::VectorDialect>();
+  }
+
+  void runOnOperation() override {
+    FuncOp funcOp = getOperation();
+    if (failed(...)) {
+      return signalPassFailure();
+    }
+  }
+};
+`
+
+  const defaultMLIRInput = `func @dot_general_4x384x32x384() -> tensor<4x384x384xf32> {
+  %lhs = util.unfoldable_constant dense<1.0> : tensor<4x384x32xf32>
+  %rhs = util.unfoldable_constant dense<1.0> : tensor<4x32x384xf32>
+  %0 = "mhlo.dot_general"(%lhs, %rhs) {
+    dot_dimension_numbers = {
+      lhs_batching_dimensions = dense<0> : tensor<1xi64>,
+      lhs_contracting_dimensions = dense<2> : tensor<1xi64>,
+      rhs_batching_dimensions = dense<0> : tensor<1xi64>,
+      rhs_contracting_dimensions = dense<1> : tensor<1xi64>
+      }
+  } : (tensor<4x384x32xf32>, tensor<4x32x384xf32>) -> tensor<4x384x384xf32>
+  return %0 : tensor<4x384x384xf32>
+}`
+
+  const defaultMLIROutput = defaultMLIRInput
 
   const onCodeChange = () => {}
 
@@ -37,9 +65,29 @@ const Playground: NextPage = () => {
     <Editor
       key="dslEditor"
       height="100%"
-      defaultLanguage="python"
+      defaultLanguage="cpp"
       defaultValue={defaultCode}
       onChange={onCodeChange}
+      options={monacoOptions}
+    />
+  )
+
+  const inputMLIRViewer = (
+    <Editor
+      key="dslEditor"
+      height="100%"
+      defaultLanguage="cpp"
+      defaultValue={defaultMLIRInput}
+      options={monacoOptions}
+    />
+  )
+
+  const outputMLIRViewer = (
+    <Editor
+      key="dslEditor"
+      height="100%"
+      defaultLanguage="cpp"
+      defaultValue={defaultMLIROutput}
       options={monacoOptions}
     />
   )
@@ -71,10 +119,22 @@ const Playground: NextPage = () => {
                   Run
                 </Button>
               </HStack>
-              <Box borderWidth="1px" height="100%">
+              <Box borderWidth="2px" height="100%">
                 {codeEditor}
               </Box>
             </VStack>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} h="400" marginTop={1}>
+            <Heading>Input MLIR Dialect</Heading>
+            <Box borderWidth="2px" height="100%">
+              {inputMLIRViewer}
+            </Box>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} h="400" marginTop={6}>
+            <Heading>Output MLIR Dialect</Heading>
+            <Box borderWidth="2px" height="100%">
+              {outputMLIRViewer}
+            </Box>
           </GridItem>
         </Grid>
       </main>
