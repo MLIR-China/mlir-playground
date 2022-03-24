@@ -31,7 +31,7 @@ const Home: NextPage = () => {
         </h1>
 
         <p className={styles.description}>
-          迎接后摩尔时代，加速中国普惠新硬件时代的到来🚀🚀🚀
+          迎接后摩尔时代的创新黄金期，加速中国普惠新硬件技术栈落地
         </p>
 
         <div className={styles.grid}>
