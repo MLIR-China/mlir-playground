@@ -27,8 +27,8 @@ const Home: NextPage = () => {
 
         <div className={styles.grid}>
           <a href="mlir-china.org" className={styles.card}>
-            <h2>编译器原理教程 &rarr;</h2>
-            <p>基于MLIR的编译器原理教程(开发中...)</p>
+            <h2>编译器原理课程 &rarr;</h2>
+            <p>基于MLIR的编译器原理课程(开发中...)</p>
           </a>
 
           <a href="https://nextjs.org/learn" className={styles.card}>
