@@ -10,7 +10,6 @@ LLVM_WASM_BUILD="$LLVM_ROOT/llvm-wasm-build"
 
 # apply patches
 pushd $LLVM_SRC
-git apply $APP_ROOT/patches/llvm.patch
 git apply $APP_ROOT/patches/mlir.patch
 git apply $APP_ROOT/patches/toyc7.patch
 git apply $APP_ROOT/patches/toyc7-cmake.patch
@@ -43,5 +42,5 @@ emcmake cmake -G Ninja \
 cmake --build $LLVM_WASM_BUILD/ -- toyc-ch7
 
 # copy build result back into project workspace
-mkdir build
+mkdir -p build
 cp -r $LLVM_WASM_BUILD/bin/ build/
