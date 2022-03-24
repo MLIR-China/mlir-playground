@@ -2,8 +2,17 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
+import { useRouter } from 'next/router'
 
 const Home: NextPage = () => {
+  const router = useRouter()
+
+  const onPlaygroundClick = () => {
+    router.push({ // tell NEXT.js to redirct the page
+      pathname: '/playground/'
+    })
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -31,7 +40,7 @@ const Home: NextPage = () => {
             <p>基于MLIR的编译器原理课程(开发中...)</p>
           </a>
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
+          <a onClick={onPlaygroundClick} className={styles.card}>
             <h2>Playground &rarr;</h2>
             <p>在浏览器中体验使用MLIR进行编译器逻辑的开发!</p>
           </a>
