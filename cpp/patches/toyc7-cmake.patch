@@ -1,0 +1,10 @@
+diff --git a/mlir/examples/toy/Ch7/CMakeLists.txt b/mlir/examples/toy/Ch7/CMakeLists.txt
+index 6055038e39a9..ee6fdaddb786 100644
+--- a/mlir/examples/toy/Ch7/CMakeLists.txt
++++ b/mlir/examples/toy/Ch7/CMakeLists.txt
+@@ -51,3 +51,5 @@ target_link_libraries(toyc-ch7
+     MLIRTargetLLVMIRExport
+     MLIRTransforms
+     )
++
++set_target_properties(toyc-ch7 PROPERTIES LINK_FLAGS "--preload-file ${MLIR_SOURCE_DIR}/test/Examples/Toy/Ch7/codegen.toy@input.toy -s EXPORTED_RUNTIME_METHODS=ccall,cwrap")
