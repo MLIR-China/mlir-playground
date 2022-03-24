@@ -22,7 +22,7 @@ const Home: NextPage = () => {
         </h1>
 
         <p className={styles.description}>
-          一起迎接后摩尔时代的到来吧🚀🚀🚀
+          迎接后摩尔时代，加速中国普惠新硬件时代的到来🚀🚀🚀
         </p>
 
         <div className={styles.grid}>
