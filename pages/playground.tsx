@@ -73,7 +73,7 @@ const Playground: NextPage = () => {
       defaultLanguage="cpp"
       defaultValue={defaultCode}
       onChange={onCodeChange}
-      options={Object.assign(monacoOptions, {readOnly: true})}
+      options={Object.assign({}, monacoOptions, {readOnly: true})}
     />
   )
 
