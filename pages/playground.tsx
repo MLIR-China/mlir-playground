@@ -14,7 +14,7 @@ import {
   HStack,
 } from '@chakra-ui/react'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ToyWasm from '../components/Toy/index.js'
 
 const Playground: NextPage = () => {
@@ -23,7 +23,6 @@ const Playground: NextPage = () => {
   const defaultMLIRInput = "Loading..."
   const defaultMLIROutput = defaultMLIRInput
 
-  const wasmInstance = ToyWasm;
   const [inputEditor, setInputEditor] = useState();
   const [outputEditor, setOutputEditor] = useState();
 
@@ -31,13 +30,20 @@ const Playground: NextPage = () => {
 
   const onInputViewerMount = (editor, _) => {
     setInputEditor(editor);
-    wasmInstance.getSource.then(default_text => {
+    ToyWasm().getSource.then(default_text => {
       editor.setValue(default_text);
     });
   }
 
   const onOutputViewerMount = (editor, _) => {
     setOutputEditor(editor);
+  }
+
+  const onRunButtonClick = () => {
+    let input_text = inputEditor.getValue();
+    ToyWasm().runToy(input_text).then(output_text => {
+      outputEditor.setValue(output_text);
+    });
   }
 
   const monacoOptions = {
@@ -83,15 +89,6 @@ const Playground: NextPage = () => {
     />
   )
 
-  const onRunButtonClick = () => {
-    if (inputEditor && outputEditor) {
-      let input_text = inputEditor.getValue();
-      wasmInstance.runToy(input_text).then(output_text => {
-        outputEditor.setValue(output_text);
-      });
-    }
-  }
-
   return (
     <div className={styles.container}>
       <Head>
@@ -110,6 +107,7 @@ const Playground: NextPage = () => {
               <HStack>
                 <Heading>Editor</Heading>
                 <Button
+                  isLoading={!inputEditor || !outputEditor}
                   mt="8"
                   as="a"
                   size="lg"
