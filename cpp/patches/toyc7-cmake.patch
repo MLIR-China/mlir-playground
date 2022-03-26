@@ -7,4 +7,4 @@ index 6055038e39a9..ee6fdaddb786 100644
      MLIRTransforms
      )
 +
-+set_target_properties(toyc-ch7 PROPERTIES LINK_FLAGS "--preload-file ${MLIR_SOURCE_DIR}/test/Examples/Toy/Ch7/codegen.toy@input.toy -s EXPORTED_RUNTIME_METHODS=ccall,cwrap -s EXPORTED_RUNTIME_METHODS=FS,PROXYFS,allocateUTF8")
++set_target_properties(toyc-ch7 PROPERTIES LINK_FLAGS "--preload-file ${MLIR_SOURCE_DIR}/test/Examples/Toy/Ch7/codegen.toy@input.toy -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,PROXYFS,allocateUTF8 -lproxyfs.js")
