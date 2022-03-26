@@ -14,42 +14,47 @@ import {
   HStack,
 } from '@chakra-ui/react'
 
+import Module from './toyc-ch7.js'
+
 const Playground: NextPage = () => {
 
-  const defaultCode = `// type your MLIR lower pass logic here
-
-struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
-
-  void getDependentDialects(DialectRegistry &registry) const override {
-    registry.insert<vector::VectorDialect>();
-  }
-
-  void runOnOperation() override {
-    FuncOp funcOp = getOperation();
-    if (failed(...)) {
-      return signalPassFailure();
-    }
-  }
-};
-`
-
-  const defaultMLIRInput = `func @dot_general_4x384x32x384() -> tensor<4x384x384xf32> {
-  %lhs = util.unfoldable_constant dense<1.0> : tensor<4x384x32xf32>
-  %rhs = util.unfoldable_constant dense<1.0> : tensor<4x32x384xf32>
-  %0 = "mhlo.dot_general"(%lhs, %rhs) {
-    dot_dimension_numbers = {
-      lhs_batching_dimensions = dense<0> : tensor<1xi64>,
-      lhs_contracting_dimensions = dense<2> : tensor<1xi64>,
-      rhs_batching_dimensions = dense<0> : tensor<1xi64>,
-      rhs_contracting_dimensions = dense<1> : tensor<1xi64>
-      }
-  } : (tensor<4x384x32xf32>, tensor<4x32x384xf32>) -> tensor<4x384x384xf32>
-  return %0 : tensor<4x384x384xf32>
-}`
-
+  const defaultCode = "Support coming soon."
+  const defaultMLIRInput = "Loading..."
   const defaultMLIROutput = defaultMLIRInput
 
+  let wasmInstance = {
+    ready: new Promise(resolve => {
+      Module({
+        onRuntimeInitialized() {
+          wasmInstance = Object.assign(this, {
+            ready: Promise.resolve(),
+            runToy: this.cwrap("main", "number", [])
+          });
+          resolve(undefined);
+        }
+      })
+    }),
+    runToy: undefined, // will be assigned the "main" function of the Toy executable
+    inputEditor: undefined, // will be assigned the input monaco editor
+    outputEditor: undefined, // will be assigned the output monaco editor
+  }
+
   const onCodeChange = () => {}
+
+  const onInputViewerMount = (editor, _) => {
+    wasmInstance.ready.then(() => {
+      let default_text = wasmInstance.FS.readFile("input.toy", { encoding: "utf8" });
+      editor.setValue(default_text);
+      wasmInstance.inputEditor = editor;
+    })
+  }
+
+  const onOutputViewerMount = (editor, _) => {
+    wasmInstance.ready.then(() => {
+      editor.setValue("");
+      wasmInstance.outputEditor = editor;
+    })
+  }
 
   const monacoOptions = {
     selectOnLineNumbers: true,
@@ -68,7 +73,7 @@ struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
       defaultLanguage="cpp"
       defaultValue={defaultCode}
       onChange={onCodeChange}
-      options={monacoOptions}
+      options={Object.assign(monacoOptions, {readOnly: true})}
     />
   )
 
@@ -78,6 +83,7 @@ struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIRInput}
+      onMount={onInputViewerMount}
       options={monacoOptions}
     />
   )
@@ -88,9 +94,23 @@ struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIROutput}
+      onMount={onOutputViewerMount}
       options={monacoOptions}
     />
   )
+
+  const onRunButtonClick = () => {
+    wasmInstance.ready.then(() => {
+      if (!wasmInstance.inputEditor || !wasmInstance.outputEditor) {
+        return;
+      }
+      let input_text = wasmInstance.inputEditor.getValue();
+      wasmInstance.FS.writeFile("input.toy", input_text, { encoding: "utf8" });
+      wasmInstance.runToy();
+      let output_text = wasmInstance.FS.readFile("output.mlir", { encoding: "utf8" });
+      wasmInstance.outputEditor.setValue(output_text);
+    });
+  }
 
   return (
     <div className={styles.container}>
@@ -115,6 +135,7 @@ struct MLIRLoweringPass : public MLIRLoweringBase<MLIRLoweringPass> {
                   size="lg"
                   colorScheme="blue"
                   fontWeight="bold"
+                  onClick={onRunButtonClick}
                 >
                   Run
                 </Button>
