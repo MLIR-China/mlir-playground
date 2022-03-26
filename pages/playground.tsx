@@ -14,7 +14,8 @@ import {
   HStack,
 } from '@chakra-ui/react'
 
-import Module from './toyc-ch7.js'
+import { useState } from 'react'
+import ToyWasm from '../components/Toy/index.js'
 
 const Playground: NextPage = () => {
 
@@ -22,38 +23,21 @@ const Playground: NextPage = () => {
   const defaultMLIRInput = "Loading..."
   const defaultMLIROutput = defaultMLIRInput
 
-  let wasmInstance = {
-    ready: new Promise(resolve => {
-      Module({
-        onRuntimeInitialized() {
-          wasmInstance = Object.assign(this, {
-            ready: Promise.resolve(),
-            runToy: this.cwrap("main", "number", [])
-          });
-          resolve(undefined);
-        }
-      })
-    }),
-    runToy: undefined, // will be assigned the "main" function of the Toy executable
-    inputEditor: undefined, // will be assigned the input monaco editor
-    outputEditor: undefined, // will be assigned the output monaco editor
-  }
+  const wasmInstance = ToyWasm;
+  const [inputEditor, setInputEditor] = useState();
+  const [outputEditor, setOutputEditor] = useState();
 
   const onCodeChange = () => {}
 
   const onInputViewerMount = (editor, _) => {
-    wasmInstance.ready.then(() => {
-      let default_text = wasmInstance.FS.readFile("input.toy", { encoding: "utf8" });
+    setInputEditor(editor);
+    wasmInstance.getSource.then(default_text => {
       editor.setValue(default_text);
-      wasmInstance.inputEditor = editor;
-    })
+    });
   }
 
   const onOutputViewerMount = (editor, _) => {
-    wasmInstance.ready.then(() => {
-      editor.setValue("");
-      wasmInstance.outputEditor = editor;
-    })
+    setOutputEditor(editor);
   }
 
   const monacoOptions = {
@@ -100,16 +84,12 @@ const Playground: NextPage = () => {
   )
 
   const onRunButtonClick = () => {
-    wasmInstance.ready.then(() => {
-      if (!wasmInstance.inputEditor || !wasmInstance.outputEditor) {
-        return;
-      }
-      let input_text = wasmInstance.inputEditor.getValue();
-      wasmInstance.FS.writeFile("input.toy", input_text, { encoding: "utf8" });
-      wasmInstance.runToy();
-      let output_text = wasmInstance.FS.readFile("output.mlir", { encoding: "utf8" });
-      wasmInstance.outputEditor.setValue(output_text);
-    });
+    if (inputEditor && outputEditor) {
+      let input_text = inputEditor.getValue();
+      wasmInstance.runToy(input_text).then(output_text => {
+        outputEditor.setValue(output_text);
+      });
+    }
   }
 
   return (
