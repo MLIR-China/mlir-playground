@@ -6,7 +6,7 @@ LLVM_ROOT=/opt/llvm
 # find directory
 LLVM_SRC="$LLVM_ROOT/llvm-project"
 LLVM_NATIVE_BUILD="$LLVM_ROOT/llvm-native-build"
-LLVM_WASM_BUILD="$LLVM_ROOT/llvm-wasm-build"
+LLVM_WASM_BUILD="$APP_ROOT/build"
 
 # apply patches
 pushd $LLVM_SRC
@@ -40,7 +40,3 @@ emcmake cmake -G Ninja \
     -DMLIR_LINALG_ODS_YAML_GEN=$LLVM_NATIVE_BUILD/bin/mlir-linalg-ods-yaml-gen \
 
 cmake --build $LLVM_WASM_BUILD/ -- toyc-ch7
-
-# copy build result back into project workspace
-mkdir -p build
-cp -r $LLVM_WASM_BUILD/bin/ build/
