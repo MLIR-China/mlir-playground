@@ -8,3 +8,4 @@
 /emsdk/upstream/emscripten/tools/file_packager.py onlylibs.data --js-output=onlylibs.js --preload /emsdk/upstream/emscripten/cache/sysroot/@lib --lz4 --no-node --from-emcc
 
 # Need to then inject this into clang.mjs or wasm-ld.mjs before the line `var moduleOverrides = Object.assign({}, Module);`
+
