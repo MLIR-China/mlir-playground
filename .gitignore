@@ -39,4 +39,4 @@ yarn-error.log*
 
 # cpp
 ## build results
-/cpp/build
+build

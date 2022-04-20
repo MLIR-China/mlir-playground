@@ -12,38 +12,73 @@ import {
   VStack,
   Box,
   HStack,
+  Textarea
 } from '@chakra-ui/react'
 
 import { useEffect, useState } from 'react'
-import ToyWasm from '../components/Toy/index.js'
+import WasmCompiler from '../components/WasmCompiler/index.js'
 
 const Playground: NextPage = () => {
+  const defaultCode =
+`#include "mlir/IR/Dialect.h"
+#include "mlir/InitAllDialects.h"
+#include "mlir/InitAllPasses.h"
+#include "mlir/Support/MlirOptMain.h"
 
-  const defaultCode = "Support coming soon."
-  const defaultMLIRInput = "Loading..."
-  const defaultMLIROutput = defaultMLIRInput
+int main(int argc, char **argv) {
+  mlir::registerAllPasses();
 
+  mlir::DialectRegistry registry;
+  registerAllDialects(registry);
+
+  return mlir::asMainReturnCode(
+      mlir::MlirOptMain(argc, argv, "Custom optimizer driver\\n", registry));
+}
+`
+  const defaultMLIRInput =
+`module  {
+  func @main() -> i32 {
+    %0 = constant 42 : i32
+    return %0 : i32
+  }
+}
+`
+  const defaultMLIROutput = ""
+
+  const [cppEditor, setCppEditor] = useState();
   const [inputEditor, setInputEditor] = useState();
   const [outputEditor, setOutputEditor] = useState();
 
   const onCodeChange = () => {}
 
+  const onCppEditorMount = (editor, _) => {
+    setCppEditor(editor);
+  }
+
   const onInputViewerMount = (editor, _) => {
     setInputEditor(editor);
-    ToyWasm().getSource.then(default_text => {
-      editor.setValue(default_text);
-    });
   }
 
   const onOutputViewerMount = (editor, _) => {
     setOutputEditor(editor);
   }
 
+  let [textvalue, setTextValue] = useState('');
+  const stdoutBox = (
+    <Textarea borderWidth="2px" height="100%" bg="gray.800" value={textvalue} readOnly color="white"></Textarea>
+  )
+
   const onRunButtonClick = () => {
-    let input_text = inputEditor.getValue();
-    ToyWasm().runToy(input_text).then(output_text => {
-      outputEditor.setValue(output_text);
-    });
+    let cpp_source = cppEditor.getValue();
+    let input_mlir = inputEditor.getValue();
+    let printer = (text) => {
+      let inputValue = textvalue;
+      setTextValue(inputValue + text + "\n");
+      console.log(text);
+    };
+    WasmCompiler()
+      .compileAndRun(cpp_source, input_mlir, ["--my-pass"], printer)
+      .then((output) => { outputEditor.setValue(output); }, printer);
   }
 
   const monacoOptions = {
@@ -62,8 +97,9 @@ const Playground: NextPage = () => {
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultCode}
+      onMount={onCppEditorMount}
       onChange={onCodeChange}
-      options={Object.assign({}, monacoOptions, {readOnly: true})}
+      options={monacoOptions}
     />
   )
 
@@ -98,11 +134,11 @@ const Playground: NextPage = () => {
       </Head>
       <main className={styles.main_playground}>
         <Grid
-          templateRows="repeat(2, 1fr)"
+          templateRows="repeat(3, 1fr)"
           templateColumns="repeat(2, 1fr)"
           columnGap={2}
         >
-          <GridItem rowSpan={2} colSpan={1} h="800">
+          <GridItem rowSpan={3} colSpan={1} h="800">
             <VStack spacing={4} align="left" h="100%">
               <HStack>
                 <Heading>Editor</Heading>
@@ -123,17 +159,21 @@ const Playground: NextPage = () => {
               </Box>
             </VStack>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} h="400" marginTop={1}>
+          <GridItem rowSpan={1} colSpan={1} h="200" marginTop={1}>
             <Heading>Input</Heading>
             <Box borderWidth="2px" height="100%">
               {inputMLIRViewer}
             </Box>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} h="400" marginTop={6}>
+          <GridItem rowSpan={1} colSpan={1} h="200" marginTop={1}>
             <Heading>Output</Heading>
             <Box borderWidth="2px" height="100%">
               {outputMLIRViewer}
             </Box>
+          </GridItem>
+          <GridItem rowSpan={1} colSpan={1} marginTop={1}>
+            <Heading>Logs</Heading>
+            {stdoutBox}
           </GridItem>
         </Grid>
       </main>
