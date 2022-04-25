@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 
   const codeEditor = (
     <Editor
-      key="dslEditor"
+      key="cppEditor"
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultCode}
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 
   const inputMLIRViewer = (
     <Editor
-      key="dslEditor"
+      key="inputEditor"
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIRInput}
@@ -107,12 +107,12 @@ int main(int argc, char **argv) {
 
   const outputMLIRViewer = (
     <Editor
-      key="dslEditor"
+      key="outputEditor"
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIROutput}
       onMount={onOutputViewerMount}
-      options={monacoOptions}
+      options={{...monacoOptions, readOnly: true}}
     />
   )
 
@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} marginTop={1}>
             <Heading>Logs</Heading>
-            <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white"></Textarea>
+            <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white" fontFamily="Consolas, 'Courier New', monospace"></Textarea>
           </GridItem>
         </Grid>
       </main>
