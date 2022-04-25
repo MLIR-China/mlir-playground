@@ -15,7 +15,7 @@ import {
   Textarea
 } from '@chakra-ui/react'
 
-import { useEffect, useState } from 'react'
+import { useRef, useState } from 'react'
 import WasmCompiler from '../components/WasmCompiler/index.js'
 
 const Playground: NextPage = () => {
@@ -45,40 +45,32 @@ int main(int argc, char **argv) {
 `
   const defaultMLIROutput = ""
 
-  const [cppEditor, setCppEditor] = useState();
-  const [inputEditor, setInputEditor] = useState();
-  const [outputEditor, setOutputEditor] = useState();
-
-  const onCodeChange = () => {}
+  const cppEditor = useRef();
+  const inputEditor = useRef();
+  const outputEditor = useRef();
+  const [logValue, setLogValue] = useState('');
 
   const onCppEditorMount = (editor, _) => {
-    setCppEditor(editor);
+    cppEditor.current = editor;
   }
 
   const onInputViewerMount = (editor, _) => {
-    setInputEditor(editor);
+    inputEditor.current = editor;
   }
 
   const onOutputViewerMount = (editor, _) => {
-    setOutputEditor(editor);
+    outputEditor.current = editor;
   }
 
-  let [textvalue, setTextValue] = useState('');
-  const stdoutBox = (
-    <Textarea borderWidth="2px" height="100%" bg="gray.800" value={textvalue} readOnly color="white"></Textarea>
-  )
-
   const onRunButtonClick = () => {
-    let cpp_source = cppEditor.getValue();
-    let input_mlir = inputEditor.getValue();
+    let cpp_source = cppEditor.current.getValue();
+    let input_mlir = inputEditor.current.getValue();
     let printer = (text) => {
-      let inputValue = textvalue;
-      setTextValue(inputValue + text + "\n");
-      console.log(text);
+      setLogValue(currValue => currValue + text + "\n");
     };
     WasmCompiler()
       .compileAndRun(cpp_source, input_mlir, ["--my-pass"], printer)
-      .then((output) => { outputEditor.setValue(output); }, printer);
+      .then((output) => { outputEditor.current.setValue(output); }, printer);
   }
 
   const monacoOptions = {
@@ -98,7 +90,6 @@ int main(int argc, char **argv) {
       defaultLanguage="cpp"
       defaultValue={defaultCode}
       onMount={onCppEditorMount}
-      onChange={onCodeChange}
       options={monacoOptions}
     />
   )
@@ -173,7 +164,7 @@ int main(int argc, char **argv) {
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} marginTop={1}>
             <Heading>Logs</Heading>
-            {stdoutBox}
+            <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white"></Textarea>
           </GridItem>
         </Grid>
       </main>
