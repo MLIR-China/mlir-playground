@@ -1,8 +1,7 @@
+import { useRef, useState } from 'react'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
-import Editor, { OnMount } from '@monaco-editor/react'
-import styles from '../styles/Home.module.css'
 
 import {
   Button,
@@ -14,9 +13,10 @@ import {
   HStack,
   Textarea
 } from '@chakra-ui/react'
+import Editor, { OnMount } from '@monaco-editor/react'
 
-import { useRef, useState } from 'react'
 import WasmCompiler from '../components/WasmCompiler/index.js'
+import styles from '../styles/Home.module.css'
 
 const Playground: NextPage = () => {
   const defaultCode =
