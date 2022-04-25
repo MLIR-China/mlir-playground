@@ -1,5 +1,5 @@
-import ClangModule from "./clang.mjs";
-import LldModule from "./wasm-ld.mjs";
+import ClangModule from "./wasm/clang.mjs";
+import LldModule from "./wasm/wasm-ld.mjs";
 import TemplateModule from "./template.js";
 
 const WasmCompiler = (() => {
