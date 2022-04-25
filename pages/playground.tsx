@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
-import Editor from '@monaco-editor/react'
+import Editor, { OnMount } from '@monaco-editor/react'
 import styles from '../styles/Home.module.css'
 
 import {
@@ -45,32 +45,32 @@ int main(int argc, char **argv) {
 `
   const defaultMLIROutput = ""
 
-  const cppEditor = useRef();
-  const inputEditor = useRef();
-  const outputEditor = useRef();
+  const cppEditor : React.MutableRefObject<any> = useRef();
+  const inputEditor : React.MutableRefObject<any> = useRef();
+  const outputEditor : React.MutableRefObject<any> = useRef();
   const [logValue, setLogValue] = useState('');
 
-  const onCppEditorMount = (editor, _) => {
+  const onCppEditorMount : OnMount = (editor, _) => {
     cppEditor.current = editor;
   }
 
-  const onInputViewerMount = (editor, _) => {
+  const onInputViewerMount : OnMount = (editor, _) => {
     inputEditor.current = editor;
   }
 
-  const onOutputViewerMount = (editor, _) => {
+  const onOutputViewerMount : OnMount = (editor, _) => {
     outputEditor.current = editor;
   }
 
   const onRunButtonClick = () => {
     let cpp_source = cppEditor.current.getValue();
     let input_mlir = inputEditor.current.getValue();
-    let printer = (text) => {
+    let printer = (text: string) => {
       setLogValue(currValue => currValue + text + "\n");
     };
     WasmCompiler()
       .compileAndRun(cpp_source, input_mlir, ["--my-pass"], printer)
-      .then((output) => { outputEditor.current.setValue(output); }, printer);
+      .then((output: string) => { outputEditor.current.setValue(output); }, printer);
   }
 
   const monacoOptions = {
