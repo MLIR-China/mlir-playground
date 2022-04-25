@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
@@ -45,21 +45,21 @@ int main(int argc, char **argv) {
 `
   const defaultMLIROutput = ""
 
-  const cppEditor : React.MutableRefObject<any> = useRef();
-  const inputEditor : React.MutableRefObject<any> = useRef();
-  const outputEditor : React.MutableRefObject<any> = useRef();
+  // state
+  const [allEditorsMounted, setAllEditorsMounted] = useState(false);
+  const cppEditor : React.MutableRefObject<any> = useRef(null);
+  const inputEditor : React.MutableRefObject<any> = useRef(null);
+  const outputEditor : React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState('');
 
-  const onCppEditorMount : OnMount = (editor, _) => {
-    cppEditor.current = editor;
-  }
-
-  const onInputViewerMount : OnMount = (editor, _) => {
-    inputEditor.current = editor;
-  }
-
-  const onOutputViewerMount : OnMount = (editor, _) => {
-    outputEditor.current = editor;
+  const onEditorMounted = (editorRef: React.MutableRefObject<any>) : OnMount => {
+    return (editor, _) => {
+      editorRef.current = editor;
+      if (cppEditor.current && inputEditor.current && outputEditor.current) {
+        // All editors mounted.
+        setAllEditorsMounted(true);
+      }
+    }
   }
 
   const onRunButtonClick = () => {
@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultCode}
-      onMount={onCppEditorMount}
+      onMount={onEditorMounted(cppEditor)}
       options={monacoOptions}
     />
   )
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIRInput}
-      onMount={onInputViewerMount}
+      onMount={onEditorMounted(inputEditor)}
       options={monacoOptions}
     />
   )
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIROutput}
-      onMount={onOutputViewerMount}
+      onMount={onEditorMounted(outputEditor)}
       options={{...monacoOptions, readOnly: true}}
     />
   )
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
               <HStack>
                 <Heading>Editor</Heading>
                 <Button
-                  isLoading={!inputEditor || !outputEditor}
+                  isLoading={!allEditorsMounted}
                   mt="8"
                   as="a"
                   size="lg"
