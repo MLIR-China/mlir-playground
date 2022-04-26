@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   const inputEditor : React.MutableRefObject<any> = useRef(null);
   const outputEditor : React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState('');
-  const [additionalRunArgs, setAdditionalRunArgs] = useState("--my-pass");
+  const [additionalRunArgs, setAdditionalRunArgs] = useState("--convert-std-to-llvm");
 
   const onEditorMounted = (editorRef: React.MutableRefObject<any>) : OnMount => {
     return (editor, _) => {
@@ -138,12 +138,13 @@ int main(int argc, char **argv) {
       </Head>
       <main className={styles.main_playground}>
         <Grid
-          templateRows="repeat(3, 1fr)"
+          templateRows="repeat(4, 1fr)"
           templateColumns="repeat(2, 1fr)"
-          columnGap={2}
+          columnGap={4}
+          rowGap={2}
         >
-          <GridItem rowSpan={3} colSpan={1} h="800">
-            <VStack spacing={4} align="left" h="100%">
+          <GridItem rowSpan={4} colSpan={1}>
+            <VStack spacing={4} align="left">
               <HStack>
                 <Heading>MLIR Playground</Heading>
                 <Button
@@ -169,37 +170,39 @@ int main(int argc, char **argv) {
                   <InputRightAddon children="input.mlir -o output.mlir"></InputRightAddon>
                 </InputGroup>
               </HStack>
-              <Flex align="end">
-                <Heading>Editor</Heading>
-                <Spacer />
-                <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
-              </Flex>
-              <Box borderWidth="2px" height="100%">
-                {codeEditor}
+              <Box>
+                <Flex align="end">
+                  <Heading>Editor</Heading>
+                  <Spacer />
+                  <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
+                </Flex>
+                <Box borderWidth="2px" h="800">
+                  {codeEditor}
+                </Box>
               </Box>
             </VStack>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} h="200" marginTop={1}>
+          <GridItem rowSpan={1} colSpan={1}>
             <Flex align="end">
               <Heading>Input</Heading>
               <Spacer />
               <Text fontFamily={monospaceFontFamily}>input.mlir</Text>
             </Flex>
-            <Box borderWidth="2px" height="100%">
+            <Box borderWidth="2px" h="200">
               {inputMLIRViewer}
             </Box>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} h="200" marginTop={1}>
+          <GridItem rowSpan={1} colSpan={1}>
             <Flex align="end">
               <Heading>Output</Heading>
               <Spacer />
               <Text fontFamily={monospaceFontFamily}>output.mlir</Text>
             </Flex>
-            <Box borderWidth="2px" height="100%">
+            <Box borderWidth="2px" h="200">
               {outputMLIRViewer}
             </Box>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} marginTop={1}>
+          <GridItem rowSpan={2} colSpan={1}>
             <Heading>Logs</Heading>
             <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white" fontFamily={monospaceFontFamily}></Textarea>
           </GridItem>
