@@ -4,15 +4,21 @@ import Head from 'next/head'
 import Image from 'next/image'
 
 import {
+  Box,
   Button,
+  Flex,
   Grid,
   GridItem,
   Heading,
-  VStack,
-  Box,
   HStack,
+  Input,
+  InputGroup,
+  InputLeftAddon,
+  InputRightAddon,
+  Spacer,
   Text,
-  Textarea
+  Textarea,
+  VStack
 } from '@chakra-ui/react'
 import Editor, { OnMount } from '@monaco-editor/react'
 
@@ -46,6 +52,8 @@ int main(int argc, char **argv) {
 `
   const defaultMLIROutput = ""
 
+  const monospaceFontFamily = "Consolas, 'Courier New', monospace";
+
   // state
   const [compilerState, setCompilerState] = useState("");
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
@@ -53,6 +61,7 @@ int main(int argc, char **argv) {
   const inputEditor : React.MutableRefObject<any> = useRef(null);
   const outputEditor : React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState('');
+  const [additionalRunArgs, setAdditionalRunArgs] = useState("--my-pass");
 
   const onEditorMounted = (editorRef: React.MutableRefObject<any>) : OnMount => {
     return (editor, _) => {
@@ -72,7 +81,7 @@ int main(int argc, char **argv) {
     };
     setCompilerState("Compiling...");
     WasmCompiler()
-      .compileAndRun(cpp_source, input_mlir, ["--my-pass"], printer)
+      .compileAndRun(cpp_source, input_mlir, additionalRunArgs.split(/\s+/), printer)
       .finally(() => { setCompilerState(""); })
       .then((output: string) => { outputEditor.current.setValue(output); }, printer);
   }
@@ -136,7 +145,7 @@ int main(int argc, char **argv) {
           <GridItem rowSpan={3} colSpan={1} h="800">
             <VStack spacing={4} align="left" h="100%">
               <HStack>
-                <Heading>Editor</Heading>
+                <Heading>MLIR Playground</Heading>
                 <Button
                   isLoading={!allEditorsMounted || compilerState !== ""}
                   mt="8"
@@ -150,26 +159,49 @@ int main(int argc, char **argv) {
                 </Button>
                 <Text>{compilerState}</Text>
               </HStack>
+              <HStack>
+                <Text>Arguments</Text>
+                <InputGroup fontFamily={monospaceFontFamily}>
+                  <InputLeftAddon children="mlir-opt"></InputLeftAddon>
+                  <Input
+                    value={additionalRunArgs}
+                    onChange={(event) => setAdditionalRunArgs(event.target.value)}></Input>
+                  <InputRightAddon children="input.mlir -o output.mlir"></InputRightAddon>
+                </InputGroup>
+              </HStack>
+              <Flex align="end">
+                <Heading>Editor</Heading>
+                <Spacer />
+                <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
+              </Flex>
               <Box borderWidth="2px" height="100%">
                 {codeEditor}
               </Box>
             </VStack>
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} h="200" marginTop={1}>
-            <Heading>Input</Heading>
+            <Flex align="end">
+              <Heading>Input</Heading>
+              <Spacer />
+              <Text fontFamily={monospaceFontFamily}>input.mlir</Text>
+            </Flex>
             <Box borderWidth="2px" height="100%">
               {inputMLIRViewer}
             </Box>
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} h="200" marginTop={1}>
-            <Heading>Output</Heading>
+            <Flex align="end">
+              <Heading>Output</Heading>
+              <Spacer />
+              <Text fontFamily={monospaceFontFamily}>output.mlir</Text>
+            </Flex>
             <Box borderWidth="2px" height="100%">
               {outputMLIRViewer}
             </Box>
           </GridItem>
           <GridItem rowSpan={1} colSpan={1} marginTop={1}>
             <Heading>Logs</Heading>
-            <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white" fontFamily="Consolas, 'Courier New', monospace"></Textarea>
+            <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white" fontFamily={monospaceFontFamily}></Textarea>
           </GridItem>
         </Grid>
       </main>
