@@ -11,6 +11,7 @@ import {
   VStack,
   Box,
   HStack,
+  Text,
   Textarea
 } from '@chakra-ui/react'
 import Editor, { OnMount } from '@monaco-editor/react'
@@ -46,6 +47,7 @@ int main(int argc, char **argv) {
   const defaultMLIROutput = ""
 
   // state
+  const [compilerState, setCompilerState] = useState("");
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor : React.MutableRefObject<any> = useRef(null);
   const inputEditor : React.MutableRefObject<any> = useRef(null);
@@ -68,8 +70,10 @@ int main(int argc, char **argv) {
     let printer = (text: string) => {
       setLogValue(currValue => currValue + text + "\n");
     };
+    setCompilerState("Compiling...");
     WasmCompiler()
       .compileAndRun(cpp_source, input_mlir, ["--my-pass"], printer)
+      .finally(() => { setCompilerState(""); })
       .then((output: string) => { outputEditor.current.setValue(output); }, printer);
   }
 
@@ -134,7 +138,7 @@ int main(int argc, char **argv) {
               <HStack>
                 <Heading>Editor</Heading>
                 <Button
-                  isLoading={!allEditorsMounted}
+                  isLoading={!allEditorsMounted || compilerState !== ""}
                   mt="8"
                   as="a"
                   size="lg"
@@ -144,6 +148,7 @@ int main(int argc, char **argv) {
                 >
                   Run
                 </Button>
+                <Text>{compilerState}</Text>
               </HStack>
               <Box borderWidth="2px" height="100%">
                 {codeEditor}
