@@ -1,49 +1,89 @@
+import React, { useRef, useState } from 'react'
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
-import Editor from '@monaco-editor/react'
-import styles from '../styles/Home.module.css'
 
 import {
+  Box,
   Button,
+  Flex,
   Grid,
   GridItem,
   Heading,
-  VStack,
-  Box,
   HStack,
+  Input,
+  InputGroup,
+  InputLeftAddon,
+  InputRightAddon,
+  Spacer,
+  Text,
+  Textarea,
+  VStack
 } from '@chakra-ui/react'
+import Editor, { OnMount } from '@monaco-editor/react'
 
-import { useEffect, useState } from 'react'
-import ToyWasm from '../components/Toy/index.js'
+import WasmCompiler from '../components/WasmCompiler/index.js'
+import styles from '../styles/Home.module.css'
 
 const Playground: NextPage = () => {
+  const defaultCode =
+`#include "mlir/IR/Dialect.h"
+#include "mlir/InitAllDialects.h"
+#include "mlir/InitAllPasses.h"
+#include "mlir/Support/MlirOptMain.h"
 
-  const defaultCode = "Support coming soon."
-  const defaultMLIRInput = "Loading..."
-  const defaultMLIROutput = defaultMLIRInput
+int main(int argc, char **argv) {
+  mlir::registerAllPasses();
 
-  const [inputEditor, setInputEditor] = useState();
-  const [outputEditor, setOutputEditor] = useState();
+  mlir::DialectRegistry registry;
+  registerAllDialects(registry);
 
-  const onCodeChange = () => {}
-
-  const onInputViewerMount = (editor, _) => {
-    setInputEditor(editor);
-    ToyWasm().getSource.then(default_text => {
-      editor.setValue(default_text);
-    });
+  return mlir::asMainReturnCode(
+      mlir::MlirOptMain(argc, argv, "Custom optimizer driver\\n", registry));
+}
+`
+  const defaultMLIRInput =
+`module  {
+  func @main() -> i32 {
+    %0 = constant 42 : i32
+    return %0 : i32
   }
+}
+`
+  const defaultMLIROutput = ""
 
-  const onOutputViewerMount = (editor, _) => {
-    setOutputEditor(editor);
+  const monospaceFontFamily = "Consolas, 'Courier New', monospace";
+
+  // state
+  const [compilerState, setCompilerState] = useState("");
+  const [allEditorsMounted, setAllEditorsMounted] = useState(false);
+  const cppEditor : React.MutableRefObject<any> = useRef(null);
+  const inputEditor : React.MutableRefObject<any> = useRef(null);
+  const outputEditor : React.MutableRefObject<any> = useRef(null);
+  const [logValue, setLogValue] = useState('');
+  const [additionalRunArgs, setAdditionalRunArgs] = useState("--convert-std-to-llvm");
+
+  const onEditorMounted = (editorRef: React.MutableRefObject<any>) : OnMount => {
+    return (editor, _) => {
+      editorRef.current = editor;
+      if (cppEditor.current && inputEditor.current && outputEditor.current) {
+        // All editors mounted.
+        setAllEditorsMounted(true);
+      }
+    }
   }
 
   const onRunButtonClick = () => {
-    let input_text = inputEditor.getValue();
-    ToyWasm().runToy(input_text).then(output_text => {
-      outputEditor.setValue(output_text);
-    });
+    let cpp_source = cppEditor.current.getValue();
+    let input_mlir = inputEditor.current.getValue();
+    let printer = (text: string) => {
+      setLogValue(currValue => currValue + text + "\n");
+    };
+    setCompilerState("Compiling...");
+    WasmCompiler()
+      .compileAndRun(cpp_source, input_mlir, additionalRunArgs.split(/\s+/), printer)
+      .finally(() => { setCompilerState(""); })
+      .then((output: string) => { outputEditor.current.setValue(output); }, printer);
   }
 
   const monacoOptions = {
@@ -58,34 +98,34 @@ const Playground: NextPage = () => {
 
   const codeEditor = (
     <Editor
-      key="dslEditor"
+      key="cppEditor"
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultCode}
-      onChange={onCodeChange}
-      options={Object.assign({}, monacoOptions, {readOnly: true})}
+      onMount={onEditorMounted(cppEditor)}
+      options={monacoOptions}
     />
   )
 
   const inputMLIRViewer = (
     <Editor
-      key="dslEditor"
+      key="inputEditor"
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIRInput}
-      onMount={onInputViewerMount}
+      onMount={onEditorMounted(inputEditor)}
       options={monacoOptions}
     />
   )
 
   const outputMLIRViewer = (
     <Editor
-      key="dslEditor"
+      key="outputEditor"
       height="100%"
       defaultLanguage="cpp"
       defaultValue={defaultMLIROutput}
-      onMount={onOutputViewerMount}
-      options={monacoOptions}
+      onMount={onEditorMounted(outputEditor)}
+      options={{...monacoOptions, readOnly: true}}
     />
   )
 
@@ -98,16 +138,17 @@ const Playground: NextPage = () => {
       </Head>
       <main className={styles.main_playground}>
         <Grid
-          templateRows="repeat(2, 1fr)"
+          templateRows="repeat(4, 1fr)"
           templateColumns="repeat(2, 1fr)"
-          columnGap={2}
+          columnGap={4}
+          rowGap={2}
         >
-          <GridItem rowSpan={2} colSpan={1} h="800">
-            <VStack spacing={4} align="left" h="100%">
+          <GridItem rowSpan={4} colSpan={1}>
+            <VStack spacing={4} align="left">
               <HStack>
-                <Heading>Editor</Heading>
+                <Heading>MLIR Playground</Heading>
                 <Button
-                  isLoading={!inputEditor || !outputEditor}
+                  isLoading={!allEditorsMounted || compilerState !== ""}
                   mt="8"
                   as="a"
                   size="lg"
@@ -117,23 +158,53 @@ const Playground: NextPage = () => {
                 >
                   Run
                 </Button>
+                <Text>{compilerState}</Text>
               </HStack>
-              <Box borderWidth="2px" height="100%">
-                {codeEditor}
+              <HStack>
+                <Text>Arguments</Text>
+                <InputGroup fontFamily={monospaceFontFamily}>
+                  <InputLeftAddon children="mlir-opt"></InputLeftAddon>
+                  <Input
+                    value={additionalRunArgs}
+                    onChange={(event) => setAdditionalRunArgs(event.target.value)}></Input>
+                  <InputRightAddon children="input.mlir -o output.mlir"></InputRightAddon>
+                </InputGroup>
+              </HStack>
+              <Box>
+                <Flex align="end">
+                  <Heading>Editor</Heading>
+                  <Spacer />
+                  <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
+                </Flex>
+                <Box borderWidth="2px" h="800">
+                  {codeEditor}
+                </Box>
               </Box>
             </VStack>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} h="400" marginTop={1}>
-            <Heading>Input</Heading>
-            <Box borderWidth="2px" height="100%">
+          <GridItem rowSpan={1} colSpan={1}>
+            <Flex align="end">
+              <Heading>Input</Heading>
+              <Spacer />
+              <Text fontFamily={monospaceFontFamily}>input.mlir</Text>
+            </Flex>
+            <Box borderWidth="2px" h="200">
               {inputMLIRViewer}
             </Box>
           </GridItem>
-          <GridItem rowSpan={1} colSpan={1} h="400" marginTop={6}>
-            <Heading>Output</Heading>
-            <Box borderWidth="2px" height="100%">
+          <GridItem rowSpan={1} colSpan={1}>
+            <Flex align="end">
+              <Heading>Output</Heading>
+              <Spacer />
+              <Text fontFamily={monospaceFontFamily}>output.mlir</Text>
+            </Flex>
+            <Box borderWidth="2px" h="200">
               {outputMLIRViewer}
             </Box>
+          </GridItem>
+          <GridItem rowSpan={2} colSpan={1}>
+            <Heading>Logs</Heading>
+            <Textarea borderWidth="2px" height="100%" bg="gray.800" value={logValue} readOnly color="white" fontFamily={monospaceFontFamily}></Textarea>
           </GridItem>
         </Grid>
       </main>

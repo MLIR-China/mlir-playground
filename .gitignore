@@ -37,6 +37,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# cpp
-## build results
+# wasm
+## cpp build results
 /cpp/build
+## packaged files
+*.data
