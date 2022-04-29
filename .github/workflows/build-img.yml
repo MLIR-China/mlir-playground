@@ -15,7 +15,7 @@ env:
   DOCKER_HUB_NAMESPACE: jackalcooper
 
 jobs:
-  build_manylinux:
+  build:
     name: Build ${{ matrix.tag-suffix }}
     runs-on: ubuntu-20.04
     strategy:
