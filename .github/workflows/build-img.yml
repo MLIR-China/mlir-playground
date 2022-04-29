@@ -12,7 +12,6 @@ concurrency:
 
 env:
   COMMIT_SHA: ${{ github.sha }}
-  DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
   DOCKER_HUB_NAMESPACE: jackalcooper
 
 jobs:
@@ -23,6 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         DOCKER_REPO: ["clang-wasm"]
+
+    env:
+      DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
 
     steps:
       - name: Checkout
