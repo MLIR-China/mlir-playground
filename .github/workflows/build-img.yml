@@ -23,13 +23,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag-suffix: ["clang-wasm"]
-        include:
-          - tag-suffix: "clang-wasm"
+        DOCKER_REPO: ["clang-wasm"]
 
     env:
       COMMIT_SHA: ${{ github.sha }}
-      DOCKER_REPO: "${{ matrix.tag-suffix }}"
+      DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
       DOCKER_HUB_NAMESPACE: jackalcooper
 
     steps:
