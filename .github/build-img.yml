@@ -7,7 +7,7 @@ on:
       - add-actions
 
 concurrency:
-  group: test-${{ github.ref }}
+  group: build-img-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -18,7 +18,7 @@ env:
 
 jobs:
   build_manylinux:
-    name: ${{ matrix.policy }}_${{ matrix.platform }}_${{ matrix.tag-suffix }}
+    name: Build ${{ matrix.tag-suffix }}
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
