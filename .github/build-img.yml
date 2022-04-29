@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - add-actions
+      - "add-actions"
 
 concurrency:
   group: build-img-${{ github.ref }}
