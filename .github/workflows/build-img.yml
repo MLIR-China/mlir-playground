@@ -11,10 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  REGION_ID: cn-beijing
-  ACR_REGISTRY: registry.cn-beijing.aliyuncs.com
-  ACR_NAMESPACE: oneflow
-  DOCKER_HUB_NAMESPACE: oneflowinc
+  COMMIT_SHA: ${{ github.sha }}
+  DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
+  DOCKER_HUB_NAMESPACE: jackalcooper
 
 jobs:
   build_manylinux:
@@ -24,11 +23,6 @@ jobs:
       fail-fast: false
       matrix:
         DOCKER_REPO: ["clang-wasm"]
-
-    env:
-      COMMIT_SHA: ${{ github.sha }}
-      DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
-      DOCKER_HUB_NAMESPACE: jackalcooper
 
     steps:
       - name: Checkout
