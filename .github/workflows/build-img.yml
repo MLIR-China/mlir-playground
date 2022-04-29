@@ -30,6 +30,7 @@ jobs:
     env:
       COMMIT_SHA: ${{ github.sha }}
       DOCKER_REPO: "${{ matrix.tag-suffix }}"
+      DOCKER_HUB_NAMESPACE: jackalcooper
 
     steps:
       - name: Checkout
