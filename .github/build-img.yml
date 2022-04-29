@@ -1,4 +1,4 @@
-name: Build Docker image for Clang WASM
+name: Build Clang WASM image
 
 on:
   workflow_dispatch:
