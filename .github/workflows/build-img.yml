@@ -53,4 +53,4 @@ jobs:
             ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
           cache-to: type=inline
-          context: ./cpp/docker/Dockerfile
+          context: ./cpp/docker
