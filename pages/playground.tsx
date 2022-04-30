@@ -60,14 +60,23 @@ int main(int argc, char **argv) {
   const cppEditor : React.MutableRefObject<any> = useRef(null);
   const inputEditor : React.MutableRefObject<any> = useRef(null);
   const outputEditor : React.MutableRefObject<any> = useRef(null);
+  const wasmCompiler : React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState('');
   const [additionalRunArgs, setAdditionalRunArgs] = useState("--convert-std-to-llvm");
+
+  const getWasmCompiler = () => {
+    if (!wasmCompiler.current) {
+      wasmCompiler.current = WasmCompiler();
+    }
+    return wasmCompiler.current;
+  };
 
   const onEditorMounted = (editorRef: React.MutableRefObject<any>) : OnMount => {
     return (editor, _) => {
       editorRef.current = editor;
       if (cppEditor.current && inputEditor.current && outputEditor.current) {
         // All editors mounted.
+        getWasmCompiler().initialize();
         setAllEditorsMounted(true);
       }
     }
@@ -80,7 +89,7 @@ int main(int argc, char **argv) {
       setLogValue(currValue => currValue + text + "\n");
     };
     setCompilerState("Compiling...");
-    WasmCompiler()
+    getWasmCompiler()
       .compileAndRun(cpp_source, input_mlir, additionalRunArgs.split(/\s+/), printer)
       .finally(() => { setCompilerState(""); })
       .then((output: string) => { outputEditor.current.setValue(output); }, printer);
