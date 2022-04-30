@@ -27,6 +27,10 @@ jobs:
       DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
 
     steps:
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 6
       - name: Checkout
         uses: actions/checkout@v2
 
