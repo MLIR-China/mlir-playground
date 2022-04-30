@@ -42,3 +42,6 @@ yarn-error.log*
 /cpp/build
 ## packaged files
 *.data
+
+# Local Netlify folder
+.netlify
