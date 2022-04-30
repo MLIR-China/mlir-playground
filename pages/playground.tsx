@@ -163,11 +163,11 @@ int main(int argc, char **argv) {
               <HStack>
                 <Text>Arguments</Text>
                 <InputGroup fontFamily={monospaceFontFamily}>
-                  <InputLeftAddon children="mlir-opt"></InputLeftAddon>
+                  <InputLeftAddon>mlir-opt</InputLeftAddon>
                   <Input
                     value={additionalRunArgs}
                     onChange={(event) => setAdditionalRunArgs(event.target.value)}></Input>
-                  <InputRightAddon children="input.mlir -o output.mlir"></InputRightAddon>
+                  <InputRightAddon>input.mlir -o output.mlir</InputRightAddon>
                 </InputGroup>
               </HStack>
               <Box>
