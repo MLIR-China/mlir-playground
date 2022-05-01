@@ -367,8 +367,21 @@ const WasmCompiler = (() => {
         });
     };
 
+    const _cachingCompiler = (() => {
+        let prev = {source: "", result: Promise.resolve(null)};
+        
+        return (sourceCode) => {
+            if (prev.source === sourceCode) {
+                return prev.result;
+            }
+
+            prev = {source: sourceCode, result: _compileSourceToWasm(sourceCode)};
+            return prev.result;
+        };
+    })();
+
     const compileAndRun = (sourceCode, inputMlir, mlirOptArgs, printer) => {
-        return _compileSourceToWasm(sourceCode).then((inst) => {
+        return _cachingCompiler(sourceCode).then((inst) => {
             console.log(inst);
             return TemplateModule({
                 noInitialRun: true,
