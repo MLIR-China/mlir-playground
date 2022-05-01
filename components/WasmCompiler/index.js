@@ -257,7 +257,6 @@ const WasmCompiler = (() => {
             return Promise.resolve({
                 noInitialRun: true,
                 getPreloadedPackage: (package_name, _) => {
-                    console.log(dataBuffer);
                     return dataBuffer;
                 }
             });
@@ -290,6 +289,7 @@ const WasmCompiler = (() => {
                 "-fvisibility", "default",
                 "-fno-rtti"
             ];
+            const compileStartTime = new Date();
             try {
                 let ret = loadedClangModule.callMain(["-cc1", "-emit-obj", ...commonArgs, "-o", "hello.o", "-x", "c++", "hello.cpp"]);
                 if (ret) {
@@ -298,7 +298,8 @@ const WasmCompiler = (() => {
             } catch(e) {
                 return Promise.reject("Failed to compile. Error: " + e.toString());
             }
-            console.log("compiled .o object file.");
+            const compileEndTime = new Date();
+            console.log("Compiled .o object file. Elapsed time: %d ms", (compileEndTime - compileStartTime));
 
             return getModuleParams("onlylibs.data").then((params) => {
                 return LldModule({...params, thisProgram: "wasm-ld"});
@@ -349,6 +350,7 @@ const WasmCompiler = (() => {
                     "--max-memory=16777216",
                     "--global-base=1024"
                 ];
+                const linkStartTime = new Date();
                 try {
                     let ret = loadedLldMod.callMain(["/clangmod/hello.o", "-o", "hello.wasm", "-L/lib/lib/wasm32-emscripten", ...system_libraries, ...linkOptions, ...project_libraries]);
                     if (ret) {
@@ -357,7 +359,8 @@ const WasmCompiler = (() => {
                 } catch(e) {
                     return Promise.reject("Failed to link. Error: " + e.toString());
                 }
-                console.log("Linked .wasm file!");
+                const linkEndTime = new Date();
+                console.log("Linked .wasm file. Elapsed time: %d ms", (linkEndTime - linkStartTime));
                 // compiled executable
                 let wasm = loadedLldMod.FS.readFile("hello.wasm");
                 console.log(wasm);
@@ -396,6 +399,7 @@ const WasmCompiler = (() => {
             }).then((compiledMod) => {
                 compiledMod.FS.writeFile("input.mlir", inputMlir);
                 console.log("Running mlir-opt...");
+                const runStartTime = new Date();
                 try {
                     let ret = compiledMod.callMain([...mlirOptArgs, "input.mlir", "-o", "output.mlir"]);
                     if (ret) {
@@ -404,6 +408,8 @@ const WasmCompiler = (() => {
                 } catch(e) {
                     return Promise.reject("Failed to run. Error: " + e.toString());
                 }
+                const runEndTime = new Date();
+                console.log("Run successful. Elapsed time: %d ms", (runEndTime - runStartTime));
                 return compiledMod.FS.readFile("output.mlir", {encoding: "utf8"});
             });
         }, (fail_msg) => {
