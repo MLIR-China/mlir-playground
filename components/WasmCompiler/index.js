@@ -237,7 +237,8 @@ const WasmCompiler = (() => {
         _cache: {},
         _fetch_common: function(file_name, post_process) {
             if (!this._cache.hasOwnProperty(file_name)) {
-                this._cache[file_name] = fetch(file_name, {
+                const full_path = process.env.staticFilePrefix + file_name;
+                this._cache[file_name] = fetch(full_path, {
                     credentials: "same-origin"
                 }).then((response) => {
                     return post_process(response);
