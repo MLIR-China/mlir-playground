@@ -249,13 +249,31 @@ const WasmCompiler = (() => {
             return this._fetch_common(package_name, (response) => {
                 return response.arrayBuffer();
             });
+        },
+        fetch_wasm: function(wasm_name) {
+            return this._fetch_common(wasm_name, (response) => {
+                return WebAssembly.compileStreaming(response);
+            });
         }
     };
 
     const getModuleParams = (dataFile) => {
+        let wasmFile;
         return cachedFetcher.fetch_data(dataFile).then((dataBuffer) => {
             return Promise.resolve({
                 noInitialRun: true,
+                locateFile: (path, scriptDir) => {
+                    wasmFile = path;
+                    return path;
+                },
+                instantiateWasm: (imports, callback) => {
+                    return cachedFetcher.fetch_wasm(wasmFile, imports).then((module) => {
+                        return WebAssembly.instantiate(module, imports);
+                    }).then((instance) => {
+                        callback(instance);
+                        return instance.exports;
+                    });
+                },
                 getPreloadedPackage: (package_name, _) => {
                     return dataBuffer;
                 }
