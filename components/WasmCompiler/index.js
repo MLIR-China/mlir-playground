@@ -233,8 +233,58 @@ const WasmCompiler = (() => {
         "/lib/lib/libLLVMDemangle.a"
     ];
 
+    const cachedFetcher = {
+        _cache: {},
+        _fetch_common: function(file_name, post_process) {
+            if (!this._cache.hasOwnProperty(file_name)) {
+                this._cache[file_name] = fetch(file_name, {
+                    credentials: "same-origin"
+                }).then((response) => {
+                    return post_process(response);
+                });
+            }
+            return this._cache[file_name];
+        },
+        fetch_data: function(package_name) {
+            return this._fetch_common(package_name, (response) => {
+                return response.arrayBuffer();
+            });
+        },
+        fetch_wasm: function(wasm_name) {
+            return this._fetch_common(wasm_name, (response) => {
+                return WebAssembly.compileStreaming(response);
+            });
+        }
+    };
+
+    const getModuleParams = (dataFile) => {
+        let wasmFile;
+        return cachedFetcher.fetch_data(dataFile).then((dataBuffer) => {
+            return Promise.resolve({
+                noInitialRun: true,
+                locateFile: (path, scriptDir) => {
+                    wasmFile = path;
+                    return path;
+                },
+                instantiateWasm: (imports, callback) => {
+                    return cachedFetcher.fetch_wasm(wasmFile, imports).then((module) => {
+                        return WebAssembly.instantiate(module, imports);
+                    }).then((instance) => {
+                        callback(instance);
+                        return instance.exports;
+                    });
+                },
+                getPreloadedPackage: (package_name, _) => {
+                    return dataBuffer;
+                }
+            });
+        });
+    };
+
     const _compileSourceToWasm = (sourceCode) => {
-        return ClangModule({noInitialRun: true}).then(function(loadedClangModule) {
+        return getModuleParams("onlyincludes.data").then((params) => {
+            return ClangModule(params);
+        }).then(function(loadedClangModule) {
             console.log("Loaded Clang Module!");
 
             loadedClangModule.FS.writeFile("hello.cpp", sourceCode);
@@ -257,6 +307,7 @@ const WasmCompiler = (() => {
                 "-fvisibility", "default",
                 "-fno-rtti"
             ];
+            const compileStartTime = new Date();
             try {
                 let ret = loadedClangModule.callMain(["-cc1", "-emit-obj", ...commonArgs, "-o", "hello.o", "-x", "c++", "hello.cpp"]);
                 if (ret) {
@@ -265,9 +316,12 @@ const WasmCompiler = (() => {
             } catch(e) {
                 return Promise.reject("Failed to compile. Error: " + e.toString());
             }
-            console.log("compiled .o object file.");
+            const compileEndTime = new Date();
+            console.log("Compiled .o object file. Elapsed time: %d ms", (compileEndTime - compileStartTime));
 
-            return LldModule({noInitialRun: true, thisProgram: "wasm-ld"}).then(function(loadedLldMod) {
+            return getModuleParams("onlylibs.data").then((params) => {
+                return LldModule({...params, thisProgram: "wasm-ld"});
+            }).then(function(loadedLldMod) {
                 console.log("Loaded Lld Module!");
 
                 loadedLldMod.FS.mkdir("/clangmod");
@@ -314,6 +368,7 @@ const WasmCompiler = (() => {
                     "--max-memory=16777216",
                     "--global-base=1024"
                 ];
+                const linkStartTime = new Date();
                 try {
                     let ret = loadedLldMod.callMain(["/clangmod/hello.o", "-o", "hello.wasm", "-L/lib/lib/wasm32-emscripten", ...system_libraries, ...linkOptions, ...project_libraries]);
                     if (ret) {
@@ -322,7 +377,8 @@ const WasmCompiler = (() => {
                 } catch(e) {
                     return Promise.reject("Failed to link. Error: " + e.toString());
                 }
-                console.log("Linked .wasm file!");
+                const linkEndTime = new Date();
+                console.log("Linked .wasm file. Elapsed time: %d ms", (linkEndTime - linkStartTime));
                 // compiled executable
                 let wasm = loadedLldMod.FS.readFile("hello.wasm");
                 console.log(wasm);
@@ -332,8 +388,21 @@ const WasmCompiler = (() => {
         });
     };
 
+    const _cachingCompiler = (() => {
+        let prev = {source: "", result: Promise.resolve(null)};
+        
+        return (sourceCode) => {
+            if (prev.source === sourceCode) {
+                return prev.result;
+            }
+
+            prev = {source: sourceCode, result: _compileSourceToWasm(sourceCode)};
+            return prev.result;
+        };
+    })();
+
     const compileAndRun = (sourceCode, inputMlir, mlirOptArgs, printer) => {
-        return _compileSourceToWasm(sourceCode).then((inst) => {
+        return _cachingCompiler(sourceCode).then((inst) => {
             console.log(inst);
             return TemplateModule({
                 noInitialRun: true,
@@ -348,6 +417,7 @@ const WasmCompiler = (() => {
             }).then((compiledMod) => {
                 compiledMod.FS.writeFile("input.mlir", inputMlir);
                 console.log("Running mlir-opt...");
+                const runStartTime = new Date();
                 try {
                     let ret = compiledMod.callMain([...mlirOptArgs, "input.mlir", "-o", "output.mlir"]);
                     if (ret) {
@@ -356,6 +426,8 @@ const WasmCompiler = (() => {
                 } catch(e) {
                     return Promise.reject("Failed to run. Error: " + e.toString());
                 }
+                const runEndTime = new Date();
+                console.log("Run successful. Elapsed time: %d ms", (runEndTime - runStartTime));
                 return compiledMod.FS.readFile("output.mlir", {encoding: "utf8"});
             });
         }, (fail_msg) => {
@@ -364,8 +436,15 @@ const WasmCompiler = (() => {
         });
     };
 
+    const initialize = () => {
+        // prefetch data files
+        cachedFetcher.fetch_data("onlyincludes.data");
+        cachedFetcher.fetch_data("onlylibs.data");
+    }
+
     return {
-        compileAndRun: compileAndRun
+        compileAndRun: compileAndRun,
+        initialize: initialize
     };
 })
 
