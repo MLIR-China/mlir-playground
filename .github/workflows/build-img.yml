@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - "add-actions"
+      - "add-actions-experiments"
 
 concurrency:
   group: build-img-${{ github.ref }}
