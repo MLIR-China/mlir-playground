@@ -3,6 +3,9 @@ name: Build Clang WASM image
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: build-img-${{ github.ref }}
@@ -67,6 +70,7 @@ jobs:
         run: npx next export
       
       - name: Push Docker image
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/build-push-action@v3
         with:
           push: true
