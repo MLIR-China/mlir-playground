@@ -4,9 +4,13 @@
 
 set -e
 
-docker run --rm -w /app/ -v $(pwd):/app/ clang-wasm bash -c "./build-compiler.sh"
+# Command line argument to override docker image. Default is `clang-wasm`.
+image=${1:-clang-wasm}
 
-# copy results
+# Run script inside docker.
+docker run --rm -w /app/ -v $(pwd):/app/ $image bash -c "./build-compiler.sh"
+
+# Copy results to where they're needed.
 cp build/bin/clang.mjs ../components/WasmCompiler/wasm/clang.mjs
 cp build/bin/clang.wasm ../public/clang.wasm
 
