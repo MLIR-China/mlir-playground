@@ -23,6 +23,7 @@ jobs:
 
     env:
       DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
+      NODE_OPTIONS: "--max_old_space_size=4096"
 
     steps:
       - name: Set Swap Space
@@ -61,6 +62,9 @@ jobs:
       
       - name: Run npm build
         run: npm run build
+      
+      - name: Export static website
+        run: npx next export
       
       - name: Push Docker image
         uses: docker/build-push-action@v3
