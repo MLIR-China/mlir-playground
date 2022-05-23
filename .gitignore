@@ -40,5 +40,10 @@ yarn-error.log*
 # wasm
 ## cpp build results
 /cpp/build
+*.wasm
+
 ## packaged files
 *.data
+
+# Local Netlify folder
+.netlify
