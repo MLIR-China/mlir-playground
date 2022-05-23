@@ -1,4 +1,4 @@
-name: Build Clang WASM image
+name: Full Build
 
 on:
   workflow_dispatch:
