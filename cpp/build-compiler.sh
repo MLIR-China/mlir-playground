@@ -27,3 +27,14 @@ sed -e '/Module = Module || {};/r onlylibs.js' wasm-ld_raw.mjs > wasm-ld.mjs
 # Step 4: Remove hardcoded wasm file location expectations
 sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' clang.mjs
 sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' wasm-ld.mjs
+
+# Step 5: Export all toy chapter builds as examples
+mkdir /app/build/bin/toy -p
+cd /app/build/bin/toy
+
+for chapter_idx in {1..7}
+do
+    cp "${LLVM_WASM_BUILD}/bin/toyc-ch${chapter_idx}.wasm" .
+done
+# Only need one version of the js wrapper.
+cp "${LLVM_WASM_BUILD}/bin/toyc-ch7.js" ./toyc.js

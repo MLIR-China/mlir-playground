@@ -1,16 +1,29 @@
-import Module from './toyc-ch7.js'
+import WasmFetcher from "../WasmFetcher";
+
+import Module from './wasm/toyc.js'
 
 const ToyWasm = (() => {
-  let wasmSingleton = undefined;
+  const wasmFetcher = WasmFetcher();
 
-  let getWasmInstance = () => {
-    if (wasmSingleton) {
-      return wasmSingleton;
+  let toyChapters = new Array(7);
+
+  let getToyChapter = (chapterIndex) => {
+    if (toyChapters[chapterIndex]) {
+      return toyChapters[chapterIndex];
     }
+
+    if (chapterIndex < 1 || chapterIndex > 7) {
+      console.log("Internal Error: Looking for non-existent Toy chapter: " + chapterIndex.toString());
+      return null;
+    }
+
+    const wasmName = "toyc-ch" + chapterIndex.toString() + ".wasm";
+    const moduleParams = wasmFetcher.getModuleParams(wasmName, null);
 
     let wasmInstance = {
       ready: new Promise(resolve => {
         Module({
+          ...moduleParams,
           onRuntimeInitialized() {
             wasmInstance = Object.assign(this, {
               ready: Promise.resolve(this),
@@ -43,11 +56,11 @@ const ToyWasm = (() => {
       })
     });
 
-    wasmSingleton = wasmInstance;
+    toyChapters[chapterIndex] = wasmInstance;
     return wasmSingleton;
   };
 
-  return getWasmInstance;
+  return getToyChapter;
 })();
 
 export default ToyWasm;
