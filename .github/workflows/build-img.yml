@@ -2,10 +2,7 @@ name: Build Clang WASM image
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "add-actions"
-      - "add-actions-experiments"
+  pull_request:
 
 concurrency:
   group: build-img-${{ github.ref }}
