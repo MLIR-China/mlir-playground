@@ -99,6 +99,9 @@ int main(int argc, char **argv) {
   const onProgramSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOption = event.target.value as ProgramSelectionOption;
     setProgramSelection(selectedOption);
+    cppEditor.current.updateOptions({
+      readOnly: selectedOption != ProgramSelectionOption.MlirOpt
+    });
   }
 
   const onRunButtonClick = () => {
@@ -189,7 +192,7 @@ int main(int argc, char **argv) {
                 <Text>{compilerState}</Text>
               </HStack>
               <Box>
-                <Select value={programSelection} onChange={onProgramSelectionChange}>
+                <Select value={programSelection} onChange={onProgramSelectionChange} disabled={!allEditorsMounted}>
                   {
                     Object.keys(ProgramSelectionOption).map((key, i) => {
                       return <option value={key} key={i}>{ProgramSelectionOption[key as keyof typeof ProgramSelectionOption]}</option>;
