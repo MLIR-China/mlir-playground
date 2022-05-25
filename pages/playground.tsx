@@ -14,6 +14,7 @@ import {
   InputGroup,
   InputLeftAddon,
   InputRightAddon,
+  Select,
   Spacer,
   Text,
   Textarea,
@@ -53,14 +54,28 @@ int main(int argc, char **argv) {
 
   const monospaceFontFamily = "Consolas, 'Courier New', monospace";
 
+  enum ProgramSelectionOption {
+    MlirOpt = "Custom mlir-opt",
+    Toy1 = "Toy Chapter 1",
+    Toy2 = "Toy Chapter 2",
+    Toy3 = "Toy Chapter 3",
+    Toy4 = "Toy Chapter 4",
+    Toy5 = "Toy Chapter 5",
+    Toy6 = "Toy Chapter 6",
+    Toy7 = "Toy Chapter 7"
+  }
+
   // state
-  const [compilerState, setCompilerState] = useState("");
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor : React.MutableRefObject<any> = useRef(null);
   const inputEditor : React.MutableRefObject<any> = useRef(null);
   const outputEditor : React.MutableRefObject<any> = useRef(null);
-  const wasmCompiler : React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState('');
+  
+  const [programSelection, setProgramSelection] = React.useState(ProgramSelectionOption.MlirOpt);
+
+  const wasmCompiler : React.MutableRefObject<any> = useRef(null);
+  const [compilerState, setCompilerState] = useState("");
   const [additionalRunArgs, setAdditionalRunArgs] = useState("--convert-std-to-llvm");
 
   const getWasmCompiler = () => {
@@ -79,6 +94,11 @@ int main(int argc, char **argv) {
         setAllEditorsMounted(true);
       }
     }
+  }
+
+  const onProgramSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOption = event.target.value as ProgramSelectionOption;
+    setProgramSelection(selectedOption);
   }
 
   const onRunButtonClick = () => {
@@ -168,6 +188,15 @@ int main(int argc, char **argv) {
                 </Button>
                 <Text>{compilerState}</Text>
               </HStack>
+              <Box>
+                <Select value={programSelection} onChange={onProgramSelectionChange}>
+                  {
+                    Object.keys(ProgramSelectionOption).map((key, i) => {
+                      return <option value={key} key={i}>{ProgramSelectionOption[key as keyof typeof ProgramSelectionOption]}</option>;
+                    })
+                  }
+                </Select>
+              </Box>
               <HStack>
                 <Text>Arguments</Text>
                 <InputGroup fontFamily={monospaceFontFamily}>
