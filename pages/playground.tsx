@@ -22,6 +22,7 @@ import {
 } from '@chakra-ui/react'
 import Editor, { OnMount } from '@monaco-editor/react'
 
+import Toy from '../components/Toy/index.js'
 import WasmCompiler from '../components/WasmCompiler/index.js'
 import styles from '../styles/Home.module.css'
 
@@ -65,6 +66,8 @@ int main(int argc, char **argv) {
     Toy7 = "Toy Chapter 7"
   }
 
+  const getToyChapter = Toy();
+
   // state
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor : React.MutableRefObject<any> = useRef(null);
@@ -105,16 +108,27 @@ int main(int argc, char **argv) {
   }
 
   const onRunButtonClick = () => {
-    let cpp_source = cppEditor.current.getValue();
     let input_mlir = inputEditor.current.getValue();
     let printer = (text: string) => {
       setLogValue(currValue => currValue + text + "\n");
     };
-    setCompilerState("Compiling...");
-    getWasmCompiler()
-      .compileAndRun(cpp_source, input_mlir, additionalRunArgs.split(/\s+/), printer)
-      .finally(() => { setCompilerState(""); })
-      .then((output: string) => { outputEditor.current.setValue(output); }, printer);
+
+    if (programSelection == ProgramSelectionOption.MlirOpt) {
+      let cpp_source = cppEditor.current.getValue();
+      setCompilerState("Compiling...");
+      getWasmCompiler()
+        .compileAndRun(cpp_source, input_mlir, additionalRunArgs.split(/\s+/), printer)
+        .finally(() => { setCompilerState(""); })
+        .then((output: string) => { outputEditor.current.setValue(output); }, printer);
+    } else {
+      let chapterIndex = parseInt(programSelection.slice(-1));
+      let toyChapter = getToyChapter(chapterIndex);
+      setCompilerState("Running...");
+      toyChapter
+        .runToy(input_mlir)
+        .finally(() => { setCompilerState(""); })
+        .then((output: string) => { outputEditor.current.setValue(output); }, printer)
+    }
   }
 
   const monacoOptions = {
