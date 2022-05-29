@@ -51,6 +51,13 @@ int main(int argc, char **argv) {
   }
 }
 `
+
+  const defaultToyInput =
+`def main() {
+  print([[1, 2], [3, 4]]);
+}
+`
+
   const defaultMLIROutput = ""
 
   const monospaceFontFamily = "Consolas, 'Courier New', monospace";
@@ -66,6 +73,47 @@ int main(int argc, char **argv) {
     Toy7 = "Toy Chapter 7"
   }
 
+  abstract class ProgramProperties {
+    abstract getInputFileName(): string;
+    abstract getOutputFileName(): string;
+    abstract getDefaultInputFile(): string;
+    abstract getDefaultAdditionalRunArgs(): string;
+    abstract getRunArgsLeftAddon(): string;
+    abstract getRunArgsRightAddon(): string;
+  }
+
+  class MlirOptProperties extends ProgramProperties {
+    getInputFileName(): string { return "input.mlir"; }
+    getOutputFileName(): string { return "output.mlir"; }
+    getDefaultInputFile(): string { return defaultMLIRInput; }
+    getDefaultAdditionalRunArgs(): string { return "--convert-std-to-llvm"; }
+    getRunArgsLeftAddon(): string { return "mlir-opt"; }
+    getRunArgsRightAddon(): string { return "input.mlir -o output.mlir"; }
+  }
+
+  class ToyChapterProperties extends ProgramProperties {
+    chapterNumber: number;
+    constructor(chapterNumber: number) {
+      super();
+      this.chapterNumber = chapterNumber;
+    }
+    getInputFileName(): string { return "input.toy"; }
+    getOutputFileName(): string { return "output.mlir"; }
+    getDefaultInputFile(): string { return defaultToyInput; }
+    getDefaultAdditionalRunArgs(): string { return "--emit=mlir"; }
+    getRunArgsLeftAddon(): string { return "toy input.toy"; }
+    getRunArgsRightAddon(): string { return ""; }
+  }
+
+  const getProgramProperties = (selection: ProgramSelectionOption) => {
+    if (selection == ProgramSelectionOption.MlirOpt) {
+      return new MlirOptProperties();
+    } else {
+      let chapterNumber = parseInt(selection.slice(-1));
+      return new ToyChapterProperties(chapterNumber);
+    }
+  }
+
   // state
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor : React.MutableRefObject<any> = useRef(null);
@@ -75,9 +123,14 @@ int main(int argc, char **argv) {
   
   const [programSelection, setProgramSelection] = React.useState(ProgramSelectionOption.MlirOpt);
 
+  const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("mlir-opt");
+  const [runArgsRightAddon, setRunArgsRightAddon] = useState("input.mlir -o output.mlir");
+  const [additionalRunArgs, setAdditionalRunArgs] = useState("--convert-std-to-llvm");
+  const [inputEditorFileName, setInputEditorFileName] = useState("input.mlir");
+  const [outputEditorFileName, setOutputEditorFileName] = useState("output.mlir");
+
   const wasmCompiler : React.MutableRefObject<any> = useRef(null);
   const [compilerState, setCompilerState] = useState("");
-  const [additionalRunArgs, setAdditionalRunArgs] = useState("--convert-std-to-llvm");
 
   const getWasmCompiler = () => {
     if (!wasmCompiler.current) {
@@ -98,11 +151,19 @@ int main(int argc, char **argv) {
   }
 
   const onProgramSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOption = event.target.value as ProgramSelectionOption;
-    setProgramSelection(selectedOption);
+    setProgramSelection(event.target.value as ProgramSelectionOption);
+    const selectedOption = ProgramSelectionOption[event.target.value as keyof typeof ProgramSelectionOption];
     cppEditor.current.updateOptions({
       readOnly: selectedOption != ProgramSelectionOption.MlirOpt
     });
+    const props = getProgramProperties(selectedOption);
+    setRunArgsLeftAddon(props.getRunArgsLeftAddon());
+    setRunArgsRightAddon(props.getRunArgsRightAddon());
+    setAdditionalRunArgs(props.getDefaultAdditionalRunArgs());
+    setInputEditorFileName(props.getInputFileName());
+    setOutputEditorFileName(props.getOutputFileName());
+    inputEditor.current.setValue(props.getDefaultInputFile());
+    outputEditor.current.setValue("");
   }
 
   const onRunButtonClick = () => {
@@ -213,11 +274,11 @@ int main(int argc, char **argv) {
               <HStack>
                 <Text>Arguments</Text>
                 <InputGroup fontFamily={monospaceFontFamily}>
-                  <InputLeftAddon>mlir-opt</InputLeftAddon>
+                  <InputLeftAddon>{runArgsLeftAddon}</InputLeftAddon>
                   <Input
                     value={additionalRunArgs}
                     onChange={(event) => setAdditionalRunArgs(event.target.value)}></Input>
-                  <InputRightAddon>input.mlir -o output.mlir</InputRightAddon>
+                  <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
                 </InputGroup>
               </HStack>
               <Box>
@@ -236,7 +297,7 @@ int main(int argc, char **argv) {
             <Flex align="end">
               <Heading>Input</Heading>
               <Spacer />
-              <Text fontFamily={monospaceFontFamily}>input.mlir</Text>
+              <Text fontFamily={monospaceFontFamily}>{inputEditorFileName}</Text>
             </Flex>
             <Box borderWidth="2px" h="200">
               {inputMLIRViewer}
@@ -246,7 +307,7 @@ int main(int argc, char **argv) {
             <Flex align="end">
               <Heading>Output</Heading>
               <Spacer />
-              <Text fontFamily={monospaceFontFamily}>output.mlir</Text>
+              <Text fontFamily={monospaceFontFamily}>{outputEditorFileName}</Text>
             </Flex>
             <Box borderWidth="2px" h="200">
               {outputMLIRViewer}

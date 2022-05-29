@@ -22,7 +22,7 @@ const ToyWasm = (() => {
       compiledMod.FS.writeFile("input.toy", input, { encoding: "utf8" });
       console.log("Running toy...");
       try {
-        let ret = compiledMod.callMain(["input.toy", "-emit=mlir"]);
+        let ret = compiledMod.callMain(["input.toy", ...args]);
         if (ret) {
             return Promise.reject("Failed to run. toy exited with: " + ret.toString());
         }
