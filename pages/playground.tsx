@@ -66,8 +66,6 @@ int main(int argc, char **argv) {
     Toy7 = "Toy Chapter 7"
   }
 
-  const getToyChapter = Toy();
-
   // state
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor : React.MutableRefObject<any> = useRef(null);
@@ -122,10 +120,8 @@ int main(int argc, char **argv) {
         .then((output: string) => { outputEditor.current.setValue(output); }, printer);
     } else {
       let chapterIndex = parseInt(programSelection.slice(-1));
-      let toyChapter = getToyChapter(chapterIndex);
       setCompilerState("Running...");
-      toyChapter
-        .runToy(input_mlir)
+      Toy.runChapter(chapterIndex, input_mlir, additionalRunArgs.split(/\s+/), printer)
         .finally(() => { setCompilerState(""); })
         .then((output: string) => { outputEditor.current.setValue(output); }, printer)
     }
