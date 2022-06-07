@@ -2,10 +2,10 @@ name: Build Clang WASM image
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches:
-      - "add-actions"
-      - "add-actions-experiments"
+      - main
 
 concurrency:
   group: build-img-${{ github.ref }}
@@ -26,6 +26,7 @@ jobs:
 
     env:
       DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
+      NODE_OPTIONS: "--max_old_space_size=4096"
 
     steps:
       - name: Set Swap Space
@@ -45,7 +46,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Build and push
+      - name: Build Docker image
+        uses: docker/build-push-action@v3
+        with:
+          load: true
+          tags: |
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
+          cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+          cache-to: type=inline
+          context: ./cpp/docker
+      
+      - name: Run wasm setup
+        working-directory: ./cpp/
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
+
+      - name: Install npm dependencies
+        run: npm install
+      
+      - name: Run npm build
+        run: npm run build
+      
+      - name: Export static website
+        run: npx next export
+      
+      - name: Push Docker image
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/build-push-action@v3
         with:
           push: true

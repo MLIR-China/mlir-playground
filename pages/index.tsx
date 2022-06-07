@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
+import ExportedImage from "next-image-export-optimizer";
 import styles from '../styles/Home.module.css'
 import { useRouter } from 'next/router'
 
@@ -25,7 +25,7 @@ const Home: NextPage = () => {
         <h1 className={styles.title}>
           欢迎来到
           <span className={styles.logo}>
-            <Image src="/mlir.png" alt="MLIR Logo" width={60} height={60} />
+            <ExportedImage src="/mlir.png" alt="MLIR Logo" width={60} height={60} />
           </span>
           <a href="https://mlir.llvm.org/">MLIR</a> 中国社区！
         </h1>

@@ -23,3 +23,7 @@ source /app/mlir/package-libs.sh
 # Step 3: Insert sysroot package loaders into corresponding js modules
 sed -e '/Module = Module || {};/r onlyincludes.js' clang_raw.mjs > clang.mjs
 sed -e '/Module = Module || {};/r onlylibs.js' wasm-ld_raw.mjs > wasm-ld.mjs
+
+# Step 4: Remove hardcoded wasm file location expectations
+sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' clang.mjs
+sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' wasm-ld.mjs
