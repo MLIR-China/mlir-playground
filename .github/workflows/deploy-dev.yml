@@ -1,0 +1,60 @@
+name: Deploy main branch to dev site
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMMIT_SHA: ${{ github.sha }}
+  DOCKER_HUB_NAMESPACE: jackalcooper
+  DOCKER_REPO: clang-wasm
+
+jobs:
+  build:
+    name: Deploy to dev site
+    runs-on: ubuntu-20.04
+
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+      B2_APP_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
+      B2_APP_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run wasm setup
+        working-directory: ./cpp/
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+
+      - name: Install npm dependencies
+        run: npm install
+      
+      - name: Run npm build
+        run: npm run build
+      
+      - name: Export static website
+        run: npx next export
+
+      - name: Install B2 CLI
+        run: pip install b2
+
+      - name: Authenticate with B2
+        run: b2 authorize-account ${{ env.B2_APP_KEY_ID }} ${{ env.B2_APP_KEY }}
+
+      - name: Upload wasm files
+        run: b2 sync --keepDays 7 --replaceNewer --noProgress public/wasm b2://mlir-playground/dev
+      
+      - name: Push to dev branch
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: self
+          BRANCH: dev
+          FOLDER: out
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
