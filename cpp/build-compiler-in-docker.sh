@@ -11,6 +11,8 @@ image=${1:-clang-wasm}
 docker run --rm -w /app/ -v $(pwd):/app/ $image bash -c "./build-compiler.sh"
 
 # Copy results to where they're needed.
+mkdir -p ../public/wasm
+
 cp build/bin/clang.mjs ../components/WasmCompiler/wasm/clang.mjs
 cp build/bin/clang.wasm ../public/wasm/clang.wasm
 
