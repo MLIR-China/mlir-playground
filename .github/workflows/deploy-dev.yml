@@ -2,6 +2,7 @@ name: Deploy main branch to dev site
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches:
       - main
