@@ -23,6 +23,7 @@ jobs:
 
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
+      NODE_ENV: staging
       B2_APP_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
       B2_APP_KEY: ${{ secrets.B2_APPLICATION_KEY }}
 
