@@ -29,7 +29,7 @@ jobs:
 
       - name: Run wasm setup
         working-directory: ./cpp/
-        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
 
       - name: Upload wasm files to dev
         if: ${{ ! inputs.is_prod }}

@@ -2,7 +2,7 @@ name: Deploy main branch to dev
 
 on:
   workflow_run:
-    workflows: [Build Clang WASM Image]
+    workflows: [Build Clang WASM image]
     types: [completed]
     branches: [main]
 
