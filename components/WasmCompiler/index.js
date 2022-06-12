@@ -1,8 +1,12 @@
+import WasmFetcher from "../WasmFetcher";
+
 import ClangModule from "./wasm/clang.mjs";
 import LldModule from "./wasm/wasm-ld.mjs";
 import TemplateModule from "./template.js";
 
 const WasmCompiler = (() => {
+    const wasmFetcher = WasmFetcher();
+
     const project_libraries = [
         "/lib/lib/libMLIRAffine.a",
         "/lib/lib/libMLIRAffineTransforms.a",
@@ -233,57 +237,8 @@ const WasmCompiler = (() => {
         "/lib/lib/libLLVMDemangle.a"
     ];
 
-    const cachedFetcher = {
-        _cache: {},
-        _fetch_common: function(file_name, post_process) {
-            if (!this._cache.hasOwnProperty(file_name)) {
-                const full_path = process.env.staticFilePrefix + file_name;
-                this._cache[file_name] = fetch(full_path, {
-                    credentials: "same-origin"
-                }).then((response) => {
-                    return post_process(response);
-                });
-            }
-            return this._cache[file_name];
-        },
-        fetch_data: function(package_name) {
-            return this._fetch_common(package_name, (response) => {
-                return response.arrayBuffer();
-            });
-        },
-        fetch_wasm: function(wasm_name) {
-            return this._fetch_common(wasm_name, (response) => {
-                return WebAssembly.compileStreaming(response);
-            });
-        }
-    };
-
-    const getModuleParams = (dataFile) => {
-        let wasmFile;
-        return cachedFetcher.fetch_data(dataFile).then((dataBuffer) => {
-            return Promise.resolve({
-                noInitialRun: true,
-                locateFile: (path, scriptDir) => {
-                    wasmFile = path;
-                    return path;
-                },
-                instantiateWasm: (imports, callback) => {
-                    return cachedFetcher.fetch_wasm(wasmFile, imports).then((module) => {
-                        return WebAssembly.instantiate(module, imports);
-                    }).then((instance) => {
-                        callback(instance);
-                        return instance.exports;
-                    });
-                },
-                getPreloadedPackage: (package_name, _) => {
-                    return dataBuffer;
-                }
-            });
-        });
-    };
-
     const _compileSourceToWasm = (sourceCode) => {
-        return getModuleParams("onlyincludes.data").then((params) => {
+        return wasmFetcher.getModuleParams("clang.wasm", "onlyincludes.data").then((params) => {
             return ClangModule(params);
         }).then(function(loadedClangModule) {
             console.log("Loaded Clang Module!");
@@ -320,7 +275,7 @@ const WasmCompiler = (() => {
             const compileEndTime = new Date();
             console.log("Compiled .o object file. Elapsed time: %d ms", (compileEndTime - compileStartTime));
 
-            return getModuleParams("onlylibs.data").then((params) => {
+            return wasmFetcher.getModuleParams("lld.wasm", "onlylibs.data").then((params) => {
                 return LldModule({...params, thisProgram: "wasm-ld"});
             }).then(function(loadedLldMod) {
                 console.log("Loaded Lld Module!");
@@ -439,8 +394,8 @@ const WasmCompiler = (() => {
 
     const initialize = () => {
         // prefetch data files
-        cachedFetcher.fetch_data("onlyincludes.data");
-        cachedFetcher.fetch_data("onlylibs.data");
+        wasmFetcher.fetchData("onlyincludes.data");
+        wasmFetcher.fetchData("onlylibs.data");
     }
 
     return {
