@@ -60,3 +60,4 @@ jobs:
           BRANCH: dev
           FOLDER: out
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MESSAGE: "Auto deployment from main branch at {sha}"
