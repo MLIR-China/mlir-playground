@@ -3,7 +3,7 @@
 // Load static wasm files from different places based on environment.
 const staticFileRemotePath = 'https://static.mlir-china.org/file/mlir-playground/';
 let staticFilePath = "wasm/";
-switch (process.env.NODE_ENV) {
+switch (process.env.APP_ENV) {
   case 'production':
     staticFilePath = staticFileRemotePath + 'files/';
     break;
