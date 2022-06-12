@@ -13,18 +13,16 @@ concurrency:
 
 env:
   COMMIT_SHA: ${{ github.sha }}
-  DOCKER_HUB_NAMESPACE: jackalcooper
-  DOCKER_REPO: clang-wasm
-
+  
 jobs:
   deploy:
     name: Deploy to site
     runs-on: ubuntu-20.04
 
     env:
+      DOCKER_HUB_NAMESPACE: jackalcooper
+      DOCKER_REPO: clang-wasm
       NODE_OPTIONS: "--max_old_space_size=4096"
-      B2_APP_KEY_ID: ${{ secrets.B2_APPLICATION_KEY_ID }}
-      B2_APP_KEY: ${{ secrets.B2_APPLICATION_KEY }}
 
     steps:
       - name: Checkout
