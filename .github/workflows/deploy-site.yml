@@ -35,19 +35,13 @@ jobs:
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
 
-      - name: Install B2 CLI
-        run: pip install b2
-
-      - name: Authenticate with B2
-        run: b2 authorize-account ${{ env.B2_APP_KEY_ID }} ${{ env.B2_APP_KEY }}
-
       - name: Upload wasm files to dev
         if: ${{ ! inputs.is_prod }}
-        run: b2 sync --keepDays 7 --replaceNewer --noProgress public/wasm b2://mlir-playground/dev
+        run: ./scripts/upload_wasm_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm dev
       
       - name: Upload wasm files to prod
         if: ${{ inputs.is_prod }}
-        run: b2 sync --keepDays 7 --replaceNewer --noProgress public/wasm b2://mlir-playground/files
+        run: ./scripts/upload_wasm_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
       
       - name: Remove wasm files
         run: rm -r public/wasm
