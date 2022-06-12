@@ -21,7 +21,7 @@ pip install b2
 b2 authorize-account $B2_APP_KEY_ID $B2_APP_KEY
 
 # Upload data files using `b2 sync` to save uploading the same file.
-b2 sync --excludeRegex '.*\.wasm' --replaceNewer --noProgress ./ b2://$REMOTE_DIR
+b2 sync --excludeRegex '.*\.wasm' --replaceNewer --noProgress ./ b2://$B2_BUCKET/$REMOTE_DIR
 
 # Upload wasm files individually to set custom contentType.
 for wasmfile in *.wasm; do
