@@ -1,4 +1,4 @@
-name: Deploy main branch
+name: Deploy Site
 
 on:
   workflow_call:
@@ -16,7 +16,6 @@ env:
   
 jobs:
   deploy:
-    name: Deploy to site
     runs-on: ubuntu-20.04
 
     env:
