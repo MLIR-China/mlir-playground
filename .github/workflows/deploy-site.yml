@@ -33,7 +33,7 @@ jobs:
 
       - name: Run wasm setup
         working-directory: ./cpp/
-        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
 
       - name: Install B2 CLI
         run: pip install b2
