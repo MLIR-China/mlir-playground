@@ -48,11 +48,11 @@ jobs:
 
       - name: Set build environment to staging
         if: ${{ ! inputs.is_prod }}
-        run: export APP_ENV=staging
+        run: echo "APP_ENV=staging" >> $GITHUB_ENV
       
       - name: Set build environment to production
         if: ${{ inputs.is_prod }}
-        run: export APP_ENV=production
+        run: echo "APP_ENV=production" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build
