@@ -6,7 +6,6 @@ on:
       is_prod:
         required: true
         type: boolean
-    secrets: inherit
 
 concurrency:
   group: deploy-site-${{ github.ref }}-${{ inputs.is_prod }}
