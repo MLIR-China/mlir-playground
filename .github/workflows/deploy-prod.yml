@@ -1,7 +1,6 @@
 name: Deploy main branch to production
 
 on:
-  pull_request:
   workflow_dispatch:
 
 concurrency:
