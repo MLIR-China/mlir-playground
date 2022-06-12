@@ -22,5 +22,5 @@ cp build/bin/lld.wasm ../public/wasm/lld.wasm
 cp build/bin/onlyincludes.data ../public/wasm/onlyincludes.data
 cp build/bin/onlylibs.data ../public/wasm/onlylibs.data
 
-cp build/bin/toy/* ../components/Toy/wasm/
+cp build/bin/toy/*.js ../components/Toy/wasm/
 cp build/bin/toy/*.wasm ../public/wasm/
