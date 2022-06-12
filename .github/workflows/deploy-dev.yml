@@ -35,15 +35,6 @@ jobs:
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
 
-      - name: Install npm dependencies
-        run: npm install
-      
-      - name: Run npm build
-        run: npm run build
-      
-      - name: Export static website
-        run: npx next export
-
       - name: Install B2 CLI
         run: pip install b2
 
@@ -52,6 +43,18 @@ jobs:
 
       - name: Upload wasm files
         run: b2 sync --keepDays 7 --replaceNewer --noProgress public/wasm b2://mlir-playground/dev
+      
+      - name: Remove wasm files
+        run: rm -r public/wasm
+
+      - name: Install npm dependencies
+        run: npm install
+      
+      - name: Run npm build
+        run: npm run build
+      
+      - name: Export static website
+        run: npx next export
       
       - name: Push to dev branch
         uses: s0/git-publish-subdir-action@develop
