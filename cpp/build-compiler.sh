@@ -35,6 +35,6 @@ cd /app/build/bin/toy
 for chapter_idx in {1..7}
 do
     cp "${LLVM_WASM_BUILD}/bin/toyc-ch${chapter_idx}.wasm" .
+    cp "${LLVM_WASM_BUILD}/bin/toyc-ch${chapter_idx}.js" .
+    sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' "toyc-ch${chapter_idx}.js"
 done
-# Only need one version of the js wrapper.
-cp "${LLVM_WASM_BUILD}/bin/toyc-ch7.js" ./toyc.js
