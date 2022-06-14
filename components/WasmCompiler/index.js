@@ -249,12 +249,10 @@ const WasmCompiler = (() => {
 
             let commonArgs = [
                 "-D", "EMSCRIPTEN",
-                "-isysroot", "/include",
-                "-internal-isystem", "/include/include/wasm32-emscripten/c++/v1",
-                "-internal-isystem", "/include/include/c++/v1",
+                "-isysroot", "/",
+                "-internal-isystem", "/include/c++/v1",
                 "-internal-isystem", "/clang-15",
-                "-internal-isystem", "/include/include/wasm32-emscripten",
-                "-internal-isystem", "/include/include",
+                "-internal-isystem", "/include",
                 "-triple", "wasm32-unknown-emscripten",
                 "-ferror-limit", "19",
                 "-iwithsysroot/include/SDL",
