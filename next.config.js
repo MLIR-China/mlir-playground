@@ -1,17 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-// Load static wasm files from different places based on environment.
-const staticFileRemotePath = 'https://static.mlir-china.org/file/mlir-playground/';
-let staticFilePath = "wasm/";
-switch (process.env.APP_ENV) {
-  case 'production':
-    staticFilePath = staticFileRemotePath + 'files/';
-    break;
-  case 'staging':
-    staticFilePath = staticFileRemotePath + 'dev/';
-    break;
-}
-
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -26,7 +14,7 @@ const nextConfig = {
   },
   env: {
     storePicturesInWEBP: true,
-    staticFilePrefix: staticFilePath,
+    staticFilePrefix: "wasm/",
   },
   webpack: (config, options) => {
     config.module.rules.push({

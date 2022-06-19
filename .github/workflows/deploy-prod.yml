@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-prod-${{ github.ref }}
+  group: deploy-prod
   cancel-in-progress: true
 
 jobs:
   deploy:
     uses: ./.github/workflows/deploy-site.yml
     with:
-      is_prod: true
+      deploy_message: "Deploy main at ${{ env.COMMIT_SHA }}"
     secrets: inherit

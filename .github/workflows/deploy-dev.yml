@@ -1,10 +1,9 @@
-name: Deploy main branch to dev
+name: Deploy Preview
 
 on:
   workflow_run:
     workflows: [Build Clang WASM image]
     types: [completed]
-    branches: [main]
 
 concurrency:
   group: deploy-dev-${{ github.ref }}
@@ -15,5 +14,5 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/deploy-site.yml
     with:
-      is_prod: false
+      deploy_message: "Deploy branch ${{ github.ref }}"
     secrets: inherit
