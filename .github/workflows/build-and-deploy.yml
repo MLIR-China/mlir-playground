@@ -1,34 +1,35 @@
-name: Build Clang WASM image
+name: Build and Deploy
+# This action will automatically deploy every pull request and push to `main` to Netlify as a preview site.
+# Admins can manually trigger a workflow-dispatch to deploy `main` to production.
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy-prod:
+        type: boolean
+        description: Deploy to Production Site (Only allowed on `main`)
+        required: false
+        default: 'false'
   pull_request:
   push:
     branches:
       - main
 
 concurrency:
-  group: build-img-${{ github.ref }}
+  group: build-and-deploy-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  COMMIT_SHA: ${{ github.sha }}
-  DOCKER_HUB_NAMESPACE: jackalcooper
-
 jobs:
-  build:
-    name: Build ${{ matrix.tag-suffix }}
+  build-and-deploy:
     runs-on: ubuntu-20.04
-    strategy:
-      fail-fast: false
-      matrix:
-        DOCKER_REPO: ["clang-wasm"]
 
     env:
-      DOCKER_REPO: "${{ matrix.DOCKER_REPO }}"
+      DOCKER_HUB_NAMESPACE: jackalcooper
+      DOCKER_REPO: clang-wasm
       NODE_OPTIONS: "--max_old_space_size=4096"
 
     steps:
+      # Build new Docker image if needed
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@master
         with:
@@ -51,14 +52,15 @@ jobs:
         with:
           load: true
           tags: |
-            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
           cache-to: type=inline
           context: ./cpp/docker
       
+      # Build site
       - name: Run wasm setup
         working-directory: ./cpp/
-        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
 
       - name: Install npm dependencies
         run: npm install
@@ -69,6 +71,7 @@ jobs:
       - name: Export static website
         run: npx next export
       
+      # Push docker image if this is run on `main`
       - name: Push Docker image
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/build-push-action@v3
@@ -76,7 +79,22 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
-            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ env.COMMIT_SHA }}
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
           cache-to: type=inline
           context: ./cpp/docker
+
+      # Deploy to Netlify
+      - name: Netlify Actions
+        uses: nwtgck/actions-netlify@v1.2.3
+        with:
+          publish-dir: './out'
+          production-deploy: ${{ inputs.deploy_prod && github.ref == 'refs/heads/main' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deployed ${{ github.ref }} to Netlify"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+          enable-commit-status: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
