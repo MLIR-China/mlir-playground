@@ -9,13 +9,31 @@
 # Selectively package libs based on what's needed.
 # TODO: Use a lazy file system to fetch individual libraries on demand.
 LIB_DIR=/emsdk/upstream/emscripten/cache/sysroot/lib
+
+SYSTEM_LIB_NAMES=(
+    "GL"
+    "al"
+    "html5"
+    "stubs-debug"
+    "noexit"
+    "c-debug"
+    "dlmalloc"
+    "compiler_rt"
+    "c++-noexcept"
+    "c++abi-noexcept"
+    "sockets"
+)
+
 mkdir -p tmp/wasm32-emscripten
 cp $LIB_DIR/libLLVM*.a tmp/
 cp $LIB_DIR/libMLIR*.a tmp/
-cp $LIB_DIR/wasm32-emscripten/*.a tmp/wasm32-emscripten
-rm tmp/wasm32-emscripten/lib*-asan*.a
-rm tmp/wasm32-emscripten/lib*-except*.a
-rm tmp/wasm32-emscripten/lib*-mt*.a
+
+for libname in "${SYSTEM_LIB_NAMES[@]}"
+do
+    fullname="lib${libname}.a"
+    cp $LIB_DIR/wasm32-emscripten/$fullname tmp/wasm32-emscripten/$fullname
+    echo $LIB_DIR/wasm32-emscripten/$fullname
+done
 
 /emsdk/upstream/emscripten/tools/file_packager.py onlylibs.data --js-output=onlylibs.js --preload tmp@lib --lz4 --no-node --from-emcc
 
