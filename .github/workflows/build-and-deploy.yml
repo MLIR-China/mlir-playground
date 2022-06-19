@@ -84,8 +84,8 @@ jobs:
           cache-to: type=inline
           context: ./cpp/docker
 
-      # Deploy to Netlify
-      - name: Netlify Actions
+      # Deploy
+      - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2.3
         with:
           publish-dir: './out'
