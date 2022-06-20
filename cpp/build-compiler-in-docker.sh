@@ -14,13 +14,13 @@ docker run --rm -w /app/ -v $(pwd):/app/ $image bash -c "./build-compiler.sh"
 mkdir -p ../public/wasm
 
 cp build/bin/clang.mjs ../components/WasmCompiler/wasm/clang.mjs
-cp build/bin/clang.wasm ../public/clang.wasm
+cp build/bin/clang.wasm ../public/wasm/clang.wasm
 
 cp build/bin/wasm-ld.mjs ../components/WasmCompiler/wasm/wasm-ld.mjs
-cp build/bin/lld.wasm ../public/lld.wasm
+cp build/bin/lld.wasm ../public/wasm/lld.wasm
 
-cp build/bin/onlyincludes.data ../public/onlyincludes.data
-cp build/bin/onlylibs.data ../public/onlylibs.data
+cp build/bin/onlyincludes.data ../public/wasm/onlyincludes.data
+cp build/bin/onlylibs.data ../public/wasm/onlylibs.data
 
 cp build/bin/toy/*.js ../components/Toy/wasm/
 cp build/bin/toy/*.wasm ../public/wasm/

@@ -1,5 +1,4 @@
 /** @type {import('next').NextConfig} */
-const isProd = process.env.NODE_ENV === 'production';
 
 const nextConfig = {
   reactStrictMode: true,
@@ -15,7 +14,7 @@ const nextConfig = {
   },
   env: {
     storePicturesInWEBP: true,
-    staticFilePrefix: isProd ? 'https://static.mlir-china.org/file/mlir-playground/files/' : '',
+    staticFilePrefix: "wasm/",
   },
   webpack: (config, options) => {
     config.module.rules.push({
