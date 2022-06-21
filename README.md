@@ -1,34 +1,39 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# MLIR Playground
 
-## Getting Started
+Play with [MLIR](https://mlir.llvm.org/) directly in your browser.
 
-First, run the development server:
+- **Get Started Immediately**: No need to install any dependencies or setup a build system.
+- **Private & Secure**: Everything is run locally in your browser. No code or input is transmitted back to the server.
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+Try it out now at our production site: [MLIR Playground](https://playground.mlir-china.org/).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+### Custom mlir-opt
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+Create & run your own mlir-opt C++ program.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Using the built-in C++ editor, you can implement and register your own pass (or any logic, for that matter). All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use directly.
 
-## Learn More
+To compile & run the program, hit the `Run` button above the editor. This will compile your C++ program using clang & lld (compiled to web assembly and run in your browser), and execute the program with the user-provided MLIR input file. You can also edit the command line arguments before hitting `Run` to customize the run behavior.
 
-To learn more about Next.js, take a look at the following resources:
+The output MLIR editor (read-only) will display the output dumped to `output.mlir`. The Logging window will display any output to stdout/stderr during the entire compile & run phase of the C++ program.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Prebuilt Toy Binaries
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Run any Toy tutorial chapter with your own input.
 
-## Deploy on Vercel
+Using the program mode selector, select a Toy chapter. Under this mode, the code editor is disabled. The program that will run when you hit `Run` is the final binary for the corresponding Toy Chapter. The input MLIR editor can be edited under this mode to play with different user input.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+[![Build and Deploy](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml/badge.svg?branch=main)](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml)
+
+### Running Locally
+
+1. Clone this repo.
+2. Enter the `cpp` directory.
+3. Run `build-docker.sh` to build the necessary docker image to build the web assembly libraries and binaries. Alternatively, pull from our DockerHub repo (specified in the GitHub workflow `build-and-deploy`).
+4. Run `build-compiler-in-docker.sh` to build the web assembly libraries and binaries. This will run a series of steps using the `clang-wasm` docker image, and export the built files to the locations expected by the web app.
+5. Exit to the project root directory.
+6. Run `npm run dev` to start the development server locally.
