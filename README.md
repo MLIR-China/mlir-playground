@@ -13,7 +13,7 @@ Try it out now at our production site: [MLIR Playground](https://playground.mlir
 
 Create & run your own mlir-opt C++ program.
 
-Using the built-in C++ editor, you can implement and register your own pass (or any logic, for that matter). All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use directly.
+Using the built-in C++ editor, you can freely implement any feature you want. For example, you can write a simple pass and register it. All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use directly.
 
 To compile & run the program, hit the `Run` button above the editor. This will compile your C++ program using clang & lld (compiled to web assembly and run in your browser), and execute the program with the user-provided MLIR input file. You can also edit the command line arguments before hitting `Run` to customize the run behavior.
 
