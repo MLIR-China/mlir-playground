@@ -144,7 +144,6 @@ int main(int argc, char **argv) {
       editorRef.current = editor;
       if (cppEditor.current && inputEditor.current && outputEditor.current) {
         // All editors mounted.
-        getWasmCompiler().initialize();
         setAllEditorsMounted(true);
       }
     }
