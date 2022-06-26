@@ -89,7 +89,7 @@ jobs:
         uses: nwtgck/actions-netlify@v1.2.3
         with:
           publish-dir: './out'
-          production-deploy: ${{ inputs.deploy_prod && github.ref == 'refs/heads/main' }}
+          production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deployed ${{ github.ref }} to Netlify"
           enable-pull-request-comment: false
