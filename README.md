@@ -3,9 +3,11 @@
 Play with [MLIR](https://mlir.llvm.org/) directly in your browser.
 
 - **Get Started Immediately**: No need to install any dependencies or setup a build system.
-- **Private & Secure**: Everything is run locally in your browser. No code or input is transmitted back to the server.
+- **Private & Safe**: Everything runs locally in the sandboxed environment of your browser.
 
 Try it out now at our production site: [MLIR Playground](https://playground.mlir-china.org/).
+
+![Screenshot](public/readme_screenshot.png)
 
 ## Features
 
@@ -13,9 +15,9 @@ Try it out now at our production site: [MLIR Playground](https://playground.mlir
 
 Create & run your own mlir-opt C++ program.
 
-Using the built-in C++ editor, you can freely implement any feature you want. For example, you can write a simple pass and register it. All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use directly.
+Using the built-in C++ editor, you can implement any feature you want. For example, you can write a pass and run it on some mlir input. All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use immediately.
 
-To compile & run the program, hit the `Run` button above the editor. This will compile your C++ program using clang & lld (compiled to web assembly and run in your browser), and execute the program with the user-provided MLIR input file. You can also edit the command line arguments before hitting `Run` to customize the run behavior.
+To compile & run your program, hit the `Run` button above the editor. This will compile your C++ program using clang & lld (compiled to web assembly and run in your browser), and execute the program with the user-provided MLIR input file. You can also edit the command line arguments before hitting `Run` to customize the run behavior.
 
 The output MLIR editor (read-only) will display the output dumped to `output.mlir`. The Logging window will display any output to stdout/stderr during the entire compile & run phase of the C++ program.
 
@@ -33,7 +35,7 @@ Using the program mode selector, select a Toy chapter. Under this mode, the code
 
 1. Clone this repo.
 2. Enter the `cpp` directory.
-3. Run `build-docker.sh` to build the necessary docker image to build the web assembly libraries and binaries. Alternatively, pull from our DockerHub repo (specified in the GitHub workflow `build-and-deploy`).
+3. Run `build-docker.sh` to build the necessary docker image for building the web assembly libraries and binaries. Alternatively, pull from our DockerHub repo (specified in the GitHub workflow `build-and-deploy`).
 4. Run `build-compiler-in-docker.sh` to build the web assembly libraries and binaries. This will run a series of steps using the `clang-wasm` docker image, and export the built files to the locations expected by the web app.
 5. Exit to the project root directory.
 6. Run `npm run dev` to start the development server locally.
