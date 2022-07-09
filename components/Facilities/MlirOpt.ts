@@ -27,6 +27,7 @@ const defaultMLIRInput =
 `;
 
 export class MlirOpt extends PlaygroundFacility {
+    isCodeEditorEnabled(): boolean { return true; }
     getInputFileName(): string { return "input.mlir"; }
     getOutputFileName(): string { return "output.mlir"; }
     getDefaultCodeFile(): string { return defaultCode; }

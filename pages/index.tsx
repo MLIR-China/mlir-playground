@@ -58,10 +58,10 @@ const Home: NextPage = () => {
 
   function setFacilitySelection(selection: string) {
     setCurrentFacility(selection);
-    cppEditor.current.updateOptions({
-      readOnly: selection != defaultFacility
-    });
     const props = getFacility(selection);
+    cppEditor.current.updateOptions({
+      readOnly: !props.isCodeEditorEnabled()
+    });
     setRunArgsLeftAddon(props.getRunArgsLeftAddon());
     setRunArgsRightAddon(props.getRunArgsRightAddon());
     setAdditionalRunArgs(props.getDefaultAdditionalRunArgs());
@@ -93,7 +93,7 @@ const Home: NextPage = () => {
       setLogValue(currValue => currValue + text + "\n");
     };
 
-    if (currentFacility == defaultFacility) {
+    if (getFacility(currentFacility).isCodeEditorEnabled()) {
       let cpp_source = cppEditor.current.getValue();
       setCompilerState("Compiling...");
       getWasmCompiler()

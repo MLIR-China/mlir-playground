@@ -12,6 +12,7 @@ export class ToyChapter extends PlaygroundFacility {
         super();
         this.chapterNumber = chapterNumber;
     }
+    isCodeEditorEnabled(): boolean { return false; }
     getInputFileName(): string { return "input.toy"; }
     getOutputFileName(): string { return "output.mlir"; }
     getDefaultCodeFile(): string { return ""; }

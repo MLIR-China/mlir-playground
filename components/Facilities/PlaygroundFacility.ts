@@ -1,4 +1,5 @@
 export abstract class PlaygroundFacility {
+    abstract isCodeEditorEnabled(): boolean;
     abstract getInputFileName(): string;
     abstract getOutputFileName(): string;
     abstract getDefaultCodeFile(): string;
