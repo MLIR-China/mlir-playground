@@ -1,4 +1,4 @@
-import WasmCompiler from '../WasmCompiler/index.js';
+import WasmCompiler from './index.js';
 
 let wasmCompiler = null;
 function getWasmCompiler() {

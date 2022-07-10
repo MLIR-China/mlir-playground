@@ -1,7 +1,5 @@
 import { PlaygroundFacility } from './PlaygroundFacility';
 
-import WasmCompiler from '../WasmCompiler/index.js';
-
 const defaultCode =
 `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"

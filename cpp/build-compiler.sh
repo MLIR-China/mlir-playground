@@ -28,7 +28,11 @@ sed -e '/Module = Module || {};/r onlylibs.js' wasm-ld_raw.mjs > wasm-ld.mjs
 sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' clang.mjs
 sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' wasm-ld.mjs
 
-# Step 5: Export all toy chapter builds as examples
+# Step 5: Remove typeof window check to work around erroneous JS optimization for web workers
+sed -i -E "s/typeof window === 'object'/false/" clang.mjs
+sed -i -E "s/typeof window === 'object'/false/" wasm-ld.mjs
+
+# Step 6: Export all toy chapter builds as examples
 mkdir /app/build/bin/toy -p
 cd /app/build/bin/toy
 
