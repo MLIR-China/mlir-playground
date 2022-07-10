@@ -3,7 +3,7 @@ const WasmFetcher = (() => {
         _cache: {},
         _fetch_common: function(file_name, post_process) {
             if (!this._cache.hasOwnProperty(file_name)) {
-                const full_path = process.env.staticFilePrefix + file_name;
+                const full_path = new URL(self.location.origin + "/" + process.env.staticFilePrefix + file_name);
                 this._cache[file_name] = fetch(full_path, {
                     credentials: "same-origin"
                 }).then((response) => {

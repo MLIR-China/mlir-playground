@@ -29,10 +29,12 @@ const defaultMLIRInput =
 `;
 
 export class MlirOpt extends PlaygroundFacility {
-    wasmCompiler: ReturnType<typeof WasmCompiler>;
+    wasmWorker: Worker;
+    running: boolean;
     constructor() {
         super();
-        this.wasmCompiler = WasmCompiler();
+        this.wasmWorker = new Worker(new URL("../WasmCompiler/worker.js", import.meta.url));
+        this.running = false;
     }
 
     isCodeEditorEnabled(): boolean { return true; }
@@ -45,6 +47,28 @@ export class MlirOpt extends PlaygroundFacility {
     getRunArgsRightAddon(): string { return "input.mlir -o output.mlir"; }
 
     run(code: string, input: string, arg: string, printer: (text: string) => void): Promise<string> {
-        return this.wasmCompiler.compileAndRun(code, input, arg.split(/\s+/), printer);
+        if (this.running) {
+            return Promise.reject("Previous instance is still running. Cannot launch another.");
+        }
+
+        return new Promise((resolve, reject) => {
+            this.wasmWorker.onmessage = (event) => {
+                if (event.data.log) {
+                    printer(event.data.log);
+                } else if (event.data.error) {
+                    reject(event.data.error);
+                    this.running = false;
+                } else if (event.data.output) {
+                    resolve(event.data.output);
+                    this.running = false;
+                }
+            };
+
+            this.wasmWorker.postMessage({
+                code: code,
+                input: input,
+                arg: arg,
+            });
+        });
     }
 }
