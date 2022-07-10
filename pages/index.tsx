@@ -23,9 +23,6 @@ import {
 import Editor, { OnMount } from '@monaco-editor/react'
 import styles from '../styles/Home.module.css'
 
-import Toy from '../components/Toy/index.js'
-import WasmCompiler from '../components/WasmCompiler/index.js'
-
 import { defaultFacility, getFacilityNames, getFacility } from '../components/Facilities/FacilitySelector'
 
 const Home: NextPage = () => {
@@ -46,15 +43,7 @@ const Home: NextPage = () => {
   const [inputEditorFileName, setInputEditorFileName] = useState("");
   const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
-  const wasmCompiler : React.MutableRefObject<any> = useRef(null);
-  const [compilerState, setCompilerState] = useState("");
-
-  function getWasmCompiler() {
-    if (!wasmCompiler.current) {
-      wasmCompiler.current = WasmCompiler();
-    }
-    return wasmCompiler.current;
-  };
+  const [runStatus, setRunStatus] = useState("");
 
   function setFacilitySelection(selection: string) {
     setCurrentFacility(selection);
@@ -88,25 +77,22 @@ const Home: NextPage = () => {
   }
 
   const onRunButtonClick = () => {
-    let input_mlir = inputEditor.current.getValue();
-    let printer = (text: string) => {
+    const input_mlir = inputEditor.current.getValue();
+    const printer = (text: string) => {
       setLogValue(currValue => currValue + text + "\n");
     };
 
-    if (getFacility(currentFacility).isCodeEditorEnabled()) {
-      let cpp_source = cppEditor.current.getValue();
-      setCompilerState("Compiling...");
-      getWasmCompiler()
-        .compileAndRun(cpp_source, input_mlir, additionalRunArgs.split(/\s+/), printer)
-        .finally(() => { setCompilerState(""); })
-        .then((output: string) => { outputEditor.current.setValue(output); }, printer);
+    const facility = getFacility(currentFacility);
+    let cpp_source = "";
+    if (facility.isCodeEditorEnabled()) {
+      cpp_source = cppEditor.current.getValue();
+      setRunStatus("Compiling...");
     } else {
-      let chapterIndex = parseInt(currentFacility.slice(-1));
-      setCompilerState("Running...");
-      Toy.runChapter(chapterIndex, input_mlir, additionalRunArgs.split(/\s+/), printer)
-        .finally(() => { setCompilerState(""); })
-        .then((output: string) => { outputEditor.current.setValue(output); }, printer)
+      setRunStatus("Running...");
     }
+    facility.run(cpp_source, input_mlir, additionalRunArgs, printer)
+        .finally(() => { setRunStatus(""); })
+        .then((output: string) => { outputEditor.current.setValue(output); }, printer);
   }
 
   const monacoOptions = {
@@ -168,7 +154,7 @@ const Home: NextPage = () => {
               <HStack>
                 <Heading>MLIR Playground</Heading>
                 <Button
-                  isLoading={!allEditorsMounted || compilerState !== ""}
+                  isLoading={!allEditorsMounted || runStatus !== ""}
                   mt="8"
                   as="a"
                   size="lg"
@@ -178,7 +164,7 @@ const Home: NextPage = () => {
                 >
                   Run
                 </Button>
-                <Text>{compilerState}</Text>
+                <Text>{runStatus}</Text>
               </HStack>
               <Box>
                 <Select value={currentFacility} onChange={onFacilitySelectionChange} disabled={!allEditorsMounted}>

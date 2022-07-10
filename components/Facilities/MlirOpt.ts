@@ -1,5 +1,7 @@
 import { PlaygroundFacility } from './PlaygroundFacility';
 
+import WasmCompiler from '../WasmCompiler/index.js';
+
 const defaultCode =
 `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
@@ -27,6 +29,12 @@ const defaultMLIRInput =
 `;
 
 export class MlirOpt extends PlaygroundFacility {
+    wasmCompiler: ReturnType<typeof WasmCompiler>;
+    constructor() {
+        super();
+        this.wasmCompiler = WasmCompiler();
+    }
+
     isCodeEditorEnabled(): boolean { return true; }
     getInputFileName(): string { return "input.mlir"; }
     getOutputFileName(): string { return "output.mlir"; }
@@ -35,4 +43,8 @@ export class MlirOpt extends PlaygroundFacility {
     getDefaultAdditionalRunArgs(): string { return "--convert-std-to-llvm"; }
     getRunArgsLeftAddon(): string { return "mlir-opt"; }
     getRunArgsRightAddon(): string { return "input.mlir -o output.mlir"; }
+
+    run(code: string, input: string, arg: string, printer: (text: string) => void): Promise<string> {
+        return this.wasmCompiler.compileAndRun(code, input, arg.split(/\s+/), printer);
+    }
 }
