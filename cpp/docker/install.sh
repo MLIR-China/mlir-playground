@@ -11,7 +11,7 @@ popd
 
 # build and install clang and mlir libs
 CXXFLAGS="-Dwait4=__syscall_wait4 -stdlib=libc++" \
-LDFLAGS="-s ENVIRONMENT='web' -s EXPORT_ES6=1 -s MODULARIZE=1 -s LLD_REPORT_UNDEFINED=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=_main,_free,_malloc -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,PROXYFS,allocateUTF8,FS_createPath,FS_createDataFile,FS_createPreloadedFile,addRunDependency,removeRunDependency,callMain -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=\$Browser -s LZ4=1 -lproxyfs.js" \
+LDFLAGS="-s ENVIRONMENT='worker' -s EXPORT_ES6=1 -s MODULARIZE=1 -s LLD_REPORT_UNDEFINED=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=_main,_free,_malloc -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,PROXYFS,allocateUTF8,FS_createPath,FS_createDataFile,FS_createPreloadedFile,addRunDependency,removeRunDependency,callMain -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=\$Browser -s LZ4=1 -lproxyfs.js" \
 emcmake cmake -G Ninja \
     -S $LLVM_SRC/llvm/ \
     -B $LLVM_WASM_BUILD/ \
