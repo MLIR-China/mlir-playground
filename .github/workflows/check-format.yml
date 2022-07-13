@@ -1,0 +1,29 @@
+name: Check Format
+# This action will check for proper code formatting enforced by auto formatters.
+
+on:
+  pull_request:
+
+concurrency:
+  group: check-format-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-format:
+    runs-on: ubuntu-20.04
+
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Run eslint
+        run: npm run lint
+
+      - name: Run prettier checker
+        run: npm run format:check
