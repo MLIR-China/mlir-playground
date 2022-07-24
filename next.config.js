@@ -25,8 +25,8 @@ const nextConfig = {
         publicPath: "public",
       },
     });
-    return config
+    return config;
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -1,0 +1,12 @@
+# ignore top level un-related folders
+/.github/
+/cpp/
+
+# ignore build artifacts
+/.next/
+/_next/
+/out/
+
+# ignore all auto-generated files for wasm
+wasm/
+
