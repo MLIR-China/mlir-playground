@@ -26,7 +26,7 @@ const WasmFetcher = () => {
     },
   };
 
-  const getModuleParams = (wasmFile, dataFile) => {
+  const getModuleParams = (wasmFile, dataFile, printer) => {
     const commonFields = {
       noInitialRun: true,
       locateFile: (path, scriptDir) => {
@@ -43,6 +43,8 @@ const WasmFetcher = () => {
             return instance.exports;
           });
       },
+      print: printer,
+      printErr: printer,
     };
 
     if (!dataFile) return commonFields;

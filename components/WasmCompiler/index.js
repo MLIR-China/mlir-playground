@@ -237,9 +237,9 @@ const WasmCompiler = () => {
     "/lib/libLLVMDemangle.a",
   ];
 
-  const _compileSourceToWasm = (sourceCode) => {
+  const _compileSourceToWasm = (sourceCode, printer) => {
     return wasmFetcher
-      .getModuleParams("clang.wasm", "onlyincludes.data")
+      .getModuleParams("clang.wasm", "onlyincludes.data", printer)
       .then((params) => {
         return ClangModule(params);
       })
@@ -298,7 +298,7 @@ const WasmCompiler = () => {
         );
 
         return wasmFetcher
-          .getModuleParams("lld.wasm", "onlylibs.data")
+          .getModuleParams("lld.wasm", "onlylibs.data", printer)
           .then((params) => {
             return LldModule({ ...params, thisProgram: "wasm-ld" });
           })
@@ -390,18 +390,21 @@ const WasmCompiler = () => {
   const _cachingCompiler = (() => {
     let prev = { source: "", result: Promise.resolve(null) };
 
-    return (sourceCode) => {
+    return (sourceCode, printer) => {
       if (prev.source === sourceCode) {
         return prev.result;
       }
 
-      prev = { source: sourceCode, result: _compileSourceToWasm(sourceCode) };
+      prev = {
+        source: sourceCode,
+        result: _compileSourceToWasm(sourceCode, printer),
+      };
       return prev.result;
     };
   })();
 
   const compileAndRun = (sourceCode, inputMlir, mlirOptArgs, printer) => {
-    return _cachingCompiler(sourceCode).then(
+    return _cachingCompiler(sourceCode, printer).then(
       (inst) => {
         console.log(inst);
         return TemplateModule({
@@ -443,7 +446,7 @@ const WasmCompiler = () => {
       },
       (fail_msg) => {
         console.log("compileAndRun failed during compile phase.");
-        console.log(fail_msg);
+        return Promise.reject(fail_msg);
       }
     );
   };
