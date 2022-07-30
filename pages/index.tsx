@@ -10,6 +10,7 @@ import {
   GridItem,
   Heading,
   HStack,
+  Image,
   Input,
   InputGroup,
   InputLeftAddon,
@@ -152,9 +153,25 @@ const Home: NextPage = () => {
         <title>MLIR Playground</title>
         <meta
           name="description"
-          content="Playing with MLIR right in the browser."
+          content="Play with MLIR right in the browser."
         />
-        <link rel="icon" href="/mlir.png" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon/favicon-16x16.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/favicon/apple-touch-icon.png"
+        />
       </Head>
       <main className={styles.main_playground}>
         <Grid
@@ -166,6 +183,11 @@ const Home: NextPage = () => {
           <GridItem rowSpan={4} colSpan={1}>
             <VStack spacing={4} align="left">
               <HStack>
+                <Image
+                  src="/mlir-playground.png"
+                  alt="MLIR Playground"
+                  boxSize="2em"
+                />
                 <Heading>MLIR Playground</Heading>
                 <Button
                   isLoading={!allEditorsMounted || runStatus !== ""}
