@@ -23,7 +23,7 @@ class MyPattern : public OpRewritePattern<ConstantIntOp> {
         }
 
         rewriter.setInsertionPoint(constant);
-        auto newConstant =
+        ConstantIntOp newConstant =
             rewriter.create<ConstantIntOp>(constant->getLoc(), 0, constant.getResult().getType());
         rewriter.replaceOp(constant, {newConstant.getResult()});
         return success();
@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
   return mlir::asMainReturnCode(
       mlir::MlirOptMain(argc, argv, "Custom optimizer driver\\n", registry));
 }
-
 `;
 
 export class CppPattern extends MlirOpt {

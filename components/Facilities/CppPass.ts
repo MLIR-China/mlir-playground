@@ -19,8 +19,9 @@ class MyPass : public PassWrapper<MyPass, OperationPass<FuncOp>> {
     }
 
     void runOnOperation() {
-        // Implement custom pass logic below
-        auto fn = getOperation();
+        // Implement custom pass logic below.
+        // The example pass prints to stderr the name of the function being operated on.
+        FuncOp fn = getOperation();
         llvm::errs() << "Found function: " << fn.getName() << "\\n";
     }
 };
