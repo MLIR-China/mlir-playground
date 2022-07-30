@@ -1,3 +1,4 @@
+import { CppPass } from "./CppPass";
 import { MlirOpt } from "./MlirOpt";
 import { PlaygroundFacility } from "./PlaygroundFacility";
 import { ToyChapter } from "./ToyChapter";
@@ -5,6 +6,9 @@ import { ToyChapter } from "./ToyChapter";
 const FacilityFactory: Record<string, () => PlaygroundFacility> = {
   "Custom mlir-opt": () => {
     return new MlirOpt();
+  },
+  "C++ Pass": () => {
+    return new CppPass();
   },
   "Toy Chapter 1": () => {
     return new ToyChapter(1);
