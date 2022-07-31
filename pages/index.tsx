@@ -178,14 +178,13 @@ const Home: NextPage = () => {
         />
       </Head>
       <main className={styles.main_playground}>
-        <Grid
-          templateRows="repeat(4, 1fr)"
-          templateColumns="repeat(2, 1fr)"
-          columnGap={4}
-          rowGap={2}
+        <Flex
+          direction="column"
+          wrap="wrap"
+          className={styles.playground_flexbox}
         >
-          <GridItem rowSpan={4} colSpan={1}>
-            <VStack spacing={4} align="left">
+          <Box height="90vh">
+            <VStack spacing={4} align="left" height="100%">
               <HStack>
                 <Image
                   src="/mlir-playground.png"
@@ -234,19 +233,19 @@ const Home: NextPage = () => {
                   <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
                 </InputGroup>
               </HStack>
-              <Box>
+              <Flex height="80vh" flexDirection="column">
                 <Flex align="end">
                   <Heading>Editor</Heading>
                   <Spacer />
                   <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
                 </Flex>
-                <Box borderWidth="2px" h="800">
+                <Box borderWidth="2px" flexGrow="1" h="100%">
                   {codeEditor}
                 </Box>
-              </Box>
+              </Flex>
             </VStack>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
+          </Box>
+          <Flex height="30vh" flexDirection="column">
             <Flex align="end">
               <Heading>Input</Heading>
               <Spacer />
@@ -254,11 +253,11 @@ const Home: NextPage = () => {
                 {inputEditorFileName}
               </Text>
             </Flex>
-            <Box borderWidth="2px" h="200">
+            <Box borderWidth="2px" flexGrow="1">
               {inputMLIRViewer}
             </Box>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
+          </Flex>
+          <Flex height="30vh" flexDirection="column">
             <Flex align="end">
               <Heading>Output</Heading>
               <Spacer />
@@ -266,18 +265,19 @@ const Home: NextPage = () => {
                 {outputEditorFileName}
               </Text>
             </Flex>
-            <Box borderWidth="2px" h="200">
+            <Box borderWidth="2px" flexGrow="1">
               {outputMLIRViewer}
             </Box>
-          </GridItem>
-          <GridItem rowSpan={2} colSpan={1}>
+          </Flex>
+          <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
             <Heading>Logs</Heading>
             <Box
               borderWidth="2px"
-              h="400"
+              flexGrow="1"
+              height="100%"
               bg="gray.800"
               fontFamily={monospaceFontFamily}
-              overflowY="scroll"
+              overflowY="auto"
               padding="4"
             >
               {logValue.map((logText, logIndex) => (
@@ -286,8 +286,8 @@ const Home: NextPage = () => {
                 </Box>
               ))}
             </Box>
-          </GridItem>
-        </Grid>
+          </Flex>
+        </Flex>
       </main>
     </div>
   );
