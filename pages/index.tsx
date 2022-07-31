@@ -38,7 +38,7 @@ const Home: NextPage = () => {
   const cppEditor: React.MutableRefObject<any> = useRef(null);
   const inputEditor: React.MutableRefObject<any> = useRef(null);
   const outputEditor: React.MutableRefObject<any> = useRef(null);
-  const [logValue, setLogValue] = useState("");
+  const [logValue, setLogValue] = useState<Array<string>>([]);
 
   const [currentFacility, setCurrentFacility] = React.useState(defaultFacility);
 
@@ -85,8 +85,12 @@ const Home: NextPage = () => {
 
   const onRunButtonClick = () => {
     const input_mlir = inputEditor.current.getValue();
+    setLogValue((currValue) => [...currValue, ""]);
     const printer = (text: string) => {
-      setLogValue((currValue) => currValue + text + "\n");
+      setLogValue((currValue) => [
+        ...currValue.slice(0, -1),
+        currValue[currValue.length - 1] + text + "\n",
+      ]);
     };
 
     const facility = getFacility(currentFacility);
@@ -268,15 +272,20 @@ const Home: NextPage = () => {
           </GridItem>
           <GridItem rowSpan={2} colSpan={1}>
             <Heading>Logs</Heading>
-            <Textarea
+            <Box
               borderWidth="2px"
-              height="100%"
+              h="400"
               bg="gray.800"
-              value={logValue}
-              readOnly
-              color="white"
               fontFamily={monospaceFontFamily}
-            ></Textarea>
+              overflowY="scroll"
+              padding="4"
+            >
+              {logValue.map((logText, logIndex) => (
+                <Box className={styles.log_content} key={logIndex}>
+                  {logText}
+                </Box>
+              ))}
+            </Box>
           </GridItem>
         </Grid>
       </main>

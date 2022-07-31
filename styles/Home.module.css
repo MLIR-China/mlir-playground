@@ -123,3 +123,12 @@
     flex-direction: column;
   }
 }
+
+.log_content {
+  white-space: pre-wrap;
+  color: gray;
+}
+
+.log_content:last-child {
+  color: white;
+}
