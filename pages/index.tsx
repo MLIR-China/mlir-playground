@@ -71,6 +71,11 @@ const Home: NextPage = () => {
       editorRef.current = editor;
       if (cppEditor.current && inputEditor.current && outputEditor.current) {
         // All editors mounted.
+        window.addEventListener("resize", () => {
+          cppEditor.current.layout({});
+          inputEditor.current.layout({});
+          outputEditor.current.layout({});
+        });
         setAllEditorsMounted(true);
         setFacilitySelection(defaultFacility);
       }
@@ -245,47 +250,49 @@ const Home: NextPage = () => {
               </Flex>
             </VStack>
           </Box>
-          <Flex height="30vh" flexDirection="column">
-            <Flex align="end">
-              <Heading>Input</Heading>
-              <Spacer />
-              <Text fontFamily={monospaceFontFamily}>
-                {inputEditorFileName}
-              </Text>
+          <Flex height="90vh" flexDirection="column">
+            <Flex height="30vh" flexDirection="column">
+              <Flex align="end">
+                <Heading>Input</Heading>
+                <Spacer />
+                <Text fontFamily={monospaceFontFamily}>
+                  {inputEditorFileName}
+                </Text>
+              </Flex>
+              <Box borderWidth="2px" flexGrow="1">
+                {inputMLIRViewer}
+              </Box>
             </Flex>
-            <Box borderWidth="2px" flexGrow="1">
-              {inputMLIRViewer}
-            </Box>
-          </Flex>
-          <Flex height="30vh" flexDirection="column">
-            <Flex align="end">
-              <Heading>Output</Heading>
-              <Spacer />
-              <Text fontFamily={monospaceFontFamily}>
-                {outputEditorFileName}
-              </Text>
+            <Flex height="30vh" flexDirection="column">
+              <Flex align="end">
+                <Heading>Output</Heading>
+                <Spacer />
+                <Text fontFamily={monospaceFontFamily}>
+                  {outputEditorFileName}
+                </Text>
+              </Flex>
+              <Box borderWidth="2px" flexGrow="1">
+                {outputMLIRViewer}
+              </Box>
             </Flex>
-            <Box borderWidth="2px" flexGrow="1">
-              {outputMLIRViewer}
-            </Box>
-          </Flex>
-          <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
-            <Heading>Logs</Heading>
-            <Box
-              borderWidth="2px"
-              flexGrow="1"
-              height="100%"
-              bg="gray.800"
-              fontFamily={monospaceFontFamily}
-              overflowY="auto"
-              padding="4"
-            >
-              {logValue.map((logText, logIndex) => (
-                <Box className={styles.log_content} key={logIndex}>
-                  {logText}
-                </Box>
-              ))}
-            </Box>
+            <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
+              <Heading>Logs</Heading>
+              <Box
+                borderWidth="2px"
+                flexGrow="1"
+                height="100%"
+                bg="gray.800"
+                fontFamily={monospaceFontFamily}
+                overflowY="auto"
+                padding="4"
+              >
+                {logValue.map((logText, logIndex) => (
+                  <Box className={styles.log_content} key={logIndex}>
+                    {logText}
+                  </Box>
+                ))}
+              </Box>
+            </Flex>
           </Flex>
         </Flex>
       </main>
