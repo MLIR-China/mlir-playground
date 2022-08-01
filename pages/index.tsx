@@ -38,7 +38,7 @@ const Home: NextPage = () => {
   const cppEditor: React.MutableRefObject<any> = useRef(null);
   const inputEditor: React.MutableRefObject<any> = useRef(null);
   const outputEditor: React.MutableRefObject<any> = useRef(null);
-  const [logValue, setLogValue] = useState("");
+  const [logValue, setLogValue] = useState<Array<string>>([]);
 
   const [currentFacility, setCurrentFacility] = React.useState(defaultFacility);
 
@@ -71,6 +71,11 @@ const Home: NextPage = () => {
       editorRef.current = editor;
       if (cppEditor.current && inputEditor.current && outputEditor.current) {
         // All editors mounted.
+        window.addEventListener("resize", () => {
+          cppEditor.current.layout({});
+          inputEditor.current.layout({});
+          outputEditor.current.layout({});
+        });
         setAllEditorsMounted(true);
         setFacilitySelection(defaultFacility);
       }
@@ -85,8 +90,12 @@ const Home: NextPage = () => {
 
   const onRunButtonClick = () => {
     const input_mlir = inputEditor.current.getValue();
+    setLogValue((currValue) => [...currValue, ""]);
     const printer = (text: string) => {
-      setLogValue((currValue) => currValue + text + "\n");
+      setLogValue((currValue) => [
+        ...currValue.slice(0, -1),
+        currValue[currValue.length - 1] + text + "\n",
+      ]);
     };
 
     const facility = getFacility(currentFacility);
@@ -174,14 +183,13 @@ const Home: NextPage = () => {
         />
       </Head>
       <main className={styles.main_playground}>
-        <Grid
-          templateRows="repeat(4, 1fr)"
-          templateColumns="repeat(2, 1fr)"
-          columnGap={4}
-          rowGap={2}
+        <Flex
+          direction="column"
+          wrap="wrap"
+          className={styles.playground_flexbox}
         >
-          <GridItem rowSpan={4} colSpan={1}>
-            <VStack spacing={4} align="left">
+          <Box height="90vh">
+            <VStack spacing={4} align="left" height="100%">
               <HStack>
                 <Image
                   src="/mlir-playground.png"
@@ -230,55 +238,63 @@ const Home: NextPage = () => {
                   <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
                 </InputGroup>
               </HStack>
-              <Box>
+              <Flex height="80vh" flexDirection="column">
                 <Flex align="end">
                   <Heading>Editor</Heading>
                   <Spacer />
                   <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
                 </Flex>
-                <Box borderWidth="2px" h="800">
+                <Box borderWidth="2px" flexGrow="1" h="100%">
                   {codeEditor}
                 </Box>
-              </Box>
+              </Flex>
             </VStack>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <Flex align="end">
-              <Heading>Input</Heading>
-              <Spacer />
-              <Text fontFamily={monospaceFontFamily}>
-                {inputEditorFileName}
-              </Text>
+          </Box>
+          <Flex height="90vh" flexDirection="column">
+            <Flex height="30vh" flexDirection="column">
+              <Flex align="end">
+                <Heading>Input</Heading>
+                <Spacer />
+                <Text fontFamily={monospaceFontFamily}>
+                  {inputEditorFileName}
+                </Text>
+              </Flex>
+              <Box borderWidth="2px" flexGrow="1">
+                {inputMLIRViewer}
+              </Box>
             </Flex>
-            <Box borderWidth="2px" h="200">
-              {inputMLIRViewer}
-            </Box>
-          </GridItem>
-          <GridItem rowSpan={1} colSpan={1}>
-            <Flex align="end">
-              <Heading>Output</Heading>
-              <Spacer />
-              <Text fontFamily={monospaceFontFamily}>
-                {outputEditorFileName}
-              </Text>
+            <Flex height="30vh" flexDirection="column">
+              <Flex align="end">
+                <Heading>Output</Heading>
+                <Spacer />
+                <Text fontFamily={monospaceFontFamily}>
+                  {outputEditorFileName}
+                </Text>
+              </Flex>
+              <Box borderWidth="2px" flexGrow="1">
+                {outputMLIRViewer}
+              </Box>
             </Flex>
-            <Box borderWidth="2px" h="200">
-              {outputMLIRViewer}
-            </Box>
-          </GridItem>
-          <GridItem rowSpan={2} colSpan={1}>
-            <Heading>Logs</Heading>
-            <Textarea
-              borderWidth="2px"
-              height="100%"
-              bg="gray.800"
-              value={logValue}
-              readOnly
-              color="white"
-              fontFamily={monospaceFontFamily}
-            ></Textarea>
-          </GridItem>
-        </Grid>
+            <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
+              <Heading>Logs</Heading>
+              <Box
+                borderWidth="2px"
+                flexGrow="1"
+                height="100%"
+                bg="gray.800"
+                fontFamily={monospaceFontFamily}
+                overflowY="auto"
+                padding="4"
+              >
+                {logValue.map((logText, logIndex) => (
+                  <Box className={styles.log_content} key={logIndex}>
+                    {logText}
+                  </Box>
+                ))}
+              </Box>
+            </Flex>
+          </Flex>
+        </Flex>
       </main>
     </div>
   );
