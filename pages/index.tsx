@@ -30,6 +30,8 @@ import {
   getFacility,
 } from "../components/Facilities/FacilitySelector";
 
+import NavBar from "../components/UI/navbar";
+
 const Home: NextPage = () => {
   const monospaceFontFamily = "Consolas, 'Courier New', monospace";
 
@@ -182,6 +184,7 @@ const Home: NextPage = () => {
           href="/favicon/apple-touch-icon.png"
         />
       </Head>
+      <NavBar />
       <main className={styles.main_playground}>
         <Flex
           direction="column"
@@ -191,26 +194,6 @@ const Home: NextPage = () => {
           <Box height="90vh">
             <VStack spacing={4} align="left" height="100%">
               <HStack>
-                <Image
-                  src="/mlir-playground.png"
-                  alt="MLIR Playground"
-                  boxSize="2em"
-                />
-                <Heading>MLIR Playground</Heading>
-                <Button
-                  isLoading={!allEditorsMounted || runStatus !== ""}
-                  mt="8"
-                  as="a"
-                  size="lg"
-                  colorScheme="blue"
-                  fontWeight="bold"
-                  onClick={onRunButtonClick}
-                >
-                  Run
-                </Button>
-                <Text>{runStatus}</Text>
-              </HStack>
-              <Box>
                 <Select
                   value={currentFacility}
                   onChange={onFacilitySelectionChange}
@@ -224,7 +207,19 @@ const Home: NextPage = () => {
                     );
                   })}
                 </Select>
-              </Box>
+                <Button
+                  isLoading={!allEditorsMounted || runStatus !== ""}
+                  mt="8"
+                  as="a"
+                  size="lg"
+                  colorScheme="blue"
+                  fontWeight="bold"
+                  onClick={onRunButtonClick}
+                >
+                  Run
+                </Button>
+                <Text w="6rem">{runStatus || "Ready"}</Text>
+              </HStack>
               <HStack>
                 <Text>Arguments</Text>
                 <InputGroup fontFamily={monospaceFontFamily}>
