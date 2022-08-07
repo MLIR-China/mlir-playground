@@ -1,11 +1,19 @@
 import React from "react";
-import { Box, Button, Flex, Heading, HStack, Image, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  HStack,
+  Image,
+  Text,
+} from "@chakra-ui/react";
 
 const NavBar = (props: RunButtonProps) => {
   return (
     <NavBarContainer>
       <Logo />
-      <RunButton {...props}/>
+      <RunButton {...props} />
     </NavBarContainer>
   );
 };
@@ -13,17 +21,17 @@ const NavBar = (props: RunButtonProps) => {
 const Logo = () => {
   return (
     <HStack>
-      <Image
-        src="/mlir-playground.png"
-        alt="MLIR Playground"
-        boxSize="2em"
-      />
+      <Image src="/mlir-playground.png" alt="MLIR Playground" boxSize="2em" />
       <Heading fontFamily="heading">MLIR Playground</Heading>
     </HStack>
   );
-}
+};
 
-type RunButtonProps = { allEditorsMounted: boolean, runStatus: string, onClick: (() => void) };
+type RunButtonProps = {
+  allEditorsMounted: boolean;
+  runStatus: string;
+  onClick: () => void;
+};
 
 const RunButton = (props: RunButtonProps) => {
   return (
@@ -43,7 +51,7 @@ const RunButton = (props: RunButtonProps) => {
   );
 };
 
-const NavBarContainer = ({ children } : { children: React.ReactNode }) => {
+const NavBarContainer = ({ children }: { children: React.ReactNode }) => {
   return (
     <Flex
       as="nav"

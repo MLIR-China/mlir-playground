@@ -149,7 +149,7 @@ const Home: NextPage = () => {
         allEditorsMounted={allEditorsMounted}
         runStatus={runStatus}
         onClick={onRunButtonClick}
-        />
+      />
       <Flex
         as="main"
         direction="row"
@@ -160,16 +160,44 @@ const Home: NextPage = () => {
       >
         <Box height="100%" className={styles.main_left}>
           <VStack spacing={4} align="left" height="100%">
-            <FacilitySelector facility={currentFacility} onFacilityChange={onFacilitySelectionChange} disabled={!allEditorsMounted} />
-            <ArgumentsBar leftAddon={runArgsLeftAddon} rightAddon={runArgsRightAddon} additionalRunArgs={additionalRunArgs} setAdditionalRunArgs={setAdditionalRunArgs}/>
-            <LabeledEditor height="80vh" label="Editor" filename="mlir-opt.cpp" onMount={onEditorMounted(cppEditor)}/>
+            <FacilitySelector
+              facility={currentFacility}
+              onFacilityChange={onFacilitySelectionChange}
+              disabled={!allEditorsMounted}
+            />
+            <ArgumentsBar
+              leftAddon={runArgsLeftAddon}
+              rightAddon={runArgsRightAddon}
+              additionalRunArgs={additionalRunArgs}
+              setAdditionalRunArgs={setAdditionalRunArgs}
+            />
+            <LabeledEditor
+              height="80vh"
+              label="Editor"
+              filename="mlir-opt.cpp"
+              onMount={onEditorMounted(cppEditor)}
+            />
           </VStack>
         </Box>
         <Divider orientation="vertical" />
-        <Flex height="100%" flexDirection="column" className={styles.main_right}>
-          <LabeledEditor height="30vh" label="Input" filename={inputEditorFileName} onMount={onEditorMounted(inputEditor)}/>
+        <Flex
+          height="100%"
+          flexDirection="column"
+          className={styles.main_right}
+        >
+          <LabeledEditor
+            height="30vh"
+            label="Input"
+            filename={inputEditorFileName}
+            onMount={onEditorMounted(inputEditor)}
+          />
           <LogWindow minHeight="30vh" logs={logValue} />
-          <LabeledEditor height="30vh" label="Output" filename={outputEditorFileName} onMount={onEditorMounted(outputEditor)}/>
+          <LabeledEditor
+            height="30vh"
+            label="Output"
+            filename={outputEditorFileName}
+            onMount={onEditorMounted(outputEditor)}
+          />
         </Flex>
       </Flex>
     </div>
@@ -177,8 +205,8 @@ const Home: NextPage = () => {
 };
 
 type LogWindowProps = {
-  minHeight: string,
-  logs: Array<String> 
+  minHeight: string;
+  logs: Array<String>;
 };
 
 const LogWindow = (props: LogWindowProps) => {
@@ -205,9 +233,9 @@ const LogWindow = (props: LogWindowProps) => {
 };
 
 type FacilitySelectorProps = {
-  facility: string,
-  onFacilityChange: ((event: React.ChangeEvent<HTMLSelectElement>) => void),
-  disabled: boolean,
+  facility: string;
+  onFacilityChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  disabled: boolean;
 };
 
 const FacilitySelector = (props: FacilitySelectorProps) => {
@@ -231,10 +259,10 @@ const FacilitySelector = (props: FacilitySelectorProps) => {
 };
 
 type ArgumentsBarProps = {
-  leftAddon: string,
-  rightAddon: string,
-  additionalRunArgs: string,
-  setAdditionalRunArgs: ((text: string) => void),
+  leftAddon: string;
+  rightAddon: string;
+  additionalRunArgs: string;
+  setAdditionalRunArgs: (text: string) => void;
 };
 
 const ArgumentsBar = (props: ArgumentsBarProps) => {
@@ -245,9 +273,7 @@ const ArgumentsBar = (props: ArgumentsBarProps) => {
         <InputLeftAddon>{props.leftAddon}</InputLeftAddon>
         <Input
           value={props.additionalRunArgs}
-          onChange={(event) =>
-            props.setAdditionalRunArgs(event.target.value)
-          }
+          onChange={(event) => props.setAdditionalRunArgs(event.target.value)}
         ></Input>
         <InputRightAddon>{props.rightAddon}</InputRightAddon>
       </InputGroup>

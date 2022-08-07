@@ -4,12 +4,11 @@ import { Box, Flex, Heading, Spacer, Text } from "@chakra-ui/react";
 
 import { monospaceFontFamily } from "./constants";
 
-
 type LabeledEditorProps = {
-  height: string,
-  label: string,
-  filename: string,
-  onMount: OnMount,
+  height: string;
+  label: string;
+  filename: string;
+  onMount: OnMount;
 };
 
 const monacoOptions = {
