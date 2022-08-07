@@ -204,8 +204,8 @@ const Home: NextPage = () => {
                 stroke="lightgray"
               >
                 <line x1="-10" y1="-2" x2="-10" y2="-100%" />
-                <line x1="-10" y1="-2" x2="-0" y2="-20" />
-                <line x1="-10" y1="-2" x2="-20" y2="-20" />
+                <line x1="-10" y1="-2" x2="-2" y2="-16" />
+                <line x1="-10" y1="-2" x2="-18" y2="-16" />
               </g>
             </svg>
             <LogWindow minHeight="30vh" logs={logValue} />
