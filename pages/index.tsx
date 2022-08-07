@@ -191,7 +191,25 @@ const Home: NextPage = () => {
             filename={inputEditorFileName}
             onMount={onEditorMounted(inputEditor)}
           />
-          <LogWindow minHeight="30vh" logs={logValue} />
+          <HStack height="30vh">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="30vh"
+              width="20px"
+              className={styles.log_arrow}
+            >
+              <g
+                className={styles.log_arrow_g}
+                strokeWidth="2"
+                stroke="lightgray"
+              >
+                <line x1="-10" y1="-2" x2="-10" y2="-100%" />
+                <line x1="-10" y1="-2" x2="-0" y2="-20" />
+                <line x1="-10" y1="-2" x2="-20" y2="-20" />
+              </g>
+            </svg>
+            <LogWindow minHeight="30vh" logs={logValue} />
+          </HStack>
           <LabeledEditor
             height="30vh"
             label="Output"

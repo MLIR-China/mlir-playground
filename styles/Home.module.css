@@ -143,3 +143,11 @@
 .log_content:last-child {
   color: white;
 }
+
+.log_arrow {
+  padding-top: 10px;
+}
+
+.log_arrow_g {
+  transform: translate(100%, 100%);
+}
