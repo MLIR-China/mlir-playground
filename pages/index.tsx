@@ -271,6 +271,7 @@ type FacilitySelectorProps = {
 const FacilitySelector = (props: FacilitySelectorProps) => {
   return (
     <HStack>
+      <Text>Preset</Text>
       <Select
         value={props.facility}
         onChange={props.onFacilityChange}
