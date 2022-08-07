@@ -192,7 +192,7 @@ const Home: NextPage = () => {
             onMount={onEditorMounted(inputEditor)}
           />
           <TransformationOutput
-            logWindowProps={{ minHeight: "30vh", logs: logValue }}
+            logWindowProps={{ height: "30vh", logs: logValue }}
             labeledEditorProps={{
               height: "30vh",
               label: "Output",
@@ -213,7 +213,7 @@ type TransformationOutputProps = {
 
 const TransformationOutput = (props: TransformationOutputProps) => {
   return (
-    <Flex>
+    <Flex flexDirection="column">
       <HStack height="30vh">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -235,13 +235,13 @@ const TransformationOutput = (props: TransformationOutputProps) => {
 };
 
 type LogWindowProps = {
-  minHeight: string;
+  height: string;
   logs: Array<String>;
 };
 
 const LogWindow = (props: LogWindowProps) => {
   return (
-    <Flex minHeight={props.minHeight} flexGrow="1" flexDirection="column">
+    <Flex height={props.height} flexGrow="1" flexDirection="column">
       <Heading>Logs</Heading>
       <Box
         borderWidth="2px"
