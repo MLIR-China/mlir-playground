@@ -2,16 +2,14 @@
   padding: 0;
 }
 
-.playground_flexbox > * {
-  flex: 1;
-}
-
 .main_left {
   margin-right: 1rem;
+  flex: 1;
 }
 
 .main_right {
   margin-left: 1rem;
+  flex: 1;
 }
 
 @media (max-width: 62em) {
@@ -23,16 +21,14 @@
     max-height: fit-content;
   }
 
-  .playground_flexbox > * {
-    width: 100%;
-  }
-
   .main_left {
     margin-right: 0;
+    width: 100%;
   }
   
   .main_right {
     margin-left: 0;
+    width: 100%;
   }
 }
 

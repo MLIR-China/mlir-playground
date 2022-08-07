@@ -5,6 +5,7 @@ import Head from "next/head";
 import {
   Box,
   Button,
+  Divider,
   Flex,
   Grid,
   GridItem,
@@ -184,7 +185,11 @@ const Home: NextPage = () => {
           href="/favicon/apple-touch-icon.png"
         />
       </Head>
-      <NavBar />
+      <NavBar
+        allEditorsMounted={allEditorsMounted}
+        runStatus={runStatus}
+        onClick={onRunButtonClick}
+        />
       <Flex
         as="main"
         direction="row"
@@ -209,18 +214,6 @@ const Home: NextPage = () => {
                   );
                 })}
               </Select>
-              <Button
-                isLoading={!allEditorsMounted || runStatus !== ""}
-                mt="8"
-                as="a"
-                size="lg"
-                colorScheme="blue"
-                fontWeight="bold"
-                onClick={onRunButtonClick}
-              >
-                Run
-              </Button>
-              <Text w="6rem">{runStatus || "Ready"}</Text>
             </HStack>
             <HStack>
               <Text>Arguments</Text>
@@ -247,6 +240,7 @@ const Home: NextPage = () => {
             </Flex>
           </VStack>
         </Box>
+        <Divider orientation="vertical" />
         <Flex height="100%" flexDirection="column" className={styles.main_right}>
           <Flex height="30vh" flexDirection="column">
             <Flex align="end">
