@@ -2,22 +2,16 @@
   padding: 0;
 }
 
-.main_playground {
-  height: 100%;
-  padding: 1rem 2rem;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.playground_flexbox {
-  max-height: 100vh;
-}
-
 .playground_flexbox > * {
-  width: 50%;
-  margin: 4px;
+  flex: 1;
+}
+
+.main_left {
+  margin-right: 1rem;
+}
+
+.main_right {
+  margin-left: 1rem;
 }
 
 @media (max-width: 62em) {
@@ -31,6 +25,14 @@
 
   .playground_flexbox > * {
     width: 100%;
+  }
+
+  .main_left {
+    margin-right: 0;
+  }
+  
+  .main_right {
+    margin-left: 0;
   }
 }
 

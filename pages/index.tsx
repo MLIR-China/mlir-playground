@@ -185,112 +185,113 @@ const Home: NextPage = () => {
         />
       </Head>
       <NavBar />
-      <main className={styles.main_playground}>
-        <Flex
-          direction="column"
-          wrap="wrap"
-          className={styles.playground_flexbox}
-        >
-          <Box height="90vh">
-            <VStack spacing={4} align="left" height="100%">
-              <HStack>
-                <Select
-                  value={currentFacility}
-                  onChange={onFacilitySelectionChange}
-                  disabled={!allEditorsMounted}
-                >
-                  {getFacilityNames().map((name, i) => {
-                    return (
-                      <option value={name} key={i}>
-                        {name}
-                      </option>
-                    );
-                  })}
-                </Select>
-                <Button
-                  isLoading={!allEditorsMounted || runStatus !== ""}
-                  mt="8"
-                  as="a"
-                  size="lg"
-                  colorScheme="blue"
-                  fontWeight="bold"
-                  onClick={onRunButtonClick}
-                >
-                  Run
-                </Button>
-                <Text w="6rem">{runStatus || "Ready"}</Text>
-              </HStack>
-              <HStack>
-                <Text>Arguments</Text>
-                <InputGroup fontFamily={monospaceFontFamily}>
-                  <InputLeftAddon>{runArgsLeftAddon}</InputLeftAddon>
-                  <Input
-                    value={additionalRunArgs}
-                    onChange={(event) =>
-                      setAdditionalRunArgs(event.target.value)
-                    }
-                  ></Input>
-                  <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
-                </InputGroup>
-              </HStack>
-              <Flex height="80vh" flexDirection="column">
-                <Flex align="end">
-                  <Heading>Editor</Heading>
-                  <Spacer />
-                  <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
-                </Flex>
-                <Box borderWidth="2px" flexGrow="1" h="100%">
-                  {codeEditor}
-                </Box>
-              </Flex>
-            </VStack>
-          </Box>
-          <Flex height="90vh" flexDirection="column">
-            <Flex height="30vh" flexDirection="column">
-              <Flex align="end">
-                <Heading>Input</Heading>
-                <Spacer />
-                <Text fontFamily={monospaceFontFamily}>
-                  {inputEditorFileName}
-                </Text>
-              </Flex>
-              <Box borderWidth="2px" flexGrow="1">
-                {inputMLIRViewer}
-              </Box>
-            </Flex>
-            <Flex height="30vh" flexDirection="column">
-              <Flex align="end">
-                <Heading>Output</Heading>
-                <Spacer />
-                <Text fontFamily={monospaceFontFamily}>
-                  {outputEditorFileName}
-                </Text>
-              </Flex>
-              <Box borderWidth="2px" flexGrow="1">
-                {outputMLIRViewer}
-              </Box>
-            </Flex>
-            <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
-              <Heading>Logs</Heading>
-              <Box
-                borderWidth="2px"
-                flexGrow="1"
-                height="100%"
-                bg="gray.800"
-                fontFamily={monospaceFontFamily}
-                overflowY="auto"
-                padding="4"
+      <Flex
+        as="main"
+        direction="row"
+        justify="space-between"
+        className={styles.playground_flexbox}
+        height="90vh"
+        padding="1rem"
+      >
+        <Box height="100%" className={styles.main_left}>
+          <VStack spacing={4} align="left" height="100%">
+            <HStack>
+              <Select
+                value={currentFacility}
+                onChange={onFacilitySelectionChange}
+                disabled={!allEditorsMounted}
               >
-                {logValue.map((logText, logIndex) => (
-                  <Box className={styles.log_content} key={logIndex}>
-                    {logText}
-                  </Box>
-                ))}
+                {getFacilityNames().map((name, i) => {
+                  return (
+                    <option value={name} key={i}>
+                      {name}
+                    </option>
+                  );
+                })}
+              </Select>
+              <Button
+                isLoading={!allEditorsMounted || runStatus !== ""}
+                mt="8"
+                as="a"
+                size="lg"
+                colorScheme="blue"
+                fontWeight="bold"
+                onClick={onRunButtonClick}
+              >
+                Run
+              </Button>
+              <Text w="6rem">{runStatus || "Ready"}</Text>
+            </HStack>
+            <HStack>
+              <Text>Arguments</Text>
+              <InputGroup fontFamily={monospaceFontFamily}>
+                <InputLeftAddon>{runArgsLeftAddon}</InputLeftAddon>
+                <Input
+                  value={additionalRunArgs}
+                  onChange={(event) =>
+                    setAdditionalRunArgs(event.target.value)
+                  }
+                ></Input>
+                <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
+              </InputGroup>
+            </HStack>
+            <Flex height="80vh" flexDirection="column">
+              <Flex align="end">
+                <Heading>Editor</Heading>
+                <Spacer />
+                <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
+              </Flex>
+              <Box borderWidth="2px" flexGrow="1" h="100%">
+                {codeEditor}
               </Box>
             </Flex>
+          </VStack>
+        </Box>
+        <Flex height="100%" flexDirection="column" className={styles.main_right}>
+          <Flex height="30vh" flexDirection="column">
+            <Flex align="end">
+              <Heading>Input</Heading>
+              <Spacer />
+              <Text fontFamily={monospaceFontFamily}>
+                {inputEditorFileName}
+              </Text>
+            </Flex>
+            <Box borderWidth="2px" flexGrow="1">
+              {inputMLIRViewer}
+            </Box>
+          </Flex>
+          <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
+            <Heading>Logs</Heading>
+            <Box
+              borderWidth="2px"
+              flexGrow="1"
+              height="100%"
+              bg="gray.800"
+              fontFamily={monospaceFontFamily}
+              overflowY="auto"
+              padding="4"
+            >
+              {logValue.map((logText, logIndex) => (
+                <Box className={styles.log_content} key={logIndex}>
+                  {logText}
+                </Box>
+              ))}
+            </Box>
+          </Flex>
+          <Flex height="30vh" flexDirection="column">
+            <Flex align="end">
+              <Heading>Output</Heading>
+              <Spacer />
+              <Text fontFamily={monospaceFontFamily}>
+                {outputEditorFileName}
+              </Text>
+            </Flex>
+            <Box borderWidth="2px" flexGrow="1">
+              {outputMLIRViewer}
+            </Box>
           </Flex>
         </Flex>
-      </main>
+      </Flex>
     </div>
   );
 };
