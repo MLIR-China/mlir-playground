@@ -24,6 +24,7 @@ import {
 } from "@chakra-ui/react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import styles from "../styles/Home.module.css";
+import { monospaceFontFamily } from "../components/UI/constants";
 
 import {
   defaultFacility,
@@ -31,11 +32,10 @@ import {
   getFacility,
 } from "../components/Facilities/FacilitySelector";
 
+import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
 
 const Home: NextPage = () => {
-  const monospaceFontFamily = "Consolas, 'Courier New', monospace";
-
   // state
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor: React.MutableRefObject<any> = useRef(null);
@@ -119,46 +119,6 @@ const Home: NextPage = () => {
       }, printer);
   };
 
-  const monacoOptions = {
-    selectOnLineNumbers: true,
-    quickSuggestions: true,
-    minimap: {
-      enabled: false,
-    },
-    scrollBeyondLastLine: false,
-    automaticLayout: true,
-  };
-
-  const codeEditor = (
-    <Editor
-      key="cppEditor"
-      height="100%"
-      defaultLanguage="cpp"
-      onMount={onEditorMounted(cppEditor)}
-      options={monacoOptions}
-    />
-  );
-
-  const inputMLIRViewer = (
-    <Editor
-      key="inputEditor"
-      height="100%"
-      defaultLanguage="cpp"
-      onMount={onEditorMounted(inputEditor)}
-      options={monacoOptions}
-    />
-  );
-
-  const outputMLIRViewer = (
-    <Editor
-      key="outputEditor"
-      height="100%"
-      defaultLanguage="cpp"
-      onMount={onEditorMounted(outputEditor)}
-      options={{ ...monacoOptions, readOnly: true }}
-    />
-  );
-
   return (
     <div className={styles.container}>
       <Head>
@@ -200,93 +160,98 @@ const Home: NextPage = () => {
       >
         <Box height="100%" className={styles.main_left}>
           <VStack spacing={4} align="left" height="100%">
-            <HStack>
-              <Select
-                value={currentFacility}
-                onChange={onFacilitySelectionChange}
-                disabled={!allEditorsMounted}
-              >
-                {getFacilityNames().map((name, i) => {
-                  return (
-                    <option value={name} key={i}>
-                      {name}
-                    </option>
-                  );
-                })}
-              </Select>
-            </HStack>
-            <HStack>
-              <Text>Arguments</Text>
-              <InputGroup fontFamily={monospaceFontFamily}>
-                <InputLeftAddon>{runArgsLeftAddon}</InputLeftAddon>
-                <Input
-                  value={additionalRunArgs}
-                  onChange={(event) =>
-                    setAdditionalRunArgs(event.target.value)
-                  }
-                ></Input>
-                <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
-              </InputGroup>
-            </HStack>
-            <Flex height="80vh" flexDirection="column">
-              <Flex align="end">
-                <Heading>Editor</Heading>
-                <Spacer />
-                <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
-              </Flex>
-              <Box borderWidth="2px" flexGrow="1" h="100%">
-                {codeEditor}
-              </Box>
-            </Flex>
+            <FacilitySelector facility={currentFacility} onFacilityChange={onFacilitySelectionChange} disabled={!allEditorsMounted} />
+            <ArgumentsBar leftAddon={runArgsLeftAddon} rightAddon={runArgsRightAddon} additionalRunArgs={additionalRunArgs} setAdditionalRunArgs={setAdditionalRunArgs}/>
+            <LabeledEditor height="80vh" label="Editor" filename="mlir-opt.cpp" onMount={onEditorMounted(cppEditor)}/>
           </VStack>
         </Box>
         <Divider orientation="vertical" />
         <Flex height="100%" flexDirection="column" className={styles.main_right}>
-          <Flex height="30vh" flexDirection="column">
-            <Flex align="end">
-              <Heading>Input</Heading>
-              <Spacer />
-              <Text fontFamily={monospaceFontFamily}>
-                {inputEditorFileName}
-              </Text>
-            </Flex>
-            <Box borderWidth="2px" flexGrow="1">
-              {inputMLIRViewer}
-            </Box>
-          </Flex>
-          <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
-            <Heading>Logs</Heading>
-            <Box
-              borderWidth="2px"
-              flexGrow="1"
-              height="100%"
-              bg="gray.800"
-              fontFamily={monospaceFontFamily}
-              overflowY="auto"
-              padding="4"
-            >
-              {logValue.map((logText, logIndex) => (
-                <Box className={styles.log_content} key={logIndex}>
-                  {logText}
-                </Box>
-              ))}
-            </Box>
-          </Flex>
-          <Flex height="30vh" flexDirection="column">
-            <Flex align="end">
-              <Heading>Output</Heading>
-              <Spacer />
-              <Text fontFamily={monospaceFontFamily}>
-                {outputEditorFileName}
-              </Text>
-            </Flex>
-            <Box borderWidth="2px" flexGrow="1">
-              {outputMLIRViewer}
-            </Box>
-          </Flex>
+          <LabeledEditor height="30vh" label="Input" filename={inputEditorFileName} onMount={onEditorMounted(inputEditor)}/>
+          <LogWindow minHeight="30vh" logs={logValue} />
+          <LabeledEditor height="30vh" label="Output" filename={outputEditorFileName} onMount={onEditorMounted(outputEditor)}/>
         </Flex>
       </Flex>
     </div>
+  );
+};
+
+type LogWindowProps = {
+  minHeight: string,
+  logs: Array<String> 
+};
+
+const LogWindow = (props: LogWindowProps) => {
+  return (
+    <Flex minHeight={props.minHeight} flexGrow="1" flexDirection="column">
+      <Heading>Logs</Heading>
+      <Box
+        borderWidth="2px"
+        flexGrow="1"
+        height="100%"
+        bg="gray.800"
+        fontFamily={monospaceFontFamily}
+        overflowY="auto"
+        padding="4"
+      >
+        {props.logs.map((logText, logIndex) => (
+          <Box className={styles.log_content} key={logIndex}>
+            {logText}
+          </Box>
+        ))}
+      </Box>
+    </Flex>
+  );
+};
+
+type FacilitySelectorProps = {
+  facility: string,
+  onFacilityChange: ((event: React.ChangeEvent<HTMLSelectElement>) => void),
+  disabled: boolean,
+};
+
+const FacilitySelector = (props: FacilitySelectorProps) => {
+  return (
+    <HStack>
+      <Select
+        value={props.facility}
+        onChange={props.onFacilityChange}
+        disabled={props.disabled}
+      >
+        {getFacilityNames().map((name, i) => {
+          return (
+            <option value={name} key={i}>
+              {name}
+            </option>
+          );
+        })}
+      </Select>
+    </HStack>
+  );
+};
+
+type ArgumentsBarProps = {
+  leftAddon: string,
+  rightAddon: string,
+  additionalRunArgs: string,
+  setAdditionalRunArgs: ((text: string) => void),
+};
+
+const ArgumentsBar = (props: ArgumentsBarProps) => {
+  return (
+    <HStack>
+      <Text>Arguments</Text>
+      <InputGroup fontFamily={monospaceFontFamily}>
+        <InputLeftAddon>{props.leftAddon}</InputLeftAddon>
+        <Input
+          value={props.additionalRunArgs}
+          onChange={(event) =>
+            props.setAdditionalRunArgs(event.target.value)
+          }
+        ></Input>
+        <InputRightAddon>{props.rightAddon}</InputRightAddon>
+      </InputGroup>
+    </HStack>
   );
 };
 

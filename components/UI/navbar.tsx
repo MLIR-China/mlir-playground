@@ -1,6 +1,5 @@
 import React from "react";
 import { Box, Button, Flex, Heading, HStack, Image, Text } from "@chakra-ui/react";
-import { AppProps } from "next/app";
 
 const NavBar = (props: RunButtonProps) => {
   return (
