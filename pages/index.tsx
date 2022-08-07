@@ -191,34 +191,46 @@ const Home: NextPage = () => {
             filename={inputEditorFileName}
             onMount={onEditorMounted(inputEditor)}
           />
-          <HStack height="30vh">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="30vh"
-              width="20px"
-              className={styles.log_arrow}
-            >
-              <g
-                className={styles.log_arrow_g}
-                strokeWidth="2"
-                stroke="lightgray"
-              >
-                <line x1="-10" y1="-2" x2="-10" y2="-100%" />
-                <line x1="-10" y1="-2" x2="-2" y2="-16" />
-                <line x1="-10" y1="-2" x2="-18" y2="-16" />
-              </g>
-            </svg>
-            <LogWindow minHeight="30vh" logs={logValue} />
-          </HStack>
-          <LabeledEditor
-            height="30vh"
-            label="Output"
-            filename={outputEditorFileName}
-            onMount={onEditorMounted(outputEditor)}
+          <TransformationOutput
+            logWindowProps={{ minHeight: "30vh", logs: logValue }}
+            labeledEditorProps={{
+              height: "30vh",
+              label: "Output",
+              filename: outputEditorFileName,
+              onMount: onEditorMounted(outputEditor),
+            }}
           />
         </Flex>
       </Flex>
     </div>
+  );
+};
+
+type TransformationOutputProps = {
+  logWindowProps: Parameters<typeof LogWindow>[0];
+  labeledEditorProps: Parameters<typeof LabeledEditor>[0];
+};
+
+const TransformationOutput = (props: TransformationOutputProps) => {
+  return (
+    <Flex>
+      <HStack height="30vh">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="30vh"
+          width="20px"
+          className={styles.log_arrow}
+        >
+          <g className={styles.log_arrow_g} strokeWidth="2" stroke="lightgray">
+            <line x1="-10" y1="-2" x2="-10" y2="-100%" />
+            <line x1="-10" y1="-2" x2="-2" y2="-16" />
+            <line x1="-10" y1="-2" x2="-18" y2="-16" />
+          </g>
+        </svg>
+        <LogWindow {...props.logWindowProps} />
+      </HStack>
+      <LabeledEditor {...props.labeledEditorProps} />
+    </Flex>
   );
 };
 
