@@ -1,4 +1,4 @@
-import { PlaygroundFacility } from "./PlaygroundFacility";
+import { PlaygroundPreset } from "./PlaygroundPreset";
 
 import Toy from "../Toy/index.js";
 
@@ -7,7 +7,7 @@ const defaultToyInput = `def main() {
 }
 `;
 
-export class ToyChapter extends PlaygroundFacility {
+export class ToyChapter extends PlaygroundPreset {
   chapterNumber: number;
   constructor(chapterNumber: number) {
     super();

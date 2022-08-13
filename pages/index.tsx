@@ -21,10 +21,10 @@ import styles from "../styles/Home.module.css";
 import { monospaceFontFamily } from "../components/UI/constants";
 
 import {
-  defaultFacility,
-  getFacilityNames,
-  getFacility,
-} from "../components/Facilities/FacilitySelector";
+  defaultPreset,
+  getPresetNames,
+  getPreset,
+} from "../components/Facilities/PresetFactory";
 
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
@@ -37,7 +37,7 @@ const Home: NextPage = () => {
   const outputEditor: React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState<Array<string>>([]);
 
-  const [currentFacility, setCurrentFacility] = React.useState(defaultFacility);
+  const [currentPreset, setCurrentPreset] = React.useState(defaultPreset);
 
   const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
   const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
@@ -47,9 +47,9 @@ const Home: NextPage = () => {
 
   const [runStatus, setRunStatus] = useState("");
 
-  function setFacilitySelection(selection: string) {
-    setCurrentFacility(selection);
-    const props = getFacility(selection);
+  function setPresetSelection(selection: string) {
+    setCurrentPreset(selection);
+    const props = getPreset(selection);
     cppEditor.current.updateOptions({
       readOnly: !props.isCodeEditorEnabled(),
     });
@@ -74,15 +74,15 @@ const Home: NextPage = () => {
           outputEditor.current.layout({});
         });
         setAllEditorsMounted(true);
-        setFacilitySelection(defaultFacility);
+        setPresetSelection(defaultPreset);
       }
     };
   };
 
-  const onFacilitySelectionChange = (
+  const onPresetSelectionChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setFacilitySelection(event.target.value);
+    setPresetSelection(event.target.value);
   };
 
   const onRunButtonClick = () => {
@@ -95,15 +95,15 @@ const Home: NextPage = () => {
       ]);
     };
 
-    const facility = getFacility(currentFacility);
+    const preset = getPreset(currentPreset);
     let cpp_source = "";
-    if (facility.isCodeEditorEnabled()) {
+    if (preset.isCodeEditorEnabled()) {
       cpp_source = cppEditor.current.getValue();
       setRunStatus("Compiling...");
     } else {
       setRunStatus("Running...");
     }
-    facility
+    preset
       .run(cpp_source, input_mlir, additionalRunArgs, printer)
       .finally(() => {
         setRunStatus("");
@@ -154,9 +154,9 @@ const Home: NextPage = () => {
       >
         <Box height="100%" className={styles.main_left}>
           <VStack spacing={4} align="left" height="100%">
-            <FacilitySelector
-              facility={currentFacility}
-              onFacilityChange={onFacilitySelectionChange}
+            <PresetSelector
+              preset={currentPreset}
+              onPresetChange={onPresetSelectionChange}
               disabled={!allEditorsMounted}
             />
             <ArgumentsBar
@@ -256,22 +256,22 @@ const LogWindow = (props: LogWindowProps) => {
   );
 };
 
-type FacilitySelectorProps = {
-  facility: string;
-  onFacilityChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+type PresetSelectorProps = {
+  preset: string;
+  onPresetChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   disabled: boolean;
 };
 
-const FacilitySelector = (props: FacilitySelectorProps) => {
+const PresetSelector = (props: PresetSelectorProps) => {
   return (
     <HStack>
       <Text>Preset</Text>
       <Select
-        value={props.facility}
-        onChange={props.onFacilityChange}
+        value={props.preset}
+        onChange={props.onPresetChange}
         disabled={props.disabled}
       >
-        {getFacilityNames().map((name, i) => {
+        {getPresetNames().map((name, i) => {
           return (
             <option value={name} key={i}>
               {name}
