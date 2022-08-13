@@ -4,22 +4,16 @@ import Head from "next/head";
 
 import {
   Box,
-  Button,
   Divider,
   Flex,
-  Grid,
-  GridItem,
   Heading,
   HStack,
-  Image,
   Input,
   InputGroup,
   InputLeftAddon,
   InputRightAddon,
   Select,
-  Spacer,
   Text,
-  Textarea,
   VStack,
 } from "@chakra-ui/react";
 import Editor, { OnMount } from "@monaco-editor/react";
