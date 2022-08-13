@@ -1,6 +1,15 @@
 import { get as idb_get, set as idb_set } from "idb-keyval";
 
 class WasmFetcher {
+  private static singleton: WasmFetcher;
+  private constructor() {}
+  static getSingleton(): WasmFetcher {
+    if (!WasmFetcher.singleton) {
+      WasmFetcher.singleton = new WasmFetcher();
+    }
+    return WasmFetcher.singleton;
+  }
+
   private fetchCommon<ResultType>(
     file_name: string,
     post_process: (resp: Response) => Promise<ResultType>
@@ -38,6 +47,8 @@ class WasmFetcher {
     });
   }
 
+  // Important: While idb is shared between main and workers,
+  // this local wasmCache is unique to each memory space.
   private wasmCache: Record<string, WebAssembly.Module> = {};
   fetchWasm(wasm_name: string): Promise<WebAssembly.Module> {
     if (wasm_name in this.wasmCache) {

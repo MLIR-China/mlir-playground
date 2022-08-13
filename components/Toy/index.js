@@ -10,7 +10,7 @@ import Module6 from "./wasm/toyc-ch6.js";
 import Module7 from "./wasm/toyc-ch7.js";
 
 const ToyWasm = (() => {
-  const wasmFetcher = new WasmFetcher();
+  const wasmFetcher = WasmFetcher.getSingleton();
 
   const moduleMap = {
     1: Module1,

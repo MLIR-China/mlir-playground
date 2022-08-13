@@ -5,7 +5,7 @@ import LldModule from "./wasm/wasm-ld.mjs";
 import TemplateModule from "./template.js";
 
 const WasmCompiler = () => {
-  const wasmFetcher = new WasmFetcher();
+  const wasmFetcher = WasmFetcher.getSingleton();
 
   const project_libraries = [
     "/lib/libMLIRAffine.a",
