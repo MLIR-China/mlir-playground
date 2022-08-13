@@ -30,7 +30,7 @@ export class MlirOpt extends PlaygroundPreset {
   constructor() {
     super();
     this.wasmWorker = new Worker(
-      new URL("../WasmCompiler/worker.js", import.meta.url)
+      new URL("../WasmCompiler/worker.ts", import.meta.url)
     );
     this.running = false;
   }

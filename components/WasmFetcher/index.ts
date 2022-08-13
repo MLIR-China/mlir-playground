@@ -94,7 +94,7 @@ class WasmFetcher {
       printErr: printer,
     };
 
-    if (!dataFile) return commonFields;
+    if (!dataFile) return Promise.resolve(commonFields);
 
     return this.fetchData(dataFile).then((dataBuffer) => {
       return Promise.resolve({

@@ -7,10 +7,23 @@ import TemplateModule from "./template.js";
 const CLANG_DATA_FILE = "onlyincludes.data";
 const LLD_DATA_FILE = "onlylibs.data";
 
-const WasmCompiler = () => {
-  const wasmFetcher = WasmFetcher.getSingleton();
+class LoggingTimer {
+  private startTime: Date;
 
-  const project_libraries = [
+  constructor() {
+    this.startTime = new Date();
+  }
+
+  log(prefix: string) {
+    const duration = new Date().getTime() - this.startTime.getTime();
+    console.log("%s. Elapsed time: %d ms", prefix, duration);
+  }
+}
+
+class WasmCompiler {
+  private static readonly wasmFetcher = WasmFetcher.getSingleton();
+
+  private readonly projectLibraries = [
     "/lib/libMLIRAffine.a",
     "/lib/libMLIRAffineTransforms.a",
     "/lib/libMLIRAffineUtils.a",
@@ -240,13 +253,16 @@ const WasmCompiler = () => {
     "/lib/libLLVMDemangle.a",
   ];
 
-  const _compileSourceToWasm = (sourceCode, printer) => {
-    return wasmFetcher
+  private _compileSourceToWasm(
+    sourceCode: string,
+    printer: (log: string) => void
+  ) {
+    return WasmCompiler.wasmFetcher
       .getModuleParams("clang.wasm", CLANG_DATA_FILE, printer)
       .then((params) => {
         return ClangModule(params);
       })
-      .then(function (loadedClangModule) {
+      .then((loadedClangModule) => {
         console.log("Loaded Clang Module!");
 
         loadedClangModule.FS.writeFile("hello.cpp", sourceCode);
@@ -274,7 +290,7 @@ const WasmCompiler = () => {
           "default",
           "-fno-rtti",
         ];
-        const compileStartTime = new Date();
+        const compileTimer = new LoggingTimer();
         try {
           let ret = loadedClangModule.callMain([
             "-cc1",
@@ -291,21 +307,17 @@ const WasmCompiler = () => {
               "Failed to compile. Clang exited with: " + ret.toString()
             );
           }
-        } catch (e) {
+        } catch (e: any) {
           return Promise.reject("Failed to compile. Error: " + e.toString());
         }
-        const compileEndTime = new Date();
-        console.log(
-          "Compiled .o object file. Elapsed time: %d ms",
-          compileEndTime - compileStartTime
-        );
+        compileTimer.log("Compiled .o object file");
 
-        return wasmFetcher
+        return WasmCompiler.wasmFetcher
           .getModuleParams("lld.wasm", LLD_DATA_FILE, printer)
-          .then((params) => {
+          .then((params: any) => {
             return LldModule({ ...params, thisProgram: "wasm-ld" });
           })
-          .then(function (loadedLldMod) {
+          .then((loadedLldMod) => {
             console.log("Loaded Lld Module!");
 
             loadedLldMod.FS.mkdir("/clangmod");
@@ -357,7 +369,7 @@ const WasmCompiler = () => {
               "--max-memory=16777216",
               "--global-base=1024",
             ];
-            const linkStartTime = new Date();
+            const linkTimer = new LoggingTimer();
             try {
               let ret = loadedLldMod.callMain([
                 "/clangmod/hello.o",
@@ -366,21 +378,17 @@ const WasmCompiler = () => {
                 "-L/lib/wasm32-emscripten",
                 ...system_libraries,
                 ...linkOptions,
-                ...project_libraries,
+                ...this.projectLibraries,
               ]);
               if (ret) {
                 return Promise.reject(
                   "Failed to link. Lld exited with: " + ret.toString()
                 );
               }
-            } catch (e) {
+            } catch (e: any) {
               return Promise.reject("Failed to link. Error: " + e.toString());
             }
-            const linkEndTime = new Date();
-            console.log(
-              "Linked .wasm file. Elapsed time: %d ms",
-              linkEndTime - linkStartTime
-            );
+            linkTimer.log("Linked .wasm file");
             // compiled executable
             let wasm = loadedLldMod.FS.readFile("hello.wasm");
             console.log(wasm);
@@ -388,42 +396,52 @@ const WasmCompiler = () => {
             return WebAssembly.compile(wasm);
           });
       });
-  };
+  }
 
-  const _cachingCompiler = (() => {
-    let prev = { source: "", result: Promise.resolve(null) };
+  private _cachingCompiler = (() => {
+    let prev:
+      | { source: string; result: Promise<WebAssembly.Module> }
+      | undefined = undefined;
 
-    return (sourceCode, printer) => {
-      if (prev.source === sourceCode) {
+    return (sourceCode: string, printer: (log: string) => void) => {
+      if (prev && prev.source === sourceCode) {
         return prev.result;
       }
 
       prev = {
         source: sourceCode,
-        result: _compileSourceToWasm(sourceCode, printer),
+        result: this._compileSourceToWasm(sourceCode, printer),
       };
       return prev.result;
     };
   })();
 
-  const compileAndRun = (sourceCode, inputMlir, mlirOptArgs, printer) => {
-    return _cachingCompiler(sourceCode, printer).then(
+  compileAndRun(
+    sourceCode: string,
+    inputMlir: string,
+    mlirOptArgs: Array<string>,
+    printer: (log: string) => void
+  ) {
+    return this._cachingCompiler(sourceCode, printer).then(
       (inst) => {
         console.log(inst);
         return TemplateModule({
           noInitialRun: true,
           thisProgram: "mlir-opt",
-          instantiateWasm: (imports, callback) => {
+          instantiateWasm: (
+            imports: WebAssembly.Imports,
+            callback: (inst: WebAssembly.Instance) => void
+          ) => {
             WebAssembly.instantiate(inst, imports).then((compiledInst) => {
               callback(compiledInst);
             });
           },
           print: printer,
           printErr: printer,
-        }).then((compiledMod) => {
+        }).then((compiledMod: any) => {
           compiledMod.FS.writeFile("input.mlir", inputMlir);
           console.log("Running mlir-opt...");
-          const runStartTime = new Date();
+          const runTimer = new LoggingTimer();
           try {
             let ret = compiledMod.callMain([
               ...mlirOptArgs,
@@ -436,14 +454,10 @@ const WasmCompiler = () => {
                 "Failed to run. mlir-opt exited with: " + ret.toString()
               );
             }
-          } catch (e) {
+          } catch (e: any) {
             return Promise.reject("Failed to run. Error: " + e.toString());
           }
-          const runEndTime = new Date();
-          console.log(
-            "Run successful. Elapsed time: %d ms",
-            runEndTime - runStartTime
-          );
+          runTimer.log("Run successful");
           return compiledMod.FS.readFile("output.mlir", { encoding: "utf8" });
         });
       },
@@ -452,23 +466,20 @@ const WasmCompiler = () => {
         return Promise.reject(fail_msg);
       }
     );
-  };
+  }
 
-  const initialize = () => {
+  static initialize() {
     // prefetch data files
-    wasmFetcher.fetchData(CLANG_DATA_FILE);
-    wasmFetcher.fetchData(LLD_DATA_FILE);
-  };
+    WasmCompiler.wasmFetcher.fetchData(CLANG_DATA_FILE);
+    WasmCompiler.wasmFetcher.fetchData(LLD_DATA_FILE);
+  }
 
-  const dataFilesCached = () => {
-    return wasmFetcher.idbCachesExists([CLANG_DATA_FILE, LLD_DATA_FILE]);
-  };
-
-  return {
-    compileAndRun: compileAndRun,
-    initialize: initialize,
-    dataFilesCached: dataFilesCached,
-  };
-};
+  static dataFilesCached(): Promise<boolean> {
+    return WasmCompiler.wasmFetcher.idbCachesExists([
+      CLANG_DATA_FILE,
+      LLD_DATA_FILE,
+    ]);
+  }
+}
 
 export default WasmCompiler;

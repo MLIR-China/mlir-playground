@@ -1,16 +1,16 @@
-import WasmCompiler from "./index.js";
+import WasmCompiler from ".";
 
-let wasmCompiler = null;
+let wasmCompiler: WasmCompiler | undefined = undefined;
 function getWasmCompiler() {
   if (!wasmCompiler) {
-    wasmCompiler = WasmCompiler();
+    wasmCompiler = new WasmCompiler();
   }
   return wasmCompiler;
 }
 
 onmessage = function (event) {
   const data = event.data;
-  const printer = (text) => {
+  const printer = (text: string) => {
     postMessage({ log: text });
   };
   getWasmCompiler()
