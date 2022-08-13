@@ -5,14 +5,23 @@ import {
   Flex,
   Heading,
   HStack,
+  Icon,
   Image,
-  Text,
+  Tag,
+  TagLabel,
+  Tooltip,
 } from "@chakra-ui/react";
+import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
 
-const NavBar = (props: RunButtonProps) => {
+type NavBarProps = RunButtonProps & { localEnvironmentReady: boolean };
+
+const NavBar = (props: NavBarProps) => {
   return (
     <NavBarContainer>
-      <Logo />
+      <HStack spacing="1rem">
+        <Logo />
+        <LocalEnvironmentStatus ready={props.localEnvironmentReady} />
+      </HStack>
       <RunButton {...props} />
     </NavBarContainer>
   );
@@ -24,6 +33,25 @@ const Logo = () => {
       <Image src="/mlir-playground.png" alt="MLIR Playground" boxSize="2em" />
       <Heading fontFamily="heading">MLIR Playground</Heading>
     </HStack>
+  );
+};
+
+const LocalEnvironmentStatus = (props: { ready: boolean }) => {
+  const readyMessage = "Compiler environment cached";
+  const notReadyMessage =
+    "Compiler environment will be cached on first compile.";
+  return (
+    <Tooltip hasArrow label={props.ready ? readyMessage : notReadyMessage}>
+      <Tag
+        size="lg"
+        borderRadius="full"
+        backgroundColor={props.ready ? "green.200" : "gray.200"}
+        color="gray.700"
+      >
+        <Icon as={props.ready ? MdOutlineCode : MdOutlineCodeOff} mr="0.5rem" />
+        <TagLabel>{props.ready ? "Ready" : "Pending"}</TagLabel>
+      </Tag>
+    </Tooltip>
   );
 };
 

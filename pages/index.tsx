@@ -28,6 +28,7 @@ import {
 
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
+import WasmCompiler from "../components/WasmCompiler";
 
 const Home: NextPage = () => {
   // state
@@ -45,7 +46,14 @@ const Home: NextPage = () => {
   const [inputEditorFileName, setInputEditorFileName] = useState("");
   const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
+  const [compilerDataCached, setCompilerDataCached] = useState(false);
   const [runStatus, setRunStatus] = useState("");
+
+  function updateCompilerDataCached() {
+    WasmCompiler.dataFilesCached().then((isCached) => {
+      setCompilerDataCached(isCached);
+    });
+  }
 
   function setPresetSelection(selection: string) {
     setCurrentPreset(selection);
@@ -75,6 +83,7 @@ const Home: NextPage = () => {
         });
         setAllEditorsMounted(true);
         setPresetSelection(defaultPreset);
+        updateCompilerDataCached();
       }
     };
   };
@@ -107,6 +116,7 @@ const Home: NextPage = () => {
       .run(cpp_source, input_mlir, additionalRunArgs, printer)
       .finally(() => {
         setRunStatus("");
+        updateCompilerDataCached();
       })
       .then((output: string) => {
         outputEditor.current.setValue(output);
@@ -141,6 +151,7 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         allEditorsMounted={allEditorsMounted}
+        localEnvironmentReady={compilerDataCached}
         runStatus={runStatus}
         onClick={onRunButtonClick}
       />
