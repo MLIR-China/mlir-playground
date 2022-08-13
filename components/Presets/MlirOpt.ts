@@ -1,4 +1,4 @@
-import { PlaygroundFacility } from "./PlaygroundFacility";
+import { PlaygroundPreset } from "./PlaygroundPreset";
 
 const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
@@ -24,7 +24,7 @@ const defaultMLIRInput = `module  {
 }
 `;
 
-export class MlirOpt extends PlaygroundFacility {
+export class MlirOpt extends PlaygroundPreset {
   wasmWorker: Worker;
   running: boolean;
   constructor() {

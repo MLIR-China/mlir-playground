@@ -1,10 +1,10 @@
 import { CppPass } from "./CppPass";
 import { CppPattern } from "./CppPattern";
 import { MlirOpt } from "./MlirOpt";
-import { PlaygroundFacility } from "./PlaygroundFacility";
+import { PlaygroundPreset } from "./PlaygroundPreset";
 import { ToyChapter } from "./ToyChapter";
 
-const FacilityFactory: Record<string, () => PlaygroundFacility> = {
+const PresetFactory: Record<string, () => PlaygroundPreset> = {
   "Custom mlir-opt": () => {
     return new MlirOpt();
   },
@@ -37,19 +37,19 @@ const FacilityFactory: Record<string, () => PlaygroundFacility> = {
   },
 };
 
-let FacilityStorage: Record<string, PlaygroundFacility> = {};
+let PresetStorage: Record<string, PlaygroundPreset> = {};
 
-type facilityOption = keyof typeof FacilityFactory;
+type presetOption = keyof typeof PresetFactory;
 
-export const defaultFacility: facilityOption = "Custom mlir-opt";
+export const defaultPreset: presetOption = "Custom mlir-opt";
 
-export function getFacilityNames() {
-  return Object.keys(FacilityFactory);
+export function getPresetNames() {
+  return Object.keys(PresetFactory);
 }
 
-export function getFacility(name: string) {
-  if (!(name in FacilityStorage)) {
-    FacilityStorage[name] = FacilityFactory[name]();
+export function getPreset(name: string) {
+  if (!(name in PresetStorage)) {
+    PresetStorage[name] = PresetFactory[name]();
   }
-  return FacilityStorage[name];
+  return PresetStorage[name];
 }

@@ -4,35 +4,32 @@ import Head from "next/head";
 
 import {
   Box,
-  Button,
+  Divider,
   Flex,
-  Grid,
-  GridItem,
   Heading,
   HStack,
-  Image,
   Input,
   InputGroup,
   InputLeftAddon,
   InputRightAddon,
   Select,
-  Spacer,
   Text,
-  Textarea,
   VStack,
 } from "@chakra-ui/react";
 import Editor, { OnMount } from "@monaco-editor/react";
 import styles from "../styles/Home.module.css";
+import { monospaceFontFamily } from "../components/UI/constants";
 
 import {
-  defaultFacility,
-  getFacilityNames,
-  getFacility,
-} from "../components/Facilities/FacilitySelector";
+  defaultPreset,
+  getPresetNames,
+  getPreset,
+} from "../components/Presets/PresetFactory";
+
+import LabeledEditor from "../components/UI/labeledEditor";
+import NavBar from "../components/UI/navbar";
 
 const Home: NextPage = () => {
-  const monospaceFontFamily = "Consolas, 'Courier New', monospace";
-
   // state
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor: React.MutableRefObject<any> = useRef(null);
@@ -40,7 +37,7 @@ const Home: NextPage = () => {
   const outputEditor: React.MutableRefObject<any> = useRef(null);
   const [logValue, setLogValue] = useState<Array<string>>([]);
 
-  const [currentFacility, setCurrentFacility] = React.useState(defaultFacility);
+  const [currentPreset, setCurrentPreset] = React.useState(defaultPreset);
 
   const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
   const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
@@ -50,9 +47,9 @@ const Home: NextPage = () => {
 
   const [runStatus, setRunStatus] = useState("");
 
-  function setFacilitySelection(selection: string) {
-    setCurrentFacility(selection);
-    const props = getFacility(selection);
+  function setPresetSelection(selection: string) {
+    setCurrentPreset(selection);
+    const props = getPreset(selection);
     cppEditor.current.updateOptions({
       readOnly: !props.isCodeEditorEnabled(),
     });
@@ -77,15 +74,15 @@ const Home: NextPage = () => {
           outputEditor.current.layout({});
         });
         setAllEditorsMounted(true);
-        setFacilitySelection(defaultFacility);
+        setPresetSelection(defaultPreset);
       }
     };
   };
 
-  const onFacilitySelectionChange = (
+  const onPresetSelectionChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setFacilitySelection(event.target.value);
+    setPresetSelection(event.target.value);
   };
 
   const onRunButtonClick = () => {
@@ -98,15 +95,15 @@ const Home: NextPage = () => {
       ]);
     };
 
-    const facility = getFacility(currentFacility);
+    const preset = getPreset(currentPreset);
     let cpp_source = "";
-    if (facility.isCodeEditorEnabled()) {
+    if (preset.isCodeEditorEnabled()) {
       cpp_source = cppEditor.current.getValue();
       setRunStatus("Compiling...");
     } else {
       setRunStatus("Running...");
     }
-    facility
+    preset
       .run(cpp_source, input_mlir, additionalRunArgs, printer)
       .finally(() => {
         setRunStatus("");
@@ -115,46 +112,6 @@ const Home: NextPage = () => {
         outputEditor.current.setValue(output);
       }, printer);
   };
-
-  const monacoOptions = {
-    selectOnLineNumbers: true,
-    quickSuggestions: true,
-    minimap: {
-      enabled: false,
-    },
-    scrollBeyondLastLine: false,
-    automaticLayout: true,
-  };
-
-  const codeEditor = (
-    <Editor
-      key="cppEditor"
-      height="100%"
-      defaultLanguage="cpp"
-      onMount={onEditorMounted(cppEditor)}
-      options={monacoOptions}
-    />
-  );
-
-  const inputMLIRViewer = (
-    <Editor
-      key="inputEditor"
-      height="100%"
-      defaultLanguage="cpp"
-      onMount={onEditorMounted(inputEditor)}
-      options={monacoOptions}
-    />
-  );
-
-  const outputMLIRViewer = (
-    <Editor
-      key="outputEditor"
-      height="100%"
-      defaultLanguage="cpp"
-      onMount={onEditorMounted(outputEditor)}
-      options={{ ...monacoOptions, readOnly: true }}
-    />
-  );
 
   return (
     <div className={styles.container}>
@@ -182,121 +139,170 @@ const Home: NextPage = () => {
           href="/favicon/apple-touch-icon.png"
         />
       </Head>
-      <main className={styles.main_playground}>
+      <NavBar
+        allEditorsMounted={allEditorsMounted}
+        runStatus={runStatus}
+        onClick={onRunButtonClick}
+      />
+      <Flex
+        as="main"
+        direction="row"
+        justify="space-between"
+        className={styles.playground_flexbox}
+        height="90vh"
+        padding="1rem"
+      >
+        <Box height="100%" className={styles.main_left}>
+          <VStack spacing={4} align="left" height="100%">
+            <PresetSelector
+              preset={currentPreset}
+              onPresetChange={onPresetSelectionChange}
+              disabled={!allEditorsMounted}
+            />
+            <ArgumentsBar
+              leftAddon={runArgsLeftAddon}
+              rightAddon={runArgsRightAddon}
+              additionalRunArgs={additionalRunArgs}
+              setAdditionalRunArgs={setAdditionalRunArgs}
+            />
+            <LabeledEditor
+              height="80vh"
+              label="Editor"
+              filename="mlir-opt.cpp"
+              onMount={onEditorMounted(cppEditor)}
+            />
+          </VStack>
+        </Box>
+        <Divider orientation="vertical" />
         <Flex
-          direction="column"
-          wrap="wrap"
-          className={styles.playground_flexbox}
+          height="100%"
+          flexDirection="column"
+          className={styles.main_right}
         >
-          <Box height="90vh">
-            <VStack spacing={4} align="left" height="100%">
-              <HStack>
-                <Image
-                  src="/mlir-playground.png"
-                  alt="MLIR Playground"
-                  boxSize="2em"
-                />
-                <Heading>MLIR Playground</Heading>
-                <Button
-                  isLoading={!allEditorsMounted || runStatus !== ""}
-                  mt="8"
-                  as="a"
-                  size="lg"
-                  colorScheme="blue"
-                  fontWeight="bold"
-                  onClick={onRunButtonClick}
-                >
-                  Run
-                </Button>
-                <Text>{runStatus}</Text>
-              </HStack>
-              <Box>
-                <Select
-                  value={currentFacility}
-                  onChange={onFacilitySelectionChange}
-                  disabled={!allEditorsMounted}
-                >
-                  {getFacilityNames().map((name, i) => {
-                    return (
-                      <option value={name} key={i}>
-                        {name}
-                      </option>
-                    );
-                  })}
-                </Select>
-              </Box>
-              <HStack>
-                <Text>Arguments</Text>
-                <InputGroup fontFamily={monospaceFontFamily}>
-                  <InputLeftAddon>{runArgsLeftAddon}</InputLeftAddon>
-                  <Input
-                    value={additionalRunArgs}
-                    onChange={(event) =>
-                      setAdditionalRunArgs(event.target.value)
-                    }
-                  ></Input>
-                  <InputRightAddon>{runArgsRightAddon}</InputRightAddon>
-                </InputGroup>
-              </HStack>
-              <Flex height="80vh" flexDirection="column">
-                <Flex align="end">
-                  <Heading>Editor</Heading>
-                  <Spacer />
-                  <Text fontFamily={monospaceFontFamily}>mlir-opt.cpp</Text>
-                </Flex>
-                <Box borderWidth="2px" flexGrow="1" h="100%">
-                  {codeEditor}
-                </Box>
-              </Flex>
-            </VStack>
-          </Box>
-          <Flex height="90vh" flexDirection="column">
-            <Flex height="30vh" flexDirection="column">
-              <Flex align="end">
-                <Heading>Input</Heading>
-                <Spacer />
-                <Text fontFamily={monospaceFontFamily}>
-                  {inputEditorFileName}
-                </Text>
-              </Flex>
-              <Box borderWidth="2px" flexGrow="1">
-                {inputMLIRViewer}
-              </Box>
-            </Flex>
-            <Flex height="30vh" flexDirection="column">
-              <Flex align="end">
-                <Heading>Output</Heading>
-                <Spacer />
-                <Text fontFamily={monospaceFontFamily}>
-                  {outputEditorFileName}
-                </Text>
-              </Flex>
-              <Box borderWidth="2px" flexGrow="1">
-                {outputMLIRViewer}
-              </Box>
-            </Flex>
-            <Flex minHeight="30vh" flexGrow="1" flexDirection="column">
-              <Heading>Logs</Heading>
-              <Box
-                borderWidth="2px"
-                flexGrow="1"
-                height="100%"
-                bg="gray.800"
-                fontFamily={monospaceFontFamily}
-                overflowY="auto"
-                padding="4"
-              >
-                {logValue.map((logText, logIndex) => (
-                  <Box className={styles.log_content} key={logIndex}>
-                    {logText}
-                  </Box>
-                ))}
-              </Box>
-            </Flex>
-          </Flex>
+          <LabeledEditor
+            height="30vh"
+            label="Input"
+            filename={inputEditorFileName}
+            onMount={onEditorMounted(inputEditor)}
+          />
+          <TransformationOutput
+            logWindowProps={{ height: "30vh", logs: logValue }}
+            labeledEditorProps={{
+              height: "30vh",
+              label: "Output",
+              filename: outputEditorFileName,
+              onMount: onEditorMounted(outputEditor),
+            }}
+          />
         </Flex>
-      </main>
+      </Flex>
     </div>
+  );
+};
+
+type TransformationOutputProps = {
+  logWindowProps: Parameters<typeof LogWindow>[0];
+  labeledEditorProps: Parameters<typeof LabeledEditor>[0];
+};
+
+const TransformationOutput = (props: TransformationOutputProps) => {
+  return (
+    <Flex flexDirection="column">
+      <HStack height="30vh">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="30vh"
+          width="20px"
+          className={styles.log_arrow}
+        >
+          <g className={styles.log_arrow_g} strokeWidth="2" stroke="lightgray">
+            <line x1="-10" y1="-2" x2="-10" y2="-100%" />
+            <line x1="-10" y1="-2" x2="-2" y2="-16" />
+            <line x1="-10" y1="-2" x2="-18" y2="-16" />
+          </g>
+        </svg>
+        <LogWindow {...props.logWindowProps} />
+      </HStack>
+      <LabeledEditor {...props.labeledEditorProps} />
+    </Flex>
+  );
+};
+
+type LogWindowProps = {
+  height: string;
+  logs: Array<String>;
+};
+
+const LogWindow = (props: LogWindowProps) => {
+  return (
+    <Flex height={props.height} flexGrow="1" flexDirection="column">
+      <Heading>Logs</Heading>
+      <Box
+        borderWidth="2px"
+        flexGrow="1"
+        height="100%"
+        bg="gray.800"
+        fontFamily={monospaceFontFamily}
+        overflowY="auto"
+        padding="4"
+      >
+        {props.logs.map((logText, logIndex) => (
+          <Box className={styles.log_content} key={logIndex}>
+            {logText}
+          </Box>
+        ))}
+      </Box>
+    </Flex>
+  );
+};
+
+type PresetSelectorProps = {
+  preset: string;
+  onPresetChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  disabled: boolean;
+};
+
+const PresetSelector = (props: PresetSelectorProps) => {
+  return (
+    <HStack>
+      <Text>Preset</Text>
+      <Select
+        value={props.preset}
+        onChange={props.onPresetChange}
+        disabled={props.disabled}
+      >
+        {getPresetNames().map((name, i) => {
+          return (
+            <option value={name} key={i}>
+              {name}
+            </option>
+          );
+        })}
+      </Select>
+    </HStack>
+  );
+};
+
+type ArgumentsBarProps = {
+  leftAddon: string;
+  rightAddon: string;
+  additionalRunArgs: string;
+  setAdditionalRunArgs: (text: string) => void;
+};
+
+const ArgumentsBar = (props: ArgumentsBarProps) => {
+  return (
+    <HStack>
+      <Text>Arguments</Text>
+      <InputGroup fontFamily={monospaceFontFamily}>
+        <InputLeftAddon>{props.leftAddon}</InputLeftAddon>
+        <Input
+          value={props.additionalRunArgs}
+          onChange={(event) => props.setAdditionalRunArgs(event.target.value)}
+        ></Input>
+        <InputRightAddon>{props.rightAddon}</InputRightAddon>
+      </InputGroup>
+    </HStack>
   );
 };
 

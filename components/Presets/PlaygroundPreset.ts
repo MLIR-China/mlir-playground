@@ -1,4 +1,4 @@
-export abstract class PlaygroundFacility {
+export abstract class PlaygroundPreset {
   abstract isCodeEditorEnabled(): boolean;
   abstract getInputFileName(): string;
   abstract getOutputFileName(): string;
