@@ -24,7 +24,7 @@ import {
   defaultPreset,
   getPresetNames,
   getPreset,
-} from "../components/Facilities/PresetFactory";
+} from "../components/Presets/PresetFactory";
 
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
