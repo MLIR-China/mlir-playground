@@ -4,6 +4,9 @@ import ClangModule from "./wasm/clang.mjs";
 import LldModule from "./wasm/wasm-ld.mjs";
 import TemplateModule from "./template.js";
 
+const CLANG_DATA_FILE = "onlyincludes.data";
+const LLD_DATA_FILE = "onlylibs.data";
+
 const WasmCompiler = () => {
   const wasmFetcher = WasmFetcher.getSingleton();
 
@@ -239,7 +242,7 @@ const WasmCompiler = () => {
 
   const _compileSourceToWasm = (sourceCode, printer) => {
     return wasmFetcher
-      .getModuleParams("clang.wasm", "onlyincludes.data", printer)
+      .getModuleParams("clang.wasm", CLANG_DATA_FILE, printer)
       .then((params) => {
         return ClangModule(params);
       })
@@ -298,7 +301,7 @@ const WasmCompiler = () => {
         );
 
         return wasmFetcher
-          .getModuleParams("lld.wasm", "onlylibs.data", printer)
+          .getModuleParams("lld.wasm", LLD_DATA_FILE, printer)
           .then((params) => {
             return LldModule({ ...params, thisProgram: "wasm-ld" });
           })
@@ -453,13 +456,18 @@ const WasmCompiler = () => {
 
   const initialize = () => {
     // prefetch data files
-    wasmFetcher.fetchData("onlyincludes.data");
-    wasmFetcher.fetchData("onlylibs.data");
+    wasmFetcher.fetchData(CLANG_DATA_FILE);
+    wasmFetcher.fetchData(LLD_DATA_FILE);
+  };
+
+  const dataFilesCached = () => {
+    return wasmFetcher.idbCachesExists([CLANG_DATA_FILE, LLD_DATA_FILE]);
   };
 
   return {
     compileAndRun: compileAndRun,
     initialize: initialize,
+    dataFilesCached: dataFilesCached,
   };
 };
 

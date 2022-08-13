@@ -1,4 +1,8 @@
-import { get as idb_get, set as idb_set } from "idb-keyval";
+import {
+  get as idb_get,
+  getMany as idb_getMany,
+  set as idb_set,
+} from "idb-keyval";
 
 class WasmFetcher {
   private static singleton: WasmFetcher;
@@ -100,6 +104,14 @@ class WasmFetcher {
         },
       });
     });
+  }
+
+  // Returns true if all the keys currently exist in idb cache.
+  idbCachesExists(keys: Array<string>): Promise<boolean> {
+    return idb_getMany(keys).then(
+      (vals) => vals.every((val) => !!val),
+      () => false
+    );
   }
 }
 
