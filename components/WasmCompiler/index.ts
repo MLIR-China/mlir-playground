@@ -7,7 +7,9 @@ import TemplateModule from "./template.js";
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
 const CLANG_DATA_FILE = "onlyincludes.data";
+const CLANG_WASM_FILE = "clang.wasm";
 const LLD_DATA_FILE = "onlylibs.data";
+const LLD_WASM_FILE = "lld.wasm";
 
 class LoggingTimer {
   private startTime: Date;
@@ -283,7 +285,7 @@ class WasmCompiler {
     statusListener: RunStatusListener
   ) {
     return WasmCompiler.wasmFetcher
-      .getModuleParams("clang.wasm", CLANG_DATA_FILE, printer)
+      .getModuleParams(CLANG_WASM_FILE, CLANG_DATA_FILE, printer)
       .then((params) => {
         statusListener(STATUS_PREPARING_CLANG_MODULE);
         return ClangModule(params);
@@ -341,7 +343,7 @@ class WasmCompiler {
 
         statusListener(STATUS_PREPARING_LLD_MODULE);
         return WasmCompiler.wasmFetcher
-          .getModuleParams("lld.wasm", LLD_DATA_FILE, printer)
+          .getModuleParams(LLD_WASM_FILE, LLD_DATA_FILE, printer)
           .then((params: any) => {
             return LldModule({ ...params, thisProgram: "wasm-ld" });
           })
@@ -504,10 +506,23 @@ class WasmCompiler {
     );
   }
 
-  static initialize() {
+  // Returns whether initialization was successful.
+  static initialize(): Promise<boolean> {
     // prefetch data files
-    WasmCompiler.wasmFetcher.fetchData(CLANG_DATA_FILE);
-    WasmCompiler.wasmFetcher.fetchData(LLD_DATA_FILE);
+    const fetches = [
+      WasmCompiler.wasmFetcher.fetchData(CLANG_DATA_FILE),
+      WasmCompiler.wasmFetcher.fetchData(LLD_DATA_FILE),
+      WasmCompiler.wasmFetcher.fetchWasm(CLANG_WASM_FILE),
+      WasmCompiler.wasmFetcher.fetchWasm(LLD_WASM_FILE),
+    ];
+    return Promise.all(fetches).then(
+      (results) => {
+        return true;
+      },
+      (err) => {
+        return false;
+      }
+    );
   }
 
   static dataFilesCached(): Promise<boolean> {

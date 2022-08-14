@@ -47,17 +47,31 @@ const Home: NextPage = () => {
   const [inputEditorFileName, setInputEditorFileName] = useState("");
   const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
-  const [compilerDataCached, setCompilerDataCached] = useState(false);
+  const [compilerEnvironmentReady, setCompilerEnvironmentReady] =
+    useState(false);
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
     useState(false);
   const [runStatus, setRunStatus] = useState("");
   const [runProgress, setRunProgress] = useState(0);
 
   // Returns whether or not the data is cached after checking.
-  function updateCompilerDataCached(): Promise<boolean> {
+  function updateCompilerEnvironmentReady(): Promise<boolean> {
     return WasmCompiler.dataFilesCached().then((isCached) => {
-      setCompilerDataCached(isCached);
+      setCompilerEnvironmentReady(isCached);
       return isCached;
+    });
+  }
+
+  function downloadCompilerEnvironment() {
+    if (compilerEnvironmentReady) {
+      return;
+    }
+
+    WasmCompiler.initialize().then((success) => {
+      if (!success) {
+        alert("Failed to initialize compiler environment.");
+      }
+      updateCompilerEnvironmentReady();
     });
   }
 
@@ -89,7 +103,7 @@ const Home: NextPage = () => {
         });
         setAllEditorsMounted(true);
         setPresetSelection(defaultPreset);
-        updateCompilerDataCached();
+        updateCompilerEnvironmentReady();
       }
     };
   };
@@ -102,7 +116,7 @@ const Home: NextPage = () => {
 
   const onRunButtonClick = () => {
     setRunStatus("Initializing...");
-    updateCompilerDataCached().then((isCached) => {
+    updateCompilerEnvironmentReady().then((isCached) => {
       const preset = getPreset(currentPreset);
       if (!isCached && preset.isCodeEditorEnabled()) {
         // Requires local compiler environment to be downloaded first.
@@ -130,7 +144,7 @@ const Home: NextPage = () => {
       const statusListener = (status: RunStatus) => {
         setRunStatus(status.label);
         setRunProgress(status.percentage);
-        updateCompilerDataCached();
+        updateCompilerEnvironmentReady();
       };
 
       preset
@@ -173,9 +187,10 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         allEditorsMounted={allEditorsMounted}
-        envReady={compilerDataCached}
+        envReady={compilerEnvironmentReady}
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
+        initiateEnvDownload={downloadCompilerEnvironment}
         runStatus={runStatus}
         runProgress={runProgress}
         onClick={onRunButtonClick}

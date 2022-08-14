@@ -45,12 +45,13 @@ type LocalEnvironmentStatusProps = {
   envReady: boolean;
   envPopoverOpen: boolean;
   setEnvPopoverOpen: (isOpen: boolean) => void;
+  initiateEnvDownload: () => void;
 };
 
 const LocalEnvironmentStatus = (props: LocalEnvironmentStatusProps) => {
   const popoverMessage = `MLIR Playground compiles and runs all your code locally in your browser.
 This requires downloading the necessary binaries and libraries (including libc++ and MLIR libraries), which will be cached for future sessions (until evicted by the browser or the user).
-This will incur a download of ~150MB once.`;
+This will incur a download of ~100MB once.`;
   const downloadButtonRef = React.useRef<HTMLButtonElement>(null);
   return (
     <Popover
@@ -79,7 +80,11 @@ This will incur a download of ~150MB once.`;
           {popoverMessage}
         </PopoverBody>
         <PopoverFooter d="flex" justifyContent="flex-end">
-          <Button ref={downloadButtonRef} isDisabled={props.envReady}>
+          <Button
+            ref={downloadButtonRef}
+            isDisabled={props.envReady}
+            onClick={props.initiateEnvDownload}
+          >
             {props.envReady ? "Downloaded" : "Download"}
           </Button>
         </PopoverFooter>
