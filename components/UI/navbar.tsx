@@ -123,6 +123,11 @@ const RunButton = (props: RunButtonProps) => {
               isAnimated
               borderRadius="md"
               mr="0.5rem"
+              sx={{
+                "& > div:first-child": {
+                  transitionProperty: "width",
+                },
+              }}
             />
           </span>
         </Tooltip>
