@@ -74,6 +74,7 @@ This will incur a download of ~100MB once.`;
           leftIcon={props.envReady ? <MdOutlineCode /> : <MdOutlineCodeOff />}
           borderRadius="full"
           backgroundColor={props.envReady ? "green.200" : "gray.200"}
+          onClick={() => props.setEnvPopoverOpen(true)}
         >
           {props.envReady ? "Ready" : "Pending"}
         </Button>

@@ -30,17 +30,17 @@ const STATUS_FETCHING_DATA = new RunStatus(
 );
 const STATUS_PREPARING_CLANG_MODULE = new RunStatus(
   "Instantiating clang module.",
-  40
+  20
 );
 const STATUS_COMPILING_SOURCE_CODE = new RunStatus(
   "Compiling user source code",
-  50
+  30
 );
 const STATUS_PREPARING_LLD_MODULE = new RunStatus(
   "Instantiating lld module.",
-  65
+  50
 );
-const STATUS_LINKING_SOURCE_CODE = new RunStatus("Linking user binaries.", 75);
+const STATUS_LINKING_SOURCE_CODE = new RunStatus("Linking user binaries.", 80);
 const STATUS_RUNNING_COMPILED_MODULE = new RunStatus(
   "Running compiled user binaries.",
   90
