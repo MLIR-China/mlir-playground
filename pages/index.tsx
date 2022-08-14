@@ -123,7 +123,7 @@ const Home: NextPage = () => {
       .run(cpp_source, input_mlir, additionalRunArgs, printer, statusListener)
       .finally(() => {
         setRunStatus("");
-        setRunProgress(100);
+        setRunProgress(0);
       })
       .then((output: string) => {
         outputEditor.current.setValue(output);

@@ -67,15 +67,19 @@ const RunButton = (props: RunButtonProps) => {
   return (
     <HStack h="100%">
       {props.runProgress > 0 && (
-        <Progress
-          value={props.runProgress}
-          w="10rem"
-          hasStripe
-          isAnimated
-          borderRadius="md"
-        />
+        <Tooltip hasArrow label={props.runStatus}>
+          <span>
+            <Progress
+              value={props.runProgress}
+              w="10rem"
+              hasStripe
+              isAnimated
+              borderRadius="md"
+              mr="0.5rem"
+            />
+          </span>
+        </Tooltip>
       )}
-      <Box>{props.runStatus}</Box>
       <Button
         isLoading={!props.allEditorsMounted || props.runStatus !== ""}
         as="a"
