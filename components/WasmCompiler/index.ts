@@ -40,7 +40,7 @@ const STATUS_PREPARING_LLD_MODULE = new RunStatus(
   "Instantiating lld module.",
   50
 );
-const STATUS_LINKING_SOURCE_CODE = new RunStatus("Linking user binaries.", 80);
+const STATUS_LINKING_BINARIES = new RunStatus("Linking binaries.", 80);
 const STATUS_RUNNING_COMPILED_MODULE = new RunStatus(
   "Running compiled user binaries.",
   90
@@ -399,7 +399,7 @@ class WasmCompiler {
               "--max-memory=16777216",
               "--global-base=1024",
             ];
-            statusListener(STATUS_LINKING_SOURCE_CODE);
+            statusListener(STATUS_LINKING_BINARIES);
             const linkTimer = new LoggingTimer();
             try {
               let ret = loadedLldMod.callMain([
