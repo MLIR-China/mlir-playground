@@ -1,27 +1,31 @@
 import React from "react";
 import {
-  Box,
   Button,
   Flex,
   Heading,
   HStack,
-  Icon,
   Image,
+  Popover,
+  PopoverArrow,
+  PopoverBody,
+  PopoverCloseButton,
+  PopoverContent,
+  PopoverFooter,
+  PopoverHeader,
+  PopoverTrigger,
   Progress,
-  Tag,
-  TagLabel,
   Tooltip,
 } from "@chakra-ui/react";
 import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
 
-type NavBarProps = RunButtonProps & { localEnvironmentReady: boolean };
+type NavBarProps = RunButtonProps & LocalEnvironmentStatusProps;
 
 const NavBar = (props: NavBarProps) => {
   return (
     <NavBarContainer>
       <HStack spacing="1rem">
         <Logo />
-        <LocalEnvironmentStatus ready={props.localEnvironmentReady} />
+        <LocalEnvironmentStatus {...props} />
       </HStack>
       <RunButton {...props} />
     </NavBarContainer>
@@ -37,22 +41,46 @@ const Logo = () => {
   );
 };
 
-const LocalEnvironmentStatus = (props: { ready: boolean }) => {
-  const readyMessage = "Compiler environment cached";
-  const notReadyMessage =
-    "Compiler environment will be cached on first compile.";
+type LocalEnvironmentStatusProps = {
+  envReady: boolean;
+};
+
+const LocalEnvironmentStatus = (props: LocalEnvironmentStatusProps) => {
+  const popoverMessage = `MLIR Playground compiles and runs all your code locally in your browser.
+This requires downloading the necessary binaries and libraries (including libc++ and MLIR libraries), which will be cached for future sessions (until evicted by the browser or the user).
+This will incur a download of ~150MB once.`;
+  const downloadButtonRef = React.useRef<HTMLButtonElement>(null);
   return (
-    <Tooltip hasArrow label={props.ready ? readyMessage : notReadyMessage}>
-      <Tag
-        size="lg"
-        borderRadius="full"
-        backgroundColor={props.ready ? "green.200" : "gray.200"}
-        color="gray.700"
-      >
-        <Icon as={props.ready ? MdOutlineCode : MdOutlineCodeOff} mr="0.5rem" />
-        <TagLabel>{props.ready ? "Ready" : "Pending"}</TagLabel>
-      </Tag>
-    </Tooltip>
+    <Popover
+      returnFocusOnClose={false}
+      closeOnBlur={false}
+      initialFocusRef={props.envReady ? undefined : downloadButtonRef}
+    >
+      <PopoverTrigger>
+        <Button
+          leftIcon={props.envReady ? <MdOutlineCode /> : <MdOutlineCodeOff />}
+          borderRadius="full"
+          backgroundColor={props.envReady ? "green.200" : "gray.200"}
+        >
+          {props.envReady ? "Ready" : "Pending"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <PopoverHeader fontWeight="semibold">
+          Local compiler environment
+        </PopoverHeader>
+        <PopoverArrow />
+        <PopoverCloseButton />
+        <PopoverBody style={{ whiteSpace: "pre-wrap" }}>
+          {popoverMessage}
+        </PopoverBody>
+        <PopoverFooter d="flex" justifyContent="flex-end">
+          <Button ref={downloadButtonRef} isDisabled={props.envReady}>
+            {props.envReady ? "Downloaded" : "Download"}
+          </Button>
+        </PopoverFooter>
+      </PopoverContent>
+    </Popover>
   );
 };
 

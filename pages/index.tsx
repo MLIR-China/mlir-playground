@@ -158,7 +158,7 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         allEditorsMounted={allEditorsMounted}
-        localEnvironmentReady={compilerDataCached}
+        envReady={compilerDataCached}
         runStatus={runStatus}
         runProgress={runProgress}
         onClick={onRunButtonClick}
