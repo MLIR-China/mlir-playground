@@ -7,6 +7,7 @@ import {
   HStack,
   Icon,
   Image,
+  Progress,
   Tag,
   TagLabel,
   Tooltip,
@@ -58,12 +59,22 @@ const LocalEnvironmentStatus = (props: { ready: boolean }) => {
 type RunButtonProps = {
   allEditorsMounted: boolean;
   runStatus: string;
+  runProgress: number;
   onClick: () => void;
 };
 
 const RunButton = (props: RunButtonProps) => {
   return (
     <HStack h="100%">
+      {props.runProgress > 0 && (
+        <Progress
+          value={props.runProgress}
+          w="10rem"
+          hasStripe
+          isAnimated
+          borderRadius="md"
+        />
+      )}
       <Box>{props.runStatus}</Box>
       <Button
         isLoading={!props.allEditorsMounted || props.runStatus !== ""}

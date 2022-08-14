@@ -1,5 +1,7 @@
 import { PlaygroundPreset } from "./PlaygroundPreset";
 
+import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
+
 const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/InitAllPasses.h"
@@ -64,7 +66,8 @@ export class MlirOpt extends PlaygroundPreset {
     code: string,
     input: string,
     arg: string,
-    printer: (text: string) => void
+    printer: (text: string) => void,
+    statusListener: RunStatusListener
   ): Promise<string> {
     if (this.running) {
       return Promise.reject(
@@ -82,6 +85,10 @@ export class MlirOpt extends PlaygroundPreset {
         } else if (event.data.output) {
           resolve(event.data.output);
           this.running = false;
+        } else if (event.data.percentage) {
+          statusListener(
+            new RunStatus(event.data.label, event.data.percentage)
+          );
         }
       };
 

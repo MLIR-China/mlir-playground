@@ -4,6 +4,8 @@ import ClangModule from "./wasm/clang.mjs";
 import LldModule from "./wasm/wasm-ld.mjs";
 import TemplateModule from "./template.js";
 
+import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
+
 const CLANG_DATA_FILE = "onlyincludes.data";
 const LLD_DATA_FILE = "onlylibs.data";
 
@@ -19,6 +21,28 @@ class LoggingTimer {
     console.log("%s. Elapsed time: %d ms", prefix, duration);
   }
 }
+
+const STATUS_FETCHING_DATA = new RunStatus(
+  "Fetching clang module and dependencies.",
+  10
+);
+const STATUS_PREPARING_CLANG_MODULE = new RunStatus(
+  "Instantiating clang module.",
+  40
+);
+const STATUS_COMPILING_SOURCE_CODE = new RunStatus(
+  "Compiling user source code",
+  50
+);
+const STATUS_PREPARING_LLD_MODULE = new RunStatus(
+  "Instantiating lld module.",
+  65
+);
+const STATUS_LINKING_SOURCE_CODE = new RunStatus("Linking user binaries.", 75);
+const STATUS_RUNNING_COMPILED_MODULE = new RunStatus(
+  "Running compiled user binaries.",
+  90
+);
 
 class WasmCompiler {
   private static readonly wasmFetcher = WasmFetcher.getSingleton();
@@ -255,11 +279,13 @@ class WasmCompiler {
 
   private _compileSourceToWasm(
     sourceCode: string,
-    printer: (log: string) => void
+    printer: (log: string) => void,
+    statusListener: RunStatusListener
   ) {
     return WasmCompiler.wasmFetcher
       .getModuleParams("clang.wasm", CLANG_DATA_FILE, printer)
       .then((params) => {
+        statusListener(STATUS_PREPARING_CLANG_MODULE);
         return ClangModule(params);
       })
       .then((loadedClangModule) => {
@@ -290,6 +316,7 @@ class WasmCompiler {
           "default",
           "-fno-rtti",
         ];
+        statusListener(STATUS_COMPILING_SOURCE_CODE);
         const compileTimer = new LoggingTimer();
         try {
           let ret = loadedClangModule.callMain([
@@ -312,6 +339,7 @@ class WasmCompiler {
         }
         compileTimer.log("Compiled .o object file");
 
+        statusListener(STATUS_PREPARING_LLD_MODULE);
         return WasmCompiler.wasmFetcher
           .getModuleParams("lld.wasm", LLD_DATA_FILE, printer)
           .then((params: any) => {
@@ -369,6 +397,7 @@ class WasmCompiler {
               "--max-memory=16777216",
               "--global-base=1024",
             ];
+            statusListener(STATUS_LINKING_SOURCE_CODE);
             const linkTimer = new LoggingTimer();
             try {
               let ret = loadedLldMod.callMain([
@@ -403,14 +432,18 @@ class WasmCompiler {
       | { source: string; result: Promise<WebAssembly.Module> }
       | undefined = undefined;
 
-    return (sourceCode: string, printer: (log: string) => void) => {
+    return (
+      sourceCode: string,
+      printer: (log: string) => void,
+      statusListener: RunStatusListener
+    ) => {
       if (prev && prev.source === sourceCode) {
         return prev.result;
       }
 
       prev = {
         source: sourceCode,
-        result: this._compileSourceToWasm(sourceCode, printer),
+        result: this._compileSourceToWasm(sourceCode, printer, statusListener),
       };
       return prev.result;
     };
@@ -420,9 +453,11 @@ class WasmCompiler {
     sourceCode: string,
     inputMlir: string,
     mlirOptArgs: Array<string>,
-    printer: (log: string) => void
+    printer: (log: string) => void,
+    statusListener: RunStatusListener
   ) {
-    return this._cachingCompiler(sourceCode, printer).then(
+    statusListener(STATUS_FETCHING_DATA);
+    return this._cachingCompiler(sourceCode, printer, statusListener).then(
       (inst) => {
         console.log(inst);
         return TemplateModule({
@@ -439,6 +474,7 @@ class WasmCompiler {
           print: printer,
           printErr: printer,
         }).then((compiledMod: any) => {
+          statusListener(STATUS_RUNNING_COMPILED_MODULE);
           compiledMod.FS.writeFile("input.mlir", inputMlir);
           console.log("Running mlir-opt...");
           const runTimer = new LoggingTimer();

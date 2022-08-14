@@ -1,5 +1,7 @@
 import WasmCompiler from ".";
 
+import { RunStatus } from "../Utils/RunStatus";
+
 let wasmCompiler: WasmCompiler | undefined = undefined;
 function getWasmCompiler() {
   if (!wasmCompiler) {
@@ -13,8 +15,17 @@ onmessage = function (event) {
   const printer = (text: string) => {
     postMessage({ log: text });
   };
+  const statusListener = (status: RunStatus) => {
+    postMessage({ label: status.label, percentage: status.percentage });
+  };
   getWasmCompiler()
-    .compileAndRun(data.code, data.input, data.arg.split(/\s+/), printer)
+    .compileAndRun(
+      data.code,
+      data.input,
+      data.arg.split(/\s+/),
+      printer,
+      statusListener
+    )
     .then(
       (output) => {
         postMessage({ output: output });

@@ -16,7 +16,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import Editor, { OnMount } from "@monaco-editor/react";
+import { OnMount } from "@monaco-editor/react";
 import styles from "../styles/Home.module.css";
 import { monospaceFontFamily } from "../components/UI/constants";
 
@@ -29,6 +29,7 @@ import {
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
+import { RunStatus } from "../Utils/RunStatus";
 
 const Home: NextPage = () => {
   // state
@@ -48,6 +49,7 @@ const Home: NextPage = () => {
 
   const [compilerDataCached, setCompilerDataCached] = useState(false);
   const [runStatus, setRunStatus] = useState("");
+  const [runProgress, setRunProgress] = useState(0);
 
   function updateCompilerDataCached() {
     WasmCompiler.dataFilesCached().then((isCached) => {
@@ -103,6 +105,11 @@ const Home: NextPage = () => {
         currValue[currValue.length - 1] + text + "\n",
       ]);
     };
+    const statusListener = (status: RunStatus) => {
+      setRunStatus(status.label);
+      setRunProgress(status.percentage);
+      updateCompilerDataCached();
+    };
 
     const preset = getPreset(currentPreset);
     let cpp_source = "";
@@ -113,10 +120,10 @@ const Home: NextPage = () => {
       setRunStatus("Running...");
     }
     preset
-      .run(cpp_source, input_mlir, additionalRunArgs, printer)
+      .run(cpp_source, input_mlir, additionalRunArgs, printer, statusListener)
       .finally(() => {
         setRunStatus("");
-        updateCompilerDataCached();
+        setRunProgress(100);
       })
       .then((output: string) => {
         outputEditor.current.setValue(output);
@@ -153,6 +160,7 @@ const Home: NextPage = () => {
         allEditorsMounted={allEditorsMounted}
         localEnvironmentReady={compilerDataCached}
         runStatus={runStatus}
+        runProgress={runProgress}
         onClick={onRunButtonClick}
       />
       <Flex
