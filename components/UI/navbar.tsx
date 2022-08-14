@@ -45,7 +45,7 @@ type LocalEnvironmentStatusProps = {
   envReady: boolean;
   envPopoverOpen: boolean;
   setEnvPopoverOpen: (isOpen: boolean) => void;
-  initiateEnvDownload: () => void;
+  initiateEnvDownload: () => Promise<boolean>;
 };
 
 const LocalEnvironmentStatus = (props: LocalEnvironmentStatusProps) => {
@@ -53,6 +53,14 @@ const LocalEnvironmentStatus = (props: LocalEnvironmentStatusProps) => {
 This requires downloading the necessary binaries and libraries (including libc++ and MLIR libraries), which will be cached for future sessions (until evicted by the browser or the user).
 This will incur a download of ~100MB once.`;
   const downloadButtonRef = React.useRef<HTMLButtonElement>(null);
+  const [downloadInProgress, setDownloadInProgress] = React.useState(false);
+  const onDownloadButtonClick = () => {
+    setDownloadInProgress(true);
+    props.initiateEnvDownload().finally(() => {
+      setDownloadInProgress(false);
+    });
+  };
+
   return (
     <Popover
       returnFocusOnClose={false}
@@ -83,7 +91,8 @@ This will incur a download of ~100MB once.`;
           <Button
             ref={downloadButtonRef}
             isDisabled={props.envReady}
-            onClick={props.initiateEnvDownload}
+            isLoading={downloadInProgress}
+            onClick={onDownloadButtonClick}
           >
             {props.envReady ? "Downloaded" : "Download"}
           </Button>

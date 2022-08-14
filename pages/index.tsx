@@ -62,16 +62,18 @@ const Home: NextPage = () => {
     });
   }
 
-  function downloadCompilerEnvironment() {
+  function downloadCompilerEnvironment(): Promise<boolean> {
     if (compilerEnvironmentReady) {
-      return;
+      return Promise.resolve(true);
     }
 
-    WasmCompiler.initialize().then((success) => {
+    return WasmCompiler.initialize().then((success) => {
       if (!success) {
         alert("Failed to initialize compiler environment.");
       }
       updateCompilerEnvironmentReady();
+
+      return Promise.resolve(success);
     });
   }
 
