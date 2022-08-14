@@ -26,7 +26,7 @@ class WasmFetcher {
       const full_path = new URL(
         self.location.origin + "/" + process.env.staticFilePrefix + file_name
       );
-      return fetch(full_path, {
+      return fetch(full_path.toString(), {
         credentials: "same-origin",
       }).then((response) => {
         const data_promise = post_process(response);

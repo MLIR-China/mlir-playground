@@ -29,7 +29,7 @@ import {
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
-import { RunStatus } from "../Utils/RunStatus";
+import { RunStatus } from "../components/Utils/RunStatus";
 
 const Home: NextPage = () => {
   // state
