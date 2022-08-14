@@ -43,6 +43,8 @@ const Logo = () => {
 
 type LocalEnvironmentStatusProps = {
   envReady: boolean;
+  envPopoverOpen: boolean;
+  setEnvPopoverOpen: (isOpen: boolean) => void;
 };
 
 const LocalEnvironmentStatus = (props: LocalEnvironmentStatusProps) => {
@@ -55,6 +57,8 @@ This will incur a download of ~150MB once.`;
       returnFocusOnClose={false}
       closeOnBlur={false}
       initialFocusRef={props.envReady ? undefined : downloadButtonRef}
+      isOpen={props.envPopoverOpen}
+      onClose={() => props.setEnvPopoverOpen(false)}
     >
       <PopoverTrigger>
         <Button
