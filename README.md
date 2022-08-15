@@ -28,10 +28,6 @@ Run any Toy tutorial chapter with your own input.
 
 Using the program mode selector, select a Toy chapter. Under this mode, the code editor is disabled. The program that will run when you hit `Run` is the final binary for the corresponding Toy Chapter. The input MLIR editor can be edited under this mode to play with different user input.
 
-## Contributing
-
-[![Build and Deploy](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml/badge.svg?branch=main)](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml)
-
 ### Running Locally
 
 1. Clone this repo.
@@ -40,3 +36,19 @@ Using the program mode selector, select a Toy chapter. Under this mode, the code
 4. Run `build-compiler-in-docker.sh` to build the web assembly libraries and binaries. This will run a series of steps using the `clang-wasm` docker image, and export the built files to the locations expected by the web app.
 5. Exit to the project root directory.
 6. Run `npm run dev` to start the development server locally.
+
+## Contributing
+
+[![Build and Deploy](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml/badge.svg?branch=main)](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml)
+
+## Why are we buidling this?
+
+TBD
+
+## License
+
+Apache License 2.0
+
+## Acknoledgements
+
+...
