@@ -47,8 +47,8 @@ const Home: NextPage = () => {
   const [inputEditorFileName, setInputEditorFileName] = useState("");
   const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
-  const [compilerEnvironmentReady, setCompilerEnvironmentReady] =
-    useState(false);
+  const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
+    useState("");
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
     useState(false);
   const [runStatus, setRunStatus] = useState("");
@@ -56,14 +56,15 @@ const Home: NextPage = () => {
 
   // Returns whether or not the data is cached after checking.
   function updateCompilerEnvironmentReady(): Promise<boolean> {
-    return WasmCompiler.dataFilesCached().then((isCached) => {
-      setCompilerEnvironmentReady(isCached);
+    return WasmCompiler.dataFilesCachedVersion().then((version) => {
+      const isCached = !!version;
+      setCompilerEnvironmentVersion(version);
       return isCached;
     });
   }
 
   function downloadCompilerEnvironment(): Promise<boolean> {
-    if (compilerEnvironmentReady) {
+    if (compilerEnvironmentVersion) {
       return Promise.resolve(true);
     }
 
@@ -189,7 +190,7 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         allEditorsMounted={allEditorsMounted}
-        envReady={compilerEnvironmentReady}
+        envVersion={compilerEnvironmentVersion}
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
         initiateEnvDownload={downloadCompilerEnvironment}

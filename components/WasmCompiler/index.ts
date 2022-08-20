@@ -1,12 +1,19 @@
+import { del as idb_del, get as idb_get, set as idb_set } from "idb-keyval";
+
 import WasmFetcher from "../WasmFetcher";
 
-import { LLVM_VERSION, SYSTEM_LIB_NAMES, LLVM_LIB_FILES } from "./wasm/constants.js";
+import {
+  LLVM_VERSION,
+  SYSTEM_LIB_NAMES,
+  LLVM_LIB_FILES,
+} from "./wasm/constants.js";
 import ClangModule from "./wasm/clang.mjs";
 import LldModule from "./wasm/wasm-ld.mjs";
 import TemplateModule from "./template.js";
 
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
+const LLVM_VERSION_METADATA_KEY = "llvm_version";
 const CLANG_DATA_FILE = "onlyincludes.data";
 const CLANG_WASM_FILE = "clang.wasm";
 const LLD_DATA_FILE = "onlylibs.data";
@@ -50,7 +57,9 @@ const STATUS_RUNNING_COMPILED_MODULE = new RunStatus(
 class WasmCompiler {
   private static readonly wasmFetcher = WasmFetcher.getSingleton();
 
-  private static readonly SYSTEM_LIB_LINKER_ARGS = SYSTEM_LIB_NAMES.map(name => "-l" + name);
+  private static readonly SYSTEM_LIB_LINKER_ARGS = SYSTEM_LIB_NAMES.map(
+    (name) => "-l" + name
+  );
 
   private _compileSourceToWasm(
     sourceCode: string,
@@ -276,19 +285,34 @@ class WasmCompiler {
     ];
     return Promise.all(fetches).then(
       (results) => {
+        // set metadata version
+        idb_set(LLVM_VERSION_METADATA_KEY, LLVM_VERSION);
         return true;
       },
       (err) => {
+        idb_del(LLVM_VERSION_METADATA_KEY);
         return false;
       }
     );
   }
 
-  static dataFilesCached(): Promise<boolean> {
-    return WasmCompiler.wasmFetcher.idbCachesExists([
-      CLANG_DATA_FILE,
-      LLD_DATA_FILE,
-    ]);
+  // If data files are cached, returns the version of the cache.
+  // If not cached, returns an empty string.
+  static dataFilesCachedVersion(): Promise<string> {
+    return WasmCompiler.wasmFetcher
+      .idbCachesExists([CLANG_DATA_FILE, LLD_DATA_FILE])
+      .then((cached) => {
+        if (cached) {
+          return idb_get(LLVM_VERSION_METADATA_KEY).then((version) => {
+            if (version) {
+              return version;
+            }
+            // Unable to retrieve version.
+            return "(unknown)";
+          });
+        }
+        return "";
+      });
   }
 }
 

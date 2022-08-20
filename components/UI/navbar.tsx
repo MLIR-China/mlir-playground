@@ -42,7 +42,7 @@ const Logo = () => {
 };
 
 type LocalEnvironmentStatusProps = {
-  envReady: boolean;
+  envVersion: string; // empty string means not ready
   envPopoverOpen: boolean;
   setEnvPopoverOpen: (isOpen: boolean) => void;
   initiateEnvDownload: () => Promise<boolean>;
@@ -61,22 +61,24 @@ This will incur a download of ~100MB once.`;
     });
   };
 
+  const envReady = !!props.envVersion;
+
   return (
     <Popover
       returnFocusOnClose={false}
       closeOnBlur={false}
-      initialFocusRef={props.envReady ? undefined : downloadButtonRef}
+      initialFocusRef={envReady ? undefined : downloadButtonRef}
       isOpen={props.envPopoverOpen}
       onClose={() => props.setEnvPopoverOpen(false)}
     >
       <PopoverTrigger>
         <Button
-          leftIcon={props.envReady ? <MdOutlineCode /> : <MdOutlineCodeOff />}
+          leftIcon={envReady ? <MdOutlineCode /> : <MdOutlineCodeOff />}
           borderRadius="full"
-          backgroundColor={props.envReady ? "green.200" : "gray.200"}
+          backgroundColor={envReady ? "green.200" : "gray.200"}
           onClick={() => props.setEnvPopoverOpen(true)}
         >
-          {props.envReady ? "Ready" : "Pending"}
+          {envReady ? "Ready" : "Pending"}
         </Button>
       </PopoverTrigger>
       <PopoverContent>
@@ -86,16 +88,17 @@ This will incur a download of ~100MB once.`;
         <PopoverArrow />
         <PopoverCloseButton />
         <PopoverBody style={{ whiteSpace: "pre-wrap" }}>
-          {popoverMessage}
+          <p>{popoverMessage}</p>
+          {envReady && <i>Local Version: {props.envVersion}</i>}
         </PopoverBody>
         <PopoverFooter d="flex" justifyContent="flex-end">
           <Button
             ref={downloadButtonRef}
-            isDisabled={props.envReady}
+            isDisabled={envReady}
             isLoading={downloadInProgress}
             onClick={onDownloadButtonClick}
           >
-            {props.envReady ? "Downloaded" : "Download"}
+            {envReady ? "Downloaded" : "Download"}
           </Button>
         </PopoverFooter>
       </PopoverContent>
