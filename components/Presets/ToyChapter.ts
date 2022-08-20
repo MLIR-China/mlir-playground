@@ -1,5 +1,7 @@
 import { PlaygroundPreset } from "./PlaygroundPreset";
 
+import { RunStatusListener } from "../Utils/RunStatus";
+
 import Toy from "../Toy/index.js";
 
 const defaultToyInput = `def main() {
@@ -42,7 +44,8 @@ export class ToyChapter extends PlaygroundPreset {
     _: string,
     input: string,
     arg: string,
-    printer: (text: string) => void
+    printer: (text: string) => void,
+    statusListener: RunStatusListener
   ): Promise<string> {
     return Toy.runChapter(this.chapterNumber, input, arg.split(/\s+/), printer);
   }

@@ -28,6 +28,8 @@ mkdir -p tmp/wasm32-emscripten
 cp $LIB_DIR/libLLVM*.a tmp/
 cp $LIB_DIR/libMLIR*.a tmp/
 
+LLVM_LIB_NAMES=($(find tmp/ -maxdepth 1 -type f -printf "%f\n"))
+
 for libname in "${SYSTEM_LIB_NAMES[@]}"
 do
     fullname="lib${libname}.a"
@@ -37,6 +39,16 @@ done
 
 /emsdk/upstream/emscripten/tools/file_packager.py onlylibs.data --js-output=onlylibs.js --preload tmp@lib --lz4 --no-node --from-emcc
 
-rm -r tmp
+# Append to metadata file
+CONSTANTS_FILENAME=$1
 
-# Need to then inject this into clang.mjs or wasm-ld.mjs before the line `var moduleOverrides = Object.assign({}, Module);`
+printf "export const SYSTEM_LIB_NAMES = [\n" >> $CONSTANTS_FILENAME
+printf "  \"%s\",\n" "${SYSTEM_LIB_NAMES[@]}" >> $CONSTANTS_FILENAME
+printf "];\n\n" >> $CONSTANTS_FILENAME
+
+printf "export const LLVM_LIB_FILES = [\n" >> $CONSTANTS_FILENAME
+printf "  \"/lib/%s\",\n" "${LLVM_LIB_NAMES[@]}" >> $CONSTANTS_FILENAME
+printf "];\n\n" >> $CONSTANTS_FILENAME
+
+# Cleanup
+rm -r tmp

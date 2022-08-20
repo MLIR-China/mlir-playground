@@ -16,7 +16,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import Editor, { OnMount } from "@monaco-editor/react";
+import { OnMount } from "@monaco-editor/react";
 import styles from "../styles/Home.module.css";
 import { monospaceFontFamily } from "../components/UI/constants";
 
@@ -28,6 +28,8 @@ import {
 
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
+import WasmCompiler from "../components/WasmCompiler";
+import { RunStatus } from "../components/Utils/RunStatus";
 
 const Home: NextPage = () => {
   // state
@@ -45,7 +47,36 @@ const Home: NextPage = () => {
   const [inputEditorFileName, setInputEditorFileName] = useState("");
   const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
+  const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
+    useState("");
+  const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
+    useState(false);
   const [runStatus, setRunStatus] = useState("");
+  const [runProgress, setRunProgress] = useState(0);
+
+  // Returns whether or not the data is cached after checking.
+  function updateCompilerEnvironmentReady(): Promise<boolean> {
+    return WasmCompiler.dataFilesCachedVersion().then((version) => {
+      const isCached = !!version;
+      setCompilerEnvironmentVersion(version);
+      return isCached;
+    });
+  }
+
+  function downloadCompilerEnvironment(): Promise<boolean> {
+    if (compilerEnvironmentVersion) {
+      return Promise.resolve(true);
+    }
+
+    return WasmCompiler.initialize().then((success) => {
+      if (!success) {
+        alert("Failed to initialize compiler environment.");
+      }
+      updateCompilerEnvironmentReady();
+
+      return Promise.resolve(success);
+    });
+  }
 
   function setPresetSelection(selection: string) {
     setCurrentPreset(selection);
@@ -75,6 +106,7 @@ const Home: NextPage = () => {
         });
         setAllEditorsMounted(true);
         setPresetSelection(defaultPreset);
+        updateCompilerEnvironmentReady();
       }
     };
   };
@@ -86,31 +118,48 @@ const Home: NextPage = () => {
   };
 
   const onRunButtonClick = () => {
-    const input_mlir = inputEditor.current.getValue();
-    setLogValue((currValue) => [...currValue, ""]);
-    const printer = (text: string) => {
-      setLogValue((currValue) => [
-        ...currValue.slice(0, -1),
-        currValue[currValue.length - 1] + text + "\n",
-      ]);
-    };
-
-    const preset = getPreset(currentPreset);
-    let cpp_source = "";
-    if (preset.isCodeEditorEnabled()) {
-      cpp_source = cppEditor.current.getValue();
-      setRunStatus("Compiling...");
-    } else {
-      setRunStatus("Running...");
-    }
-    preset
-      .run(cpp_source, input_mlir, additionalRunArgs, printer)
-      .finally(() => {
+    setRunStatus("Initializing...");
+    updateCompilerEnvironmentReady().then((isCached) => {
+      const preset = getPreset(currentPreset);
+      if (!isCached && preset.isCodeEditorEnabled()) {
+        // Requires local compiler environment to be downloaded first.
+        setCompilerEnvironmentPopoverOpen(true);
         setRunStatus("");
-      })
-      .then((output: string) => {
-        outputEditor.current.setValue(output);
-      }, printer);
+        return;
+      }
+
+      let cpp_source = "";
+      if (preset.isCodeEditorEnabled()) {
+        cpp_source = cppEditor.current.getValue();
+        setRunStatus("Compiling...");
+      } else {
+        setRunStatus("Running...");
+      }
+
+      const input_mlir = inputEditor.current.getValue();
+      setLogValue((currValue) => [...currValue, ""]);
+      const printer = (text: string) => {
+        setLogValue((currValue) => [
+          ...currValue.slice(0, -1),
+          currValue[currValue.length - 1] + text + "\n",
+        ]);
+      };
+      const statusListener = (status: RunStatus) => {
+        setRunStatus(status.label);
+        setRunProgress(status.percentage);
+        updateCompilerEnvironmentReady();
+      };
+
+      preset
+        .run(cpp_source, input_mlir, additionalRunArgs, printer, statusListener)
+        .finally(() => {
+          setRunStatus("");
+          setRunProgress(0);
+        })
+        .then((output: string) => {
+          outputEditor.current.setValue(output);
+        }, printer);
+    });
   };
 
   return (
@@ -141,7 +190,12 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         allEditorsMounted={allEditorsMounted}
+        envVersion={compilerEnvironmentVersion}
+        envPopoverOpen={compilerEnvironmentPopoverOpen}
+        setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
+        initiateEnvDownload={downloadCompilerEnvironment}
         runStatus={runStatus}
+        runProgress={runProgress}
         onClick={onRunButtonClick}
       />
       <Flex
