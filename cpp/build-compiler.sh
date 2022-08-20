@@ -13,8 +13,7 @@ cd /app/build/bin
 
 # Step 0: Create constant metadata file and insert llvm version
 CONSTANTS_FILENAME="constants.js"
-rm $CONSTANTS_FILENAME
-touch $CONSTANTS_FILENAME
+> $CONSTANTS_FILENAME
 
 pushd $LLVM_SRC
 LLVM_GIT_TAG=$(git describe --exact-match)
