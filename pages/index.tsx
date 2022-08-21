@@ -14,8 +14,8 @@ import {
   InputLeftAddon,
   InputRightAddon,
   Select,
-  Tag,
   Text,
+  useToast,
   VStack,
 } from "@chakra-ui/react";
 import { OnMount } from "@monaco-editor/react";
@@ -56,6 +56,8 @@ class StageState {
 }
 
 const Home: NextPage = () => {
+  const toast = useToast();
+
   /* Compiler Environment Management */
   const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
     useState("");
@@ -132,6 +134,17 @@ const Home: NextPage = () => {
   }
 
   function setCurrentStageIdx(idx: number) {
+    // make sure nothing is running
+    if (runStatus) {
+      toast({
+        title: "Cannot change stage.",
+        description: "Job is currently running.",
+        status: "warning",
+        position: "top",
+      });
+      return;
+    }
+
     // save current editor state
     updateState((oldState) => {
       let newState = { ...oldState };
@@ -162,16 +175,18 @@ const Home: NextPage = () => {
   // Update the preset selection of the current stage.
   function setPresetSelection(selection: string) {
     updateState((oldState) => {
-      let newStage = new StageState(selection);
-      // TODO: Update editor content after confirming with user.
+      let newStage = { ...oldState };
+      // TODO: Update cpp / input editor content only after confirming with user.
       const canChangeEditorContent = true;
 
       const presetProps = getPreset(selection);
+      newStage.preset = selection;
+      newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
       updateAuxiliaryInformation(presetProps);
       if (canChangeEditorContent) {
         cppEditor.current.setValue(presetProps.getDefaultCodeFile());
       }
-      if (currentStageIdx == 0) {
+      if (canChangeEditorContent && currentStageIdx == 0) {
         inputEditor.current.setValue(presetProps.getDefaultInputFile());
       }
 
@@ -232,7 +247,11 @@ const Home: NextPage = () => {
         setRunStatus("Running...");
       }
 
-      const input_mlir = inputEditor.current.getValue();
+      const input_mlir =
+        currentStageIdx == 0
+          ? inputEditor.current.getValue()
+          : stages[currentStageIdx - 1].outputEditor.current.getValue();
+
       setCurrentLogs((currValue) => [...currValue, ""]);
       const printer = (text: string) => {
         setCurrentLogs((currValue) => [
