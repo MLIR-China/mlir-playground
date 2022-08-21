@@ -42,6 +42,9 @@ class StageState {
   logs: Array<string>;
   output: string;
 
+  outputEditor: React.MutableRefObject<any> = React.createRef();
+  outputEditorWindow: React.MutableRefObject<any> = React.createRef();
+
   constructor(preset: string = defaultPreset) {
     this.preset = preset;
     const presetProps = getPreset(preset);
@@ -89,7 +92,6 @@ const Home: NextPage = () => {
   const [allEditorsMounted, setAllEditorsMounted] = useState(false);
   const cppEditor: React.MutableRefObject<any> = useRef(null);
   const inputEditor: React.MutableRefObject<any> = useRef(null);
-  const outputEditor: React.MutableRefObject<any> = useRef(null);
 
   const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
   const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
@@ -145,6 +147,12 @@ const Home: NextPage = () => {
     const presetProps = getPreset(newStage.preset);
     updateAuxiliaryInformation(presetProps);
     cppEditor.current.setValue(newStage.editorContent);
+
+    newStage.outputEditorWindow!.current.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+      inline: "nearest",
+    });
   }
 
   function getCurrentPresetSelection() {
@@ -182,13 +190,16 @@ const Home: NextPage = () => {
   const onEditorMounted = (editorRef: React.MutableRefObject<any>): OnMount => {
     return (editor, _) => {
       editorRef.current = editor;
-      if (cppEditor.current && inputEditor.current && outputEditor.current) {
+      window.addEventListener("resize", () => {
+        editorRef.current.layout({});
+      });
+
+      if (
+        cppEditor.current &&
+        inputEditor.current &&
+        currentStage().outputEditor.current
+      ) {
         // All editors mounted.
-        window.addEventListener("resize", () => {
-          cppEditor.current.layout({});
-          inputEditor.current.layout({});
-          outputEditor.current.layout({});
-        });
         setAllEditorsMounted(true);
         setPresetSelection(defaultPreset);
         updateCompilerEnvironmentReady();
@@ -248,7 +259,7 @@ const Home: NextPage = () => {
           setRunProgress(0);
         })
         .then((output: string) => {
-          outputEditor.current.setValue(output);
+          currentStage().outputEditor.current.setValue(output);
         }, printer);
     });
   };
@@ -357,6 +368,7 @@ const Home: NextPage = () => {
           height="100%"
           flexDirection="column"
           className={styles.main_right}
+          overflow="hidden"
         >
           <LabeledEditor
             height="30vh"
@@ -364,15 +376,19 @@ const Home: NextPage = () => {
             filename={inputEditorFileName}
             onMount={onEditorMounted(inputEditor)}
           />
-          <TransformationOutput
-            logWindowProps={{ height: "30vh", logs: currentStage().logs }}
-            labeledEditorProps={{
-              height: "30vh",
-              label: "Output",
-              filename: outputEditorFileName,
-              onMount: onEditorMounted(outputEditor),
-            }}
-          />
+          {stages.map((stage, idx) => (
+            <TransformationOutput
+              logWindowProps={{ height: "30vh", logs: stage.logs }}
+              labeledEditorProps={{
+                height: "30vh",
+                label: "Output",
+                filename: outputEditorFileName,
+                onMount: onEditorMounted(stage.outputEditor),
+                ref: stage.outputEditorWindow,
+              }}
+              key={idx}
+            />
+          ))}
         </Flex>
       </Flex>
     </div>
