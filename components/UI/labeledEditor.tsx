@@ -13,7 +13,8 @@ import { monospaceFontFamily } from "./constants";
 import { parentPort } from "worker_threads";
 
 type LabeledEditorProps = {
-  height: string;
+  height?: string;
+  flex?: string;
   label: string;
   filename: string;
   onMount: OnMount;
@@ -30,9 +31,15 @@ const monacoOptions = {
 };
 
 const LabeledEditor = React.forwardRef(
-  (props: LabeledEditorProps, ref: React.MutableRefObject<HTMLDivElement>) => {
+  (props: LabeledEditorProps, ref: React.ForwardedRef<HTMLDivElement>) => {
     return (
-      <Flex height={props.height} flexDirection="column" ref={ref}>
+      <Flex
+        height={props.height}
+        flex={props.flex}
+        flexDirection="column"
+        ref={ref}
+        width="100%"
+      >
         <Flex align="end">
           <Heading>{props.label}</Heading>
           <Spacer />

@@ -265,7 +265,7 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <VStack className={styles.container}>
       <Head>
         <title>MLIR Playground</title>
         <meta
@@ -306,7 +306,7 @@ const Home: NextPage = () => {
         justify="space-between"
         className={styles.playground_flexbox}
         height="90vh"
-        padding="1rem"
+        padding="0 1rem"
       >
         <VStack spacing={0}>
           {stages.map((_, idx) => {
@@ -364,11 +364,11 @@ const Home: NextPage = () => {
           </VStack>
         </Box>
         <Divider orientation="vertical" />
-        <Flex
+        <VStack
           height="100%"
-          flexDirection="column"
           className={styles.main_right}
           overflow="hidden"
+          spacing={0}
         >
           <LabeledEditor
             height="30vh"
@@ -378,7 +378,7 @@ const Home: NextPage = () => {
           />
           {stages.map((stage, idx) => (
             <TransformationOutput
-              logWindowProps={{ height: "30vh", logs: stage.logs }}
+              logWindowProps={{ height: "100%", logs: stage.logs }}
               labeledEditorProps={{
                 height: "30vh",
                 label: "Output",
@@ -389,9 +389,9 @@ const Home: NextPage = () => {
               key={idx}
             />
           ))}
-        </Flex>
+        </VStack>
       </Flex>
-    </div>
+    </VStack>
   );
 };
 
@@ -402,8 +402,8 @@ type TransformationOutputProps = {
 
 const TransformationOutput = (props: TransformationOutputProps) => {
   return (
-    <Flex flexDirection="column">
-      <HStack height="30vh">
+    <Flex flexDirection="column" width="100%">
+      <HStack flexGrow="1">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="30vh"
