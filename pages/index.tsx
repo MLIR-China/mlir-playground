@@ -104,10 +104,16 @@ const Home: NextPage = () => {
   }
 
   function updateState(updater: (state: StageState) => StageState) {
-    setStages((prevState) => {
-      return prevState.map((state, idx) => {
+    setStages((prevStages) => {
+      return prevStages.map((state, idx) => {
         return idx == currentStageIdx ? updater(state) : state;
       });
+    });
+  }
+
+  function appendStage() {
+    setStages((prevStages) => {
+      return [...prevStages, new StageState()];
     });
   }
 
@@ -263,30 +269,29 @@ const Home: NextPage = () => {
         padding="1rem"
       >
         <VStack spacing={0}>
+          {stages.map((_, idx) => {
+            return (
+              <Button
+                bg="none"
+                rounded="none"
+                width="100%"
+                borderRightColor={
+                  idx == currentStageIdx ? "blue.200" : "gray.200"
+                }
+                borderRightWidth={idx == currentStageIdx ? "2px" : "1px"}
+                key={idx}
+              >
+                {idx}
+              </Button>
+            );
+          })}
           <Button
             bg="none"
             rounded="none"
             width="100%"
             borderRightColor="gray.200"
             borderRightWidth="1px"
-          >
-            0
-          </Button>
-          <Button
-            bg="none"
-            rounded="none"
-            width="100%"
-            borderRightColor="gray.200"
-            borderRightWidth="1px"
-          >
-            1
-          </Button>
-          <Button
-            bg="none"
-            rounded="none"
-            width="100%"
-            borderRightColor="gray.200"
-            borderRightWidth="1px"
+            onClick={appendStage}
           >
             +
           </Button>
