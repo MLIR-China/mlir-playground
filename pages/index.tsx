@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 
@@ -32,6 +32,7 @@ import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { RunStatus } from "../components/Utils/RunStatus";
+import { PlaygroundPreset } from "../components/Presets/PlaygroundPreset";
 
 // Stores the configuration of a particular stage.
 class StageState {
@@ -92,14 +93,15 @@ const Home: NextPage = () => {
 
   const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
   const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
-  const [additionalRunArgs, setAdditionalRunArgs] = useState("");
   const [inputEditorFileName, setInputEditorFileName] = useState("");
   const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
+  // Stores the entire state across all stages.
+  // _rawSetCurrentStageIdx should never be used directly (always use the wrapper setCurrentStageIdx).
   const [stages, setStages] = useState<Array<StageState>>([new StageState()]);
-  const [currentStageIdx, setCurrentStageIdx] = useState(0);
+  const [currentStageIdx, _rawSetCurrentStageIdx] = useState(0);
 
-  function currentState() {
+  function currentStage() {
     return stages[currentStageIdx];
   }
 
@@ -117,8 +119,36 @@ const Home: NextPage = () => {
     });
   }
 
+  function updateAuxiliaryInformation(presetProps: PlaygroundPreset) {
+    cppEditor.current.updateOptions({
+      readOnly: !presetProps.isCodeEditorEnabled(),
+    });
+    setRunArgsLeftAddon(presetProps.getRunArgsLeftAddon());
+    setRunArgsRightAddon(presetProps.getRunArgsRightAddon());
+    setInputEditorFileName(presetProps.getInputFileName());
+    setOutputEditorFileName(presetProps.getOutputFileName());
+  }
+
+  function setCurrentStageIdx(idx: number) {
+    // save current editor state
+    updateState((oldState) => {
+      let newState = { ...oldState };
+      newState.editorContent = cppEditor.current.getValue();
+      return newState;
+    });
+
+    // update raw state
+    _rawSetCurrentStageIdx(idx);
+
+    // additional side effects
+    const newStage = stages[idx];
+    const presetProps = getPreset(newStage.preset);
+    updateAuxiliaryInformation(presetProps);
+    cppEditor.current.setValue(newStage.editorContent);
+  }
+
   function getCurrentPresetSelection() {
-    return currentState().preset;
+    return currentStage().preset;
   }
 
   // Update the preset selection of the current stage.
@@ -129,14 +159,7 @@ const Home: NextPage = () => {
       const canChangeEditorContent = true;
 
       const presetProps = getPreset(selection);
-      cppEditor.current.updateOptions({
-        readOnly: !presetProps.isCodeEditorEnabled(),
-      });
-      setRunArgsLeftAddon(presetProps.getRunArgsLeftAddon());
-      setRunArgsRightAddon(presetProps.getRunArgsRightAddon());
-      setAdditionalRunArgs(presetProps.getDefaultAdditionalRunArgs());
-      setInputEditorFileName(presetProps.getInputFileName());
-      setOutputEditorFileName(presetProps.getOutputFileName());
+      updateAuxiliaryInformation(presetProps);
       if (canChangeEditorContent) {
         cppEditor.current.setValue(presetProps.getDefaultCodeFile());
       }
@@ -213,7 +236,13 @@ const Home: NextPage = () => {
       };
 
       preset
-        .run(cpp_source, input_mlir, additionalRunArgs, printer, statusListener)
+        .run(
+          cpp_source,
+          input_mlir,
+          currentStage().additionalRunArgs,
+          printer,
+          statusListener
+        )
         .finally(() => {
           setRunStatus("");
           setRunProgress(0);
@@ -280,6 +309,9 @@ const Home: NextPage = () => {
                 }
                 borderRightWidth={idx == currentStageIdx ? "2px" : "1px"}
                 key={idx}
+                onClick={() => {
+                  setCurrentStageIdx(idx);
+                }}
               >
                 {idx}
               </Button>
@@ -307,8 +339,10 @@ const Home: NextPage = () => {
             <ArgumentsBar
               leftAddon={runArgsLeftAddon}
               rightAddon={runArgsRightAddon}
-              additionalRunArgs={additionalRunArgs}
-              setAdditionalRunArgs={setAdditionalRunArgs}
+              additionalRunArgs={currentStage().additionalRunArgs}
+              setAdditionalRunArgs={(newArgs) => {
+                currentStage().additionalRunArgs = newArgs;
+              }}
             />
             <LabeledEditor
               height="80vh"
@@ -331,7 +365,7 @@ const Home: NextPage = () => {
             onMount={onEditorMounted(inputEditor)}
           />
           <TransformationOutput
-            logWindowProps={{ height: "30vh", logs: currentState().logs }}
+            logWindowProps={{ height: "30vh", logs: currentStage().logs }}
             labeledEditorProps={{
               height: "30vh",
               label: "Output",
