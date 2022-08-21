@@ -27,13 +27,11 @@ const defaultMLIRInput = `module  {
 `;
 
 export class MlirOpt extends PlaygroundPreset {
-  wasmWorker: Worker;
+  wasmWorker: Worker | undefined;
   running: boolean;
   constructor() {
     super();
-    this.wasmWorker = new Worker(
-      new URL("../WasmCompiler/worker.ts", import.meta.url)
-    );
+    this.wasmWorker = undefined;
     this.running = false;
   }
 
@@ -75,8 +73,14 @@ export class MlirOpt extends PlaygroundPreset {
       );
     }
 
+    if (!this.wasmWorker) {
+      this.wasmWorker = new Worker(
+        new URL("../WasmCompiler/worker.ts", import.meta.url)
+      );
+    }
+
     return new Promise((resolve, reject) => {
-      this.wasmWorker.onmessage = (event) => {
+      this.wasmWorker!.onmessage = (event) => {
         if (event.data.log) {
           printer(event.data.log);
         } else if (event.data.error) {
@@ -92,7 +96,7 @@ export class MlirOpt extends PlaygroundPreset {
         }
       };
 
-      this.wasmWorker.postMessage({
+      this.wasmWorker!.postMessage({
         code: code,
         input: input,
         arg: arg,

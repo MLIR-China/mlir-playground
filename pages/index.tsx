@@ -4,6 +4,7 @@ import Head from "next/head";
 
 import {
   Box,
+  Button,
   Divider,
   Flex,
   Heading,
@@ -13,6 +14,7 @@ import {
   InputLeftAddon,
   InputRightAddon,
   Select,
+  Tag,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -31,22 +33,26 @@ import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { RunStatus } from "../components/Utils/RunStatus";
 
+// Stores the configuration of a particular stage.
+class StageState {
+  preset: string;
+  additionalRunArgs: string;
+  editorContent: string;
+  logs: Array<string>;
+  output: string;
+
+  constructor(preset: string = defaultPreset) {
+    this.preset = preset;
+    const presetProps = getPreset(preset);
+    this.editorContent = presetProps.getDefaultCodeFile();
+    this.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
+    this.logs = [];
+    this.output = "";
+  }
+}
+
 const Home: NextPage = () => {
-  // state
-  const [allEditorsMounted, setAllEditorsMounted] = useState(false);
-  const cppEditor: React.MutableRefObject<any> = useRef(null);
-  const inputEditor: React.MutableRefObject<any> = useRef(null);
-  const outputEditor: React.MutableRefObject<any> = useRef(null);
-  const [logValue, setLogValue] = useState<Array<string>>([]);
-
-  const [currentPreset, setCurrentPreset] = React.useState(defaultPreset);
-
-  const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
-  const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
-  const [additionalRunArgs, setAdditionalRunArgs] = useState("");
-  const [inputEditorFileName, setInputEditorFileName] = useState("");
-  const [outputEditorFileName, setOutputEditorFileName] = useState("");
-
+  /* Compiler Environment Management */
   const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
     useState("");
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
@@ -78,20 +84,70 @@ const Home: NextPage = () => {
     });
   }
 
-  function setPresetSelection(selection: string) {
-    setCurrentPreset(selection);
-    const props = getPreset(selection);
-    cppEditor.current.updateOptions({
-      readOnly: !props.isCodeEditorEnabled(),
+  /* UI State */
+  const [allEditorsMounted, setAllEditorsMounted] = useState(false);
+  const cppEditor: React.MutableRefObject<any> = useRef(null);
+  const inputEditor: React.MutableRefObject<any> = useRef(null);
+  const outputEditor: React.MutableRefObject<any> = useRef(null);
+
+  const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
+  const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
+  const [additionalRunArgs, setAdditionalRunArgs] = useState("");
+  const [inputEditorFileName, setInputEditorFileName] = useState("");
+  const [outputEditorFileName, setOutputEditorFileName] = useState("");
+
+  const [stages, setStages] = useState<Array<StageState>>([new StageState()]);
+  const [currentStageIdx, setCurrentStageIdx] = useState(0);
+
+  function currentState() {
+    return stages[currentStageIdx];
+  }
+
+  function updateState(updater: (state: StageState) => StageState) {
+    setStages((prevState) => {
+      return prevState.map((state, idx) => {
+        return idx == currentStageIdx ? updater(state) : state;
+      });
     });
-    setRunArgsLeftAddon(props.getRunArgsLeftAddon());
-    setRunArgsRightAddon(props.getRunArgsRightAddon());
-    setAdditionalRunArgs(props.getDefaultAdditionalRunArgs());
-    setInputEditorFileName(props.getInputFileName());
-    setOutputEditorFileName(props.getOutputFileName());
-    cppEditor.current.setValue(props.getDefaultCodeFile());
-    inputEditor.current.setValue(props.getDefaultInputFile());
-    outputEditor.current.setValue("");
+  }
+
+  function getCurrentPresetSelection() {
+    return currentState().preset;
+  }
+
+  // Update the preset selection of the current stage.
+  function setPresetSelection(selection: string) {
+    updateState((oldState) => {
+      let newStage = new StageState(selection);
+      // TODO: Update editor content after confirming with user.
+      const canChangeEditorContent = true;
+
+      const presetProps = getPreset(selection);
+      cppEditor.current.updateOptions({
+        readOnly: !presetProps.isCodeEditorEnabled(),
+      });
+      setRunArgsLeftAddon(presetProps.getRunArgsLeftAddon());
+      setRunArgsRightAddon(presetProps.getRunArgsRightAddon());
+      setAdditionalRunArgs(presetProps.getDefaultAdditionalRunArgs());
+      setInputEditorFileName(presetProps.getInputFileName());
+      setOutputEditorFileName(presetProps.getOutputFileName());
+      if (canChangeEditorContent) {
+        cppEditor.current.setValue(presetProps.getDefaultCodeFile());
+      }
+      if (currentStageIdx == 0) {
+        inputEditor.current.setValue(presetProps.getDefaultInputFile());
+      }
+
+      return newStage;
+    });
+  }
+
+  function setCurrentLogs(updater: (log: Array<string>) => Array<string>) {
+    updateState((oldState) => {
+      let newState = { ...oldState };
+      newState.logs = updater(newState.logs);
+      return newState;
+    });
   }
 
   const onEditorMounted = (editorRef: React.MutableRefObject<any>): OnMount => {
@@ -120,7 +176,7 @@ const Home: NextPage = () => {
   const onRunButtonClick = () => {
     setRunStatus("Initializing...");
     updateCompilerEnvironmentReady().then((isCached) => {
-      const preset = getPreset(currentPreset);
+      const preset = getPreset(getCurrentPresetSelection());
       if (!isCached && preset.isCodeEditorEnabled()) {
         // Requires local compiler environment to be downloaded first.
         setCompilerEnvironmentPopoverOpen(true);
@@ -137,9 +193,9 @@ const Home: NextPage = () => {
       }
 
       const input_mlir = inputEditor.current.getValue();
-      setLogValue((currValue) => [...currValue, ""]);
+      setCurrentLogs((currValue) => [...currValue, ""]);
       const printer = (text: string) => {
-        setLogValue((currValue) => [
+        setCurrentLogs((currValue) => [
           ...currValue.slice(0, -1),
           currValue[currValue.length - 1] + text + "\n",
         ]);
@@ -206,10 +262,40 @@ const Home: NextPage = () => {
         height="90vh"
         padding="1rem"
       >
+        <VStack spacing={0}>
+          <Button
+            bg="none"
+            rounded="none"
+            width="100%"
+            borderRightColor="gray.200"
+            borderRightWidth="1px"
+          >
+            0
+          </Button>
+          <Button
+            bg="none"
+            rounded="none"
+            width="100%"
+            borderRightColor="gray.200"
+            borderRightWidth="1px"
+          >
+            1
+          </Button>
+          <Button
+            bg="none"
+            rounded="none"
+            width="100%"
+            borderRightColor="gray.200"
+            borderRightWidth="1px"
+          >
+            +
+          </Button>
+        </VStack>
+        <Divider orientation="vertical" />
         <Box height="100%" className={styles.main_left}>
           <VStack spacing={4} align="left" height="100%">
             <PresetSelector
-              preset={currentPreset}
+              preset={getCurrentPresetSelection()}
               onPresetChange={onPresetSelectionChange}
               disabled={!allEditorsMounted}
             />
@@ -240,7 +326,7 @@ const Home: NextPage = () => {
             onMount={onEditorMounted(inputEditor)}
           />
           <TransformationOutput
-            logWindowProps={{ height: "30vh", logs: logValue }}
+            logWindowProps={{ height: "30vh", logs: currentState().logs }}
             labeledEditorProps={{
               height: "30vh",
               label: "Output",
