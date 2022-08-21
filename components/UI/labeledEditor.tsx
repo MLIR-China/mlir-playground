@@ -57,5 +57,6 @@ const LabeledEditor = React.forwardRef(
     );
   }
 );
+LabeledEditor.displayName = "LabeledEditor";
 
 export default LabeledEditor;
