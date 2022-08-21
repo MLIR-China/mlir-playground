@@ -400,7 +400,7 @@ const Home: NextPage = () => {
               logWindowProps={{ height: "100%", logs: stage.logs }}
               labeledEditorProps={{
                 height: "30vh",
-                label: "Output",
+                label: `Output ${idx}`,
                 filename: outputEditorFileName,
                 onMount: onEditorMounted(stage.outputEditor),
                 ref: stage.outputEditorWindow,
