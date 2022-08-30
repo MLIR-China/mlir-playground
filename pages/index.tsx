@@ -1,9 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 
 import {
   Box,
+  Button,
   Divider,
   Flex,
   Heading,
@@ -14,6 +15,7 @@ import {
   InputRightAddon,
   Select,
   Text,
+  useToast,
   VStack,
 } from "@chakra-ui/react";
 import { OnMount } from "@monaco-editor/react";
@@ -30,23 +32,33 @@ import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { RunStatus } from "../components/Utils/RunStatus";
+import { PlaygroundPreset } from "../components/Presets/PlaygroundPreset";
+
+// Stores the configuration of a particular stage.
+class StageState {
+  preset: string;
+  additionalRunArgs: string;
+  editorContent: string;
+  logs: Array<string>;
+  output: string;
+
+  outputEditor: React.MutableRefObject<any> = React.createRef();
+  outputEditorWindow: React.MutableRefObject<any> = React.createRef();
+
+  constructor(preset: string = defaultPreset) {
+    this.preset = preset;
+    const presetProps = getPreset(preset);
+    this.editorContent = presetProps.getDefaultCodeFile();
+    this.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
+    this.logs = [];
+    this.output = "";
+  }
+}
 
 const Home: NextPage = () => {
-  // state
-  const [allEditorsMounted, setAllEditorsMounted] = useState(false);
-  const cppEditor: React.MutableRefObject<any> = useRef(null);
-  const inputEditor: React.MutableRefObject<any> = useRef(null);
-  const outputEditor: React.MutableRefObject<any> = useRef(null);
-  const [logValue, setLogValue] = useState<Array<string>>([]);
+  const toast = useToast();
 
-  const [currentPreset, setCurrentPreset] = React.useState(defaultPreset);
-
-  const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
-  const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
-  const [additionalRunArgs, setAdditionalRunArgs] = useState("");
-  const [inputEditorFileName, setInputEditorFileName] = useState("");
-  const [outputEditorFileName, setOutputEditorFileName] = useState("");
-
+  /* Compiler Environment Management */
   const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
     useState("");
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
@@ -78,32 +90,131 @@ const Home: NextPage = () => {
     });
   }
 
-  function setPresetSelection(selection: string) {
-    setCurrentPreset(selection);
-    const props = getPreset(selection);
-    cppEditor.current.updateOptions({
-      readOnly: !props.isCodeEditorEnabled(),
+  /* UI State */
+  const [allEditorsMounted, setAllEditorsMounted] = useState(false);
+  const cppEditor: React.MutableRefObject<any> = useRef(null);
+  const inputEditor: React.MutableRefObject<any> = useRef(null);
+
+  const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
+  const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
+  const [inputEditorFileName, setInputEditorFileName] = useState("");
+  const [outputEditorFileName, setOutputEditorFileName] = useState("");
+
+  // Stores the entire state across all stages.
+  // _rawSetCurrentStageIdx should never be used directly (always use the wrapper setCurrentStageIdx).
+  const [stages, setStages] = useState<Array<StageState>>([new StageState()]);
+  const [currentStageIdx, _rawSetCurrentStageIdx] = useState(0);
+
+  function currentStage() {
+    return stages[currentStageIdx];
+  }
+
+  function updateState(updater: (state: StageState) => StageState) {
+    setStages((prevStages) => {
+      return prevStages.map((state, idx) => {
+        return idx == currentStageIdx ? updater(state) : state;
+      });
     });
-    setRunArgsLeftAddon(props.getRunArgsLeftAddon());
-    setRunArgsRightAddon(props.getRunArgsRightAddon());
-    setAdditionalRunArgs(props.getDefaultAdditionalRunArgs());
-    setInputEditorFileName(props.getInputFileName());
-    setOutputEditorFileName(props.getOutputFileName());
-    cppEditor.current.setValue(props.getDefaultCodeFile());
-    inputEditor.current.setValue(props.getDefaultInputFile());
-    outputEditor.current.setValue("");
+  }
+
+  function appendStage() {
+    setStages((prevStages) => {
+      return [...prevStages, new StageState()];
+    });
+  }
+
+  function updateAuxiliaryInformation(presetProps: PlaygroundPreset) {
+    cppEditor.current.updateOptions({
+      readOnly: !presetProps.isCodeEditorEnabled(),
+    });
+    setRunArgsLeftAddon(presetProps.getRunArgsLeftAddon());
+    setRunArgsRightAddon(presetProps.getRunArgsRightAddon());
+    setInputEditorFileName(presetProps.getInputFileName());
+    setOutputEditorFileName(presetProps.getOutputFileName());
+  }
+
+  function setCurrentStageIdx(idx: number) {
+    // make sure nothing is running
+    if (runStatus) {
+      toast({
+        title: "Cannot change stage.",
+        description: "Job is currently running.",
+        status: "warning",
+        position: "top",
+      });
+      return;
+    }
+
+    // save current editor state
+    updateState((oldState) => {
+      let newState = { ...oldState };
+      newState.editorContent = cppEditor.current.getValue();
+      return newState;
+    });
+
+    // update raw state
+    _rawSetCurrentStageIdx(idx);
+
+    // additional side effects
+    const newStage = stages[idx];
+    const presetProps = getPreset(newStage.preset);
+    updateAuxiliaryInformation(presetProps);
+    cppEditor.current.setValue(newStage.editorContent);
+
+    newStage.outputEditorWindow!.current.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+      inline: "nearest",
+    });
+  }
+
+  function getCurrentPresetSelection() {
+    return currentStage().preset;
+  }
+
+  // Update the preset selection of the current stage.
+  function setPresetSelection(selection: string) {
+    updateState((oldState) => {
+      let newStage = { ...oldState };
+      // TODO: Update cpp / input editor content only after confirming with user.
+      const canChangeEditorContent = true;
+
+      const presetProps = getPreset(selection);
+      newStage.preset = selection;
+      newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
+      updateAuxiliaryInformation(presetProps);
+      if (canChangeEditorContent) {
+        cppEditor.current.setValue(presetProps.getDefaultCodeFile());
+      }
+      if (canChangeEditorContent && currentStageIdx == 0) {
+        inputEditor.current.setValue(presetProps.getDefaultInputFile());
+      }
+
+      return newStage;
+    });
+  }
+
+  function setCurrentLogs(updater: (log: Array<string>) => Array<string>) {
+    updateState((oldState) => {
+      let newState = { ...oldState };
+      newState.logs = updater(newState.logs);
+      return newState;
+    });
   }
 
   const onEditorMounted = (editorRef: React.MutableRefObject<any>): OnMount => {
     return (editor, _) => {
       editorRef.current = editor;
-      if (cppEditor.current && inputEditor.current && outputEditor.current) {
+      window.addEventListener("resize", () => {
+        editorRef.current.layout({});
+      });
+
+      if (
+        cppEditor.current &&
+        inputEditor.current &&
+        currentStage().outputEditor.current
+      ) {
         // All editors mounted.
-        window.addEventListener("resize", () => {
-          cppEditor.current.layout({});
-          inputEditor.current.layout({});
-          outputEditor.current.layout({});
-        });
         setAllEditorsMounted(true);
         setPresetSelection(defaultPreset);
         updateCompilerEnvironmentReady();
@@ -120,7 +231,7 @@ const Home: NextPage = () => {
   const onRunButtonClick = () => {
     setRunStatus("Initializing...");
     updateCompilerEnvironmentReady().then((isCached) => {
-      const preset = getPreset(currentPreset);
+      const preset = getPreset(getCurrentPresetSelection());
       if (!isCached && preset.isCodeEditorEnabled()) {
         // Requires local compiler environment to be downloaded first.
         setCompilerEnvironmentPopoverOpen(true);
@@ -136,10 +247,14 @@ const Home: NextPage = () => {
         setRunStatus("Running...");
       }
 
-      const input_mlir = inputEditor.current.getValue();
-      setLogValue((currValue) => [...currValue, ""]);
+      const input_mlir =
+        currentStageIdx == 0
+          ? inputEditor.current.getValue()
+          : stages[currentStageIdx - 1].outputEditor.current.getValue();
+
+      setCurrentLogs((currValue) => [...currValue, ""]);
       const printer = (text: string) => {
-        setLogValue((currValue) => [
+        setCurrentLogs((currValue) => [
           ...currValue.slice(0, -1),
           currValue[currValue.length - 1] + text + "\n",
         ]);
@@ -151,19 +266,25 @@ const Home: NextPage = () => {
       };
 
       preset
-        .run(cpp_source, input_mlir, additionalRunArgs, printer, statusListener)
+        .run(
+          cpp_source,
+          input_mlir,
+          currentStage().additionalRunArgs,
+          printer,
+          statusListener
+        )
         .finally(() => {
           setRunStatus("");
           setRunProgress(0);
         })
         .then((output: string) => {
-          outputEditor.current.setValue(output);
+          currentStage().outputEditor.current.setValue(output);
         }, printer);
     });
   };
 
   return (
-    <div className={styles.container}>
+    <VStack className={styles.container}>
       <Head>
         <title>MLIR Playground</title>
         <meta
@@ -204,20 +325,55 @@ const Home: NextPage = () => {
         justify="space-between"
         className={styles.playground_flexbox}
         height="90vh"
-        padding="1rem"
+        width="100%"
+        padding="0.5rem 1rem 0 1rem"
       >
+        <VStack spacing={0}>
+          {stages.map((_, idx) => {
+            return (
+              <Button
+                bg="none"
+                rounded="none"
+                width="100%"
+                borderRightColor={
+                  idx == currentStageIdx ? "blue.200" : "gray.200"
+                }
+                borderRightWidth={idx == currentStageIdx ? "2px" : "1px"}
+                key={idx}
+                onClick={() => {
+                  setCurrentStageIdx(idx);
+                }}
+              >
+                {idx}
+              </Button>
+            );
+          })}
+          <Button
+            bg="none"
+            rounded="none"
+            width="100%"
+            borderRightColor="gray.200"
+            borderRightWidth="1px"
+            onClick={appendStage}
+          >
+            +
+          </Button>
+        </VStack>
+        <Divider orientation="vertical" />
         <Box height="100%" className={styles.main_left}>
           <VStack spacing={4} align="left" height="100%">
             <PresetSelector
-              preset={currentPreset}
+              preset={getCurrentPresetSelection()}
               onPresetChange={onPresetSelectionChange}
               disabled={!allEditorsMounted}
             />
             <ArgumentsBar
               leftAddon={runArgsLeftAddon}
               rightAddon={runArgsRightAddon}
-              additionalRunArgs={additionalRunArgs}
-              setAdditionalRunArgs={setAdditionalRunArgs}
+              additionalRunArgs={currentStage().additionalRunArgs}
+              setAdditionalRunArgs={(newArgs) => {
+                currentStage().additionalRunArgs = newArgs;
+              }}
             />
             <LabeledEditor
               height="80vh"
@@ -228,10 +384,11 @@ const Home: NextPage = () => {
           </VStack>
         </Box>
         <Divider orientation="vertical" />
-        <Flex
+        <VStack
           height="100%"
-          flexDirection="column"
           className={styles.main_right}
+          overflow="hidden"
+          spacing={0}
         >
           <LabeledEditor
             height="30vh"
@@ -239,18 +396,22 @@ const Home: NextPage = () => {
             filename={inputEditorFileName}
             onMount={onEditorMounted(inputEditor)}
           />
-          <TransformationOutput
-            logWindowProps={{ height: "30vh", logs: logValue }}
-            labeledEditorProps={{
-              height: "30vh",
-              label: "Output",
-              filename: outputEditorFileName,
-              onMount: onEditorMounted(outputEditor),
-            }}
-          />
-        </Flex>
+          {stages.map((stage, idx) => (
+            <TransformationOutput
+              logWindowProps={{ height: "100%", logs: stage.logs }}
+              labeledEditorProps={{
+                height: "30vh",
+                label: `Output ${idx}`,
+                filename: outputEditorFileName,
+                onMount: onEditorMounted(stage.outputEditor),
+                ref: stage.outputEditorWindow,
+              }}
+              key={idx}
+            />
+          ))}
+        </VStack>
       </Flex>
-    </div>
+    </VStack>
   );
 };
 
@@ -261,8 +422,8 @@ type TransformationOutputProps = {
 
 const TransformationOutput = (props: TransformationOutputProps) => {
   return (
-    <Flex flexDirection="column">
-      <HStack height="30vh">
+    <Flex flexDirection="column" width="100%">
+      <HStack flexGrow="1">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="30vh"
