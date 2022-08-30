@@ -325,6 +325,7 @@ const Home: NextPage = () => {
         justify="space-between"
         className={styles.playground_flexbox}
         height="90vh"
+        width="100%"
         padding="0 1rem"
       >
         <VStack spacing={0}>
