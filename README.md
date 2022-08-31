@@ -27,7 +27,7 @@ Run any Toy tutorial chapter with your own input.
 
 Using the program mode selector, select a Toy chapter. Under this mode, the code editor is disabled. The program that will run when you hit `Run` is the final binary for the corresponding Toy Chapter. The input MLIR editor can be edited under this mode to play with different user input.
 
-## The road ahead
+## The Road Ahead
 
 MLIR is an exciting technology that modularized different compiler building blocks, however the developer workflow remains pretty much the same, i.e. local C++/CMake projects on a latop or a workstation. It's still quite inconvenient for people to land productive discussions on some technical details, altough `.mlir` files are very helpful.
 
