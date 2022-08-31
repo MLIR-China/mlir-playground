@@ -31,7 +31,7 @@ Using the program mode selector, select a Toy chapter. Under this mode, the code
 
 MLIR is an exciting technology that modularized different compiler building blocks, however the developer workflow remains pretty much the same, i.e. local C++/CMake projects on a latop or a workstation. It's still quite inconvenient for people to land productive discussions on some technical details, altough `.mlir` files are very helpful.
 
-MLIR-Playground is a community effort that inspired by the prevailing adoption of using web technology to boost collaboration effeciency and lower entrance barriers, such as Figma to UI design, OpenAI Playground to large AI models and countless javascript sandboxs by many great web frameworks.
+MLIR-Playground is a community effort that inspired by the prevailing adoption of using web technology to boost collaboration effeciency and lower entrance barriers, such as Figma to UI design, OpenAI Playground to large AI models and countless sandboxs by many great web frameworks.
 
 As a starting point, MLIR-Plagyround kicked off as a simple Wasm app to verify modern web browsers' capability. For the long run, MLIR-Plagyround will explore different opportunities to enable more productive technical discussions under the MLIR ecosystem, i.e. more collaboration features and lower barrier to try out using MLIR. Proposals and suggestions are welcome, let's build something together!
 
