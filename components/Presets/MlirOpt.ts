@@ -1,5 +1,7 @@
 import { PlaygroundPreset } from "./PlaygroundPreset";
 
+import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
+
 const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/InitAllPasses.h"
@@ -25,13 +27,11 @@ const defaultMLIRInput = `module  {
 `;
 
 export class MlirOpt extends PlaygroundPreset {
-  wasmWorker: Worker;
+  wasmWorker: Worker | undefined;
   running: boolean;
   constructor() {
     super();
-    this.wasmWorker = new Worker(
-      new URL("../WasmCompiler/worker.js", import.meta.url)
-    );
+    this.wasmWorker = undefined;
     this.running = false;
   }
 
@@ -64,7 +64,8 @@ export class MlirOpt extends PlaygroundPreset {
     code: string,
     input: string,
     arg: string,
-    printer: (text: string) => void
+    printer: (text: string) => void,
+    statusListener: RunStatusListener
   ): Promise<string> {
     if (this.running) {
       return Promise.reject(
@@ -72,8 +73,14 @@ export class MlirOpt extends PlaygroundPreset {
       );
     }
 
+    if (!this.wasmWorker) {
+      this.wasmWorker = new Worker(
+        new URL("../WasmCompiler/worker.ts", import.meta.url)
+      );
+    }
+
     return new Promise((resolve, reject) => {
-      this.wasmWorker.onmessage = (event) => {
+      this.wasmWorker!.onmessage = (event) => {
         if (event.data.log) {
           printer(event.data.log);
         } else if (event.data.error) {
@@ -82,10 +89,14 @@ export class MlirOpt extends PlaygroundPreset {
         } else if (event.data.output) {
           resolve(event.data.output);
           this.running = false;
+        } else if (event.data.percentage) {
+          statusListener(
+            new RunStatus(event.data.label, event.data.percentage)
+          );
         }
       };
 
-      this.wasmWorker.postMessage({
+      this.wasmWorker!.postMessage({
         code: code,
         input: input,
         arg: arg,

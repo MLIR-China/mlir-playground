@@ -1,3 +1,5 @@
+import { RunStatusListener } from "../Utils/RunStatus";
+
 export abstract class PlaygroundPreset {
   abstract isCodeEditorEnabled(): boolean;
   abstract getInputFileName(): string;
@@ -12,6 +14,7 @@ export abstract class PlaygroundPreset {
     code: string,
     input: string,
     arg: string,
-    printer: (text: string) => void
+    printer: (text: string) => void,
+    statusListener: RunStatusListener
   ): Promise<string>;
 }

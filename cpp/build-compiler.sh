@@ -11,6 +11,16 @@ source /app/docker/common.sh
 mkdir /app/build/bin -p
 cd /app/build/bin
 
+# Step 0: Create constant metadata file and insert llvm version
+CONSTANTS_FILENAME="constants.js"
+> $CONSTANTS_FILENAME
+
+pushd $LLVM_SRC
+LLVM_GIT_TAG=$(git describe --exact-match)
+popd
+
+printf "export const LLVM_VERSION = \"$LLVM_GIT_TAG\";\n\n" >> $CONSTANTS_FILENAME
+
 # Step 1: Copy clang and wasm-ld build results
 cp $LLVM_WASM_BUILD/bin/clang.js-13 ./clang_raw.mjs
 cp $LLVM_WASM_BUILD/bin/clang.wasm ./clang.wasm
@@ -18,7 +28,7 @@ cp $LLVM_WASM_BUILD/bin/lld.js ./wasm-ld_raw.mjs
 cp $LLVM_WASM_BUILD/bin/lld.wasm ./lld.wasm
 
 # Step 2: Create sysroot packages inside build directory
-source /app/mlir/package-libs.sh
+/app/datagen/package-libs.sh $CONSTANTS_FILENAME
 
 # Step 3: Insert sysroot package loaders into corresponding js modules
 sed -e '/Module = Module || {};/r onlyincludes.js' clang_raw.mjs > clang.mjs
