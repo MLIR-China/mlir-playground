@@ -33,7 +33,7 @@ MLIR is an exciting technology that modularized different compiler building bloc
 
 MLIR-Playground is a community effort that inspired by the prevailing adoption of using web technology to boost collaboration effeciency and lower entrance barriers, such as Figma to UI design, OpenAI Playground to large AI models and countless sandboxs by many great web frameworks.
 
-As a starting point, MLIR-Playground kicked off as a simple Wasm app to verify the idea, especially on the technical side, e.g. modern web browsers' capability. Such approach also enables us to stay low deployment cost at the same time. For the long run, MLIR-Playground will explore different opportunities to enable productive technical debates by building more collaboration features and lowering barriers to trying out MLIR features. PRs and suggestions are all welcome, let's build something together!
+As a starting point, MLIR-Playground kicked off as a simple Wasm app to verify the idea, especially on the technical side, e.g. modern web browsers' capability. Such approach also enables us to stay low deployment cost at the same time. For the long run, MLIR-Playground will explore different opportunities to enable productive technical debates, such as by building more collaboration features and lowering barriers to trying out MLIR features. PRs and suggestions are all welcome, let's build something together!
 
 ## Contributing
 
