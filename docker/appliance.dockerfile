@@ -50,5 +50,3 @@ WORKDIR /home/$USER
 ADD . .
 
 ENTRYPOINT ["/bin/bash", "docker/appliance.sh"]
-
-
