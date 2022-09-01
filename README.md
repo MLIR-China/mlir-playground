@@ -48,7 +48,7 @@ As a starting point, MLIR-Playground kicked off as a simple Wasm app to verify t
 5. Exit to the project root directory.
 6. Run `npm run dev` to start the development server locally.
 
-### Self-Host
+### Self-Host MLIR-Playground
 
 To selfhost MLIR-Playground locally, you need to have Docker installed beforehand.
 To install Docker, please refer to the [official docs](https://docs.docker.com/get-started/#download-and-install-docker).
