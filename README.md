@@ -53,9 +53,9 @@ As a starting point, MLIR-Playground kicked off as a simple Wasm app to verify t
 To selfhost MLIR-Playground locally, you need to have Docker installed beforehand.
 To install Docker, please refer to the [official docs](https://docs.docker.com/get-started/#download-and-install-docker).
 Once docker is installed properly, all you need is running the following command in terminal. This process could take up to several minutes depending on your internet connection.
+
 ```sh
 docker run -d -p 3000:3000 mlirchina/mlir-playground
 ```
-
 
 Once the command finishes, you can access MLIR-Playground by opening http://localhost:3000 in your browser. Have fun!
