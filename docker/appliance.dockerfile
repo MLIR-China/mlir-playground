@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN echo "Force refresh"
 
@@ -19,10 +19,16 @@ RUN apt-get update && apt-get install -y \
     git \
     nano \
     make \
+    libicu-dev \
     ffmpeg \
+    libsm6 \
+    libxext6 \
+    apt-transport-https \
     build-essential \
     ninja-build \
+    rsync \
     vim \
+    bash-completion
 
 # Install node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
