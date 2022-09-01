@@ -1,5 +1,5 @@
 build-appliance:
-	docker build -f appliance.dockerfile -t mlir-china ..
+	docker build -f appliance.dockerfile -t mlir-playground ..
 
 run-appliance:
-	docker run -d -p 3000:3000 mlir-china
+	docker run -d -p 3000:3000 mlir-playground
