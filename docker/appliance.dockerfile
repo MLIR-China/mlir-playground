@@ -28,9 +28,6 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt-get install -y nodejs
 
-# Setup Git (Nano doesn't work well with VSCode remote due to keybinding issues)
-RUN git config --global core.editor "vim"
-
 # Setup a non-root user
 ARG USER=playground
 ARG USER_UID=1000
