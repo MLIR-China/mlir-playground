@@ -16,7 +16,9 @@ const nextConfig = {
   },
   env: {
     storePicturesInWEBP: true,
-    staticFilePrefix: isProd ? "https://static.mlir-china.org/file/mlir-playground/files/" : "wasm/",
+    staticFilePrefix: isProd
+      ? "https://static.mlir-china.org/file/mlir-playground/files/"
+      : "wasm/",
   },
   webpack: (config, options) => {
     config.module.rules.push({
