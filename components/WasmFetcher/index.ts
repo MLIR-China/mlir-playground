@@ -4,6 +4,11 @@ import {
   set as idb_set,
 } from "idb-keyval";
 
+const getFilePathPrefix = () => {
+  if (process.env.isProduction) return process.env.productionStaticFilePath;
+  return self.location.origin + "/wasm/";
+};
+
 class WasmFetcher {
   private static singleton: WasmFetcher;
   private constructor() {}
@@ -23,9 +28,7 @@ class WasmFetcher {
         return data;
       }
 
-      const full_path = new URL(
-        self.location.origin + "/" + process.env.staticFilePrefix + file_name
-      );
+      const full_path = new URL(getFilePathPrefix() + file_name);
       return fetch(full_path.toString(), {
         credentials: "same-origin",
       }).then((response) => {
