@@ -62,30 +62,30 @@ jobs:
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
 
-      - name: Install npm dependencies
-        run: npm install
+      # - name: Install npm dependencies
+      #   run: npm install
       
-      - name: Run npm build
-        run: npm run build
+      # - name: Run npm build
+      #   run: npm run build
       
-      - name: Export static website
-        run: npx next export
+      # - name: Export static website
+      #   run: npx next export
 
-      # Deploy to Netlify if NOT on `main`
-      - name: Deploy to Netlify
-        if: ${{ github.ref != 'refs/heads/main' }}
-        uses: nwtgck/actions-netlify@v1.2.3
-        with:
-          publish-dir: './out'
-          production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deployed ${{ github.ref }} to Netlify"
-          enable-pull-request-comment: false
-          enable-commit-comment: false
-          enable-commit-status: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      # # Deploy to Netlify if NOT on `main`
+      # - name: Deploy to Netlify
+      #   if: ${{ github.ref != 'refs/heads/main' }}
+      #   uses: nwtgck/actions-netlify@v1.2.3
+      #   with:
+      #     publish-dir: './out'
+      #     production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     deploy-message: "Deployed ${{ github.ref }} to Netlify"
+      #     enable-pull-request-comment: false
+      #     enable-commit-comment: false
+      #     enable-commit-status: true
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       
       # Push docker image if on `main`
       - name: Push Docker image
