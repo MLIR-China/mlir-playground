@@ -62,8 +62,8 @@ jobs:
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
 
-      # - name: Install npm dependencies
-      #   run: npm install
+      - name: Install npm dependencies
+        run: npm install
       
       # - name: Run npm build
       #   run: npm run build
