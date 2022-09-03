@@ -134,6 +134,10 @@ const Home: NextPage = () => {
   }
 
   function setCurrentStageIdx(idx: number) {
+    if (idx == currentStageIdx) {
+      return;
+    }
+
     // make sure nothing is running
     if (runStatus) {
       toast({
@@ -172,21 +176,69 @@ const Home: NextPage = () => {
     return currentStage().preset;
   }
 
+  // Returns true if any editor value is non-empty and not the same as the default for their selected preset.
+  // If currentOnly, then only the current editor is checked.
+  function isEditorDirty(currentOnly: boolean) {
+    let isDirty = false;
+    const presetProps = getPreset(getCurrentPresetSelection());
+    const currentEditorValue = cppEditor.current.getValue();
+    isDirty ||=
+      currentEditorValue.trim().length > 0 &&
+      currentEditorValue != presetProps.getDefaultCodeFile();
+
+    if (!currentOnly) {
+      isDirty ||= stages.some((stage, index) => {
+        const presetProps = getPreset(stage.preset);
+
+        if (index == currentStageIdx) {
+          return false; // Already checked above.
+        }
+
+        return (
+          stage.editorContent.trim().length > 0 &&
+          stage.editorContent != presetProps.getDefaultCodeFile()
+        );
+      });
+    }
+
+    return isDirty;
+  }
+
+  const warnUnsavedChanges = (event: BeforeUnloadEvent) => {
+    if (isEditorDirty(false)) {
+      event.preventDefault();
+      return (event.returnValue = "Are you sure you want to exit?");
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", warnUnsavedChanges);
+    return () => {
+      window.removeEventListener("beforeunload", warnUnsavedChanges);
+    };
+  });
+
   // Update the preset selection of the current stage.
   function setPresetSelection(selection: string) {
+    if (isEditorDirty(true)) {
+      // Check with the user first. If dialogs are disabled, this will always return false.
+      if (
+        !window.confirm(
+          "Do you want the new preset to override your existing code?"
+        )
+      ) {
+        return;
+      }
+    }
+
     updateState((oldState) => {
       let newStage = { ...oldState };
-      // TODO: Update cpp / input editor content only after confirming with user.
-      const canChangeEditorContent = true;
-
       const presetProps = getPreset(selection);
       newStage.preset = selection;
       newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
       updateAuxiliaryInformation(presetProps);
-      if (canChangeEditorContent) {
-        cppEditor.current.setValue(presetProps.getDefaultCodeFile());
-      }
-      if (canChangeEditorContent && currentStageIdx == 0) {
+      cppEditor.current.setValue(presetProps.getDefaultCodeFile());
+      if (currentStageIdx == 0) {
         inputEditor.current.setValue(presetProps.getDefaultInputFile());
       }
 
