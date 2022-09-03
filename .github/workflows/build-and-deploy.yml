@@ -1,15 +1,9 @@
 name: Build and Deploy
-# This action will automatically deploy every pull request and push to `main` to Netlify as a preview site.
-# Admins can manually trigger a workflow-dispatch to deploy `main` to production.
+# This action will automatically build and deploy to either preview or production.
+# If triggered by a pull request, it will deploy a non-production version to Netlify with everything packaged together.
+# If triggered by a push to `main`, it will deploy a production version to Cloudflare, with wasm artifacts pushed to B2.
 
 on:
-  workflow_dispatch:
-    inputs:
-      deploy-prod:
-        type: boolean
-        description: Deploy to Production Site (Only allowed on `main`)
-        required: false
-        default: 'false'
   pull_request:
   push:
     branches:
@@ -86,7 +80,7 @@ jobs:
       
       # Push docker image if on `main`
       - name: Push Docker image
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}d
         uses: docker/build-push-action@v3
         with:
           push: true
@@ -103,7 +97,7 @@ jobs:
         uses: nwtgck/actions-netlify@v1.2.3
         with:
           publish-dir: './out'
-          production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
+          production-deploy: ${{ github.ref == 'refs/heads/main' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deployed ${{ github.ref }} to Netlify"
           enable-pull-request-comment: false
