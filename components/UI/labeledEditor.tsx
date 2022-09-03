@@ -1,16 +1,8 @@
 import React from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
-import {
-  Box,
-  Flex,
-  Heading,
-  Spacer,
-  Text,
-  useMergeRefs,
-} from "@chakra-ui/react";
+import { Box, Flex, Heading, Spacer, Text } from "@chakra-ui/react";
 
 import { monospaceFontFamily } from "./constants";
-import { parentPort } from "worker_threads";
 
 type LabeledEditorProps = {
   height?: string;

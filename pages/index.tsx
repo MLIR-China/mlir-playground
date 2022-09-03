@@ -33,7 +33,6 @@ import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { RunStatus } from "../components/Utils/RunStatus";
 import { PlaygroundPreset } from "../components/Presets/PlaygroundPreset";
-import { MdOutlineSdStorage } from "react-icons/md";
 
 // Stores the configuration of a particular stage.
 class StageState {
