@@ -65,27 +65,27 @@ jobs:
       - name: Install npm dependencies
         run: npm install
       
-      # - name: Run npm build
-      #   run: npm run build
+      - name: Run npm build
+        run: npm run build
       
-      # - name: Export static website
-      #   run: npx next export
+      - name: Export static website
+        run: npx next export
 
-      # # Deploy to Netlify if NOT on `main`
-      # - name: Deploy to Netlify
-      #   if: ${{ github.ref != 'refs/heads/main' }}
-      #   uses: nwtgck/actions-netlify@v1.2.3
-      #   with:
-      #     publish-dir: './out'
-      #     production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     deploy-message: "Deployed ${{ github.ref }} to Netlify"
-      #     enable-pull-request-comment: false
-      #     enable-commit-comment: false
-      #     enable-commit-status: true
-      #   env:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      # Deploy to Netlify if NOT on `main`
+      - name: Deploy to Netlify
+        if: ${{ github.ref != 'refs/heads/main' }}
+        uses: nwtgck/actions-netlify@v1.2.3
+        with:
+          publish-dir: './out'
+          production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deployed ${{ github.ref }} to Netlify"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+          enable-commit-status: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       
       # Push docker image if on `main`
       - name: Push Docker image
@@ -102,19 +102,19 @@ jobs:
       
       # Deploy to Cloudflare + B2 if on `main`
       - name: Upload artifacts to B2
-        # if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
       
       - name: Remove wasm files from prod build
-        # if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: rm -r ./public/wasm
       
       - name: Build and export production version
-        # if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: export NODE_ENV=production && npm run build && npx next export
       
       - name: Push site to Cloudflare Pages
-        # if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: cloudflare/pages-action@v1.1.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -122,4 +122,4 @@ jobs:
           projectName: mlir-playground
           directory: out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: main # required to get cloudflare pages to deploy to production
+          branch: ${{ github.ref_name }}
