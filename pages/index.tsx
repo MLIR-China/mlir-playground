@@ -135,6 +135,10 @@ const Home: NextPage = () => {
   }
 
   function setCurrentStageIdx(idx: number) {
+    if (idx == currentStageIdx) {
+      return;
+    }
+    
     // make sure nothing is running
     if (runStatus) {
       toast({
