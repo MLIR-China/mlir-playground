@@ -138,7 +138,7 @@ const Home: NextPage = () => {
     if (idx == currentStageIdx) {
       return;
     }
-    
+
     // make sure nothing is running
     if (runStatus) {
       toast({
@@ -221,19 +221,19 @@ const Home: NextPage = () => {
 
   // Update the preset selection of the current stage.
   function setPresetSelection(selection: string) {
+    if (isEditorDirty(true)) {
+      // Check with the user first. If dialogs are disabled, this will always return false.
+      if (
+        !window.confirm(
+          "Do you want the new preset to override your existing code?"
+        )
+      ) {
+        return;
+      }
+    }
+
     updateState((oldState) => {
       let newStage = { ...oldState };
-      if (isEditorDirty(true)) {
-        // Check with the user first. If dialogs are disabled, this will always return false.
-        if (
-          !window.confirm(
-            "Do you want the new preset to override your existing code?"
-          )
-        ) {
-          return oldState;
-        }
-      }
-
       const presetProps = getPreset(selection);
       newStage.preset = selection;
       newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
