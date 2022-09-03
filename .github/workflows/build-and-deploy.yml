@@ -1,15 +1,9 @@
 name: Build and Deploy
-# This action will automatically deploy every pull request and push to `main` to Netlify as a preview site.
-# Admins can manually trigger a workflow-dispatch to deploy `main` to production.
+# This action will automatically build and deploy to either preview or production.
+# If triggered by a pull request, it will deploy a non-production version to Netlify with everything packaged together.
+# If triggered by a push to `main`, it will deploy a production version to Cloudflare, with wasm artifacts pushed to B2.
 
 on:
-  workflow_dispatch:
-    inputs:
-      deploy-prod:
-        type: boolean
-        description: Deploy to Production Site (Only allowed on `main`)
-        required: false
-        default: 'false'
   pull_request:
   push:
     branches:
@@ -57,13 +51,26 @@ jobs:
           cache-to: type=inline
           context: ./cpp/docker
       
-      # Build site
+      # Generate wasm files
       - name: Run wasm setup
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
 
+      - name: Upload artifacts to B2
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
+      
+      - name: Remove wasm files from production build
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: rm -r ./public/wasm
+
+      # Build site
       - name: Install npm dependencies
         run: npm install
+
+      - name: Set build environment
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: echo "NODE_ENV=production" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build
@@ -71,9 +78,9 @@ jobs:
       - name: Export static website
         run: npx next export
       
-      # Push docker image if this is run on `main`
+      # Push docker image if on `main`
       - name: Push Docker image
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}d
         uses: docker/build-push-action@v3
         with:
           push: true
@@ -84,12 +91,13 @@ jobs:
           cache-to: type=inline
           context: ./cpp/docker
 
-      # Deploy
+      # Deploy site. Netlify for previews, Cloudflare for production.
       - name: Deploy to Netlify
+        if: ${{ github.ref != 'refs/heads/main' }}
         uses: nwtgck/actions-netlify@v1.2.3
         with:
           publish-dir: './out'
-          production-deploy: ${{ inputs.deploy-prod && github.ref == 'refs/heads/main' }}
+          production-deploy: ${{ github.ref == 'refs/heads/main' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deployed ${{ github.ref }} to Netlify"
           enable-pull-request-comment: false
@@ -98,3 +106,14 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      
+      - name: Push site to Cloudflare Pages
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: cloudflare/pages-action@v1.1.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: mlir-playground
+          directory: out
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref_name }}
