@@ -57,21 +57,47 @@ jobs:
           cache-to: type=inline
           context: ./cpp/docker
       
-      # Build dev version of site to make sure it can succeed
+      # Generate wasm files
       - name: Run wasm setup
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
 
+      - name: Upload artifacts to B2
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
+      
+      - name: Remove wasm files from production build
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: rm -r ./public/wasm
+
+      # Build site
       - name: Install npm dependencies
         run: npm install
+
+      - name: Set build environment
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: echo "NODE_ENV=production" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build
       
       - name: Export static website
         run: npx next export
+      
+      # Push docker image if on `main`
+      - name: Push Docker image
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: |
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+          cache-to: type=inline
+          context: ./cpp/docker
 
-      # Deploy to Netlify if NOT on `main`
+      # Deploy site. Netlify for previews, Cloudflare for production.
       - name: Deploy to Netlify
         if: ${{ github.ref != 'refs/heads/main' }}
         uses: nwtgck/actions-netlify@v1.2.3
@@ -86,32 +112,6 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      
-      # Push docker image if on `main`
-      - name: Push Docker image
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          tags: |
-            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
-            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
-          cache-to: type=inline
-          context: ./cpp/docker
-      
-      # Deploy to Cloudflare + B2 if on `main`
-      - name: Upload artifacts to B2
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
-      
-      - name: Remove wasm files from prod build
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: rm -r ./public/wasm
-      
-      - name: Build and export production version
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: export NODE_ENV=production && npm run build && npx next export
       
       - name: Push site to Cloudflare Pages
         if: ${{ github.ref == 'refs/heads/main' }}
