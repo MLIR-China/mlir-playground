@@ -53,6 +53,14 @@ class StageState {
     this.logs = [];
     this.output = "";
   }
+
+  static getInputFileBaseName(stageIndex: number) {
+    const prevIndex = stageIndex - 1;
+    return stageIndex == 0 ? "input" : `output${prevIndex}`;
+  }
+  static getOutputFileBaseName(stageIndex: number) {
+    return `output${stageIndex}`;
+  }
 }
 
 const Home: NextPage = () => {
@@ -98,7 +106,6 @@ const Home: NextPage = () => {
   const [runArgsLeftAddon, setRunArgsLeftAddon] = useState("");
   const [runArgsRightAddon, setRunArgsRightAddon] = useState("");
   const [inputEditorFileName, setInputEditorFileName] = useState("");
-  const [outputEditorFileName, setOutputEditorFileName] = useState("");
 
   // Stores the entire state across all stages.
   // _rawSetCurrentStageIdx should never be used directly (always use the wrapper setCurrentStageIdx).
@@ -128,14 +135,37 @@ const Home: NextPage = () => {
     });
   }
 
-  function updateAuxiliaryInformation(presetProps: PlaygroundPreset) {
+  function getOutputFileName(stageIndex: number) {
+    const presetProps = getPreset(stages[stageIndex].preset);
+    return (
+      StageState.getOutputFileBaseName(stageIndex) +
+      "." +
+      presetProps.getOutputFileExtension()
+    );
+  }
+
+  function updateAuxiliaryInformation(
+    currentIndex: number,
+    presetProps: PlaygroundPreset
+  ) {
     cppEditor.current.updateOptions({
       readOnly: !presetProps.isCodeEditorEnabled(),
     });
-    setRunArgsLeftAddon(presetProps.getRunArgsLeftAddon());
-    setRunArgsRightAddon(presetProps.getRunArgsRightAddon());
-    setInputEditorFileName(presetProps.getInputFileName());
-    setOutputEditorFileName(presetProps.getOutputFileName());
+    const inputFileName =
+      StageState.getInputFileBaseName(currentIndex) +
+      "." +
+      presetProps.getInputFileExtension();
+    const outputFileName =
+      StageState.getOutputFileBaseName(currentIndex) +
+      "." +
+      presetProps.getOutputFileExtension();
+    setRunArgsLeftAddon(
+      presetProps.getRunArgsLeftAddon(inputFileName, outputFileName)
+    );
+    setRunArgsRightAddon(
+      presetProps.getRunArgsRightAddon(inputFileName, outputFileName)
+    );
+    setInputEditorFileName(inputFileName);
   }
 
   function setCurrentStageIdx(idx: number) {
@@ -160,7 +190,7 @@ const Home: NextPage = () => {
     // additional side effects
     const newStage = stages[idx];
     const presetProps = getPreset(newStage.preset);
-    updateAuxiliaryInformation(presetProps);
+    updateAuxiliaryInformation(idx, presetProps);
 
     newStage.outputEditorWindow!.current.scrollIntoView({
       behavior: "smooth",
@@ -242,7 +272,7 @@ const Home: NextPage = () => {
       let newStage = { ...oldState };
       newStage.preset = selection;
       newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
-      updateAuxiliaryInformation(presetProps);
+      updateAuxiliaryInformation(currentStageIdx, presetProps);
       newStage.editorContent = presetProps.getDefaultCodeFile();
       if (currentStageIdx == 0) {
         setInputEditorContent(presetProps.getDefaultInputFile());
@@ -481,7 +511,7 @@ const Home: NextPage = () => {
               labeledEditorProps={{
                 height: "30vh",
                 label: `Output ${idx}`,
-                filename: outputEditorFileName,
+                filename: getOutputFileName(idx),
                 onMount: onEditorMounted(stage.outputEditor),
                 ref: stage.outputEditorWindow,
                 value: stage.output,

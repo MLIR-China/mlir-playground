@@ -21,11 +21,11 @@ export class ToyChapter extends PlaygroundPreset {
   isMultiStageCompatible(): boolean {
     return false;
   }
-  getInputFileName(): string {
-    return "input.toy";
+  getInputFileExtension(): string {
+    return "toy";
   }
-  getOutputFileName(): string {
-    return "output.mlir";
+  getOutputFileExtension(): string {
+    return "mlir";
   }
   getDefaultCodeFile(): string {
     return "// Code editor not applicable to Toy chapter modes.";
@@ -36,10 +36,10 @@ export class ToyChapter extends PlaygroundPreset {
   getDefaultAdditionalRunArgs(): string {
     return "--emit=mlir";
   }
-  getRunArgsLeftAddon(): string {
-    return "toy input.toy";
+  getRunArgsLeftAddon(inputFileName: string, outputFileName: string): string {
+    return "toy " + inputFileName;
   }
-  getRunArgsRightAddon(): string {
+  getRunArgsRightAddon(inputFileName: string, outputFileName: string): string {
     return "";
   }
 

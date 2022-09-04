@@ -41,11 +41,11 @@ export class MlirOpt extends PlaygroundPreset {
   isMultiStageCompatible(): boolean {
     return true;
   }
-  getInputFileName(): string {
-    return "input.mlir";
+  getInputFileExtension(): string {
+    return "mlir";
   }
-  getOutputFileName(): string {
-    return "output.mlir";
+  getOutputFileExtension(): string {
+    return "mlir";
   }
   getDefaultCodeFile(): string {
     return defaultCode;
@@ -56,11 +56,11 @@ export class MlirOpt extends PlaygroundPreset {
   getDefaultAdditionalRunArgs(): string {
     return "--convert-std-to-llvm";
   }
-  getRunArgsLeftAddon(): string {
+  getRunArgsLeftAddon(inputFileName: string, outputFileName: string): string {
     return "mlir-opt";
   }
-  getRunArgsRightAddon(): string {
-    return "input.mlir -o output.mlir";
+  getRunArgsRightAddon(inputFileName: string, outputFileName: string): string {
+    return inputFileName + " -o " + outputFileName;
   }
 
   run(
