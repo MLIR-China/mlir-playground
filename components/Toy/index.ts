@@ -12,7 +12,7 @@ import Module7 from "./wasm/toyc-ch7.js";
 const ToyWasm = (() => {
   const wasmFetcher = WasmFetcher.getSingleton();
 
-  const moduleMap = {
+  const moduleMap: any = {
     1: Module1,
     2: Module2,
     3: Module3,
@@ -22,7 +22,12 @@ const ToyWasm = (() => {
     7: Module7,
   };
 
-  let runChapter = (chapterIndex, input, args, printer) => {
+  let runChapter = (
+    chapterIndex: number,
+    input: string,
+    args: Array<String>,
+    printer: (log: string) => void
+  ) => {
     if (chapterIndex < 1 || chapterIndex > 7) {
       console.log(
         "Internal Error: Looking for non-existent Toy chapter: " +
@@ -34,29 +39,29 @@ const ToyWasm = (() => {
     }
 
     const wasmName = "toyc-ch" + chapterIndex.toString() + ".wasm";
-    const moduleParams = wasmFetcher.getModuleParams(wasmName, null);
     const module = moduleMap[chapterIndex];
 
-    return module({
-      ...moduleParams,
-      print: printer,
-      printErr: printer,
-    }).then((compiledMod) => {
-      compiledMod.FS.writeFile("input.toy", input, { encoding: "utf8" });
-      console.log("Running toy...");
-      try {
-        let ret = compiledMod.callMain(["input.toy", ...args]);
-        if (ret) {
-          return Promise.reject(
-            "Failed to run. toy exited with: " + ret.toString()
-          );
+    return wasmFetcher
+      .getModuleParams(wasmName, "", printer)
+      .then((params) => {
+        return module(params);
+      })
+      .then((compiledMod) => {
+        compiledMod.FS.writeFile("input.toy", input, { encoding: "utf8" });
+        console.log("Running toy...");
+        try {
+          let ret = compiledMod.callMain(["input.toy", ...args]);
+          if (ret) {
+            return Promise.reject(
+              "Failed to run. toy exited with: " + ret.toString()
+            );
+          }
+        } catch (e: any) {
+          return Promise.reject("Failed to run. Error: " + e.toString());
         }
-      } catch (e) {
-        return Promise.reject("Failed to run. Error: " + e.toString());
-      }
-      // Caveat: No output file. All outputs are emitted via stderr.
-      return "(See Logs Window)";
-    });
+        // Caveat: No output file. All outputs are emitted via stderr.
+        return "(See Logs Window)";
+      });
   };
 
   return {

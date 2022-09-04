@@ -2,7 +2,7 @@ import { PlaygroundPreset } from "./PlaygroundPreset";
 
 import { RunStatusListener } from "../Utils/RunStatus";
 
-import Toy from "../Toy/index.js";
+import Toy from "../Toy/index";
 
 const defaultToyInput = `def main() {
   print([[1, 2], [3, 4]]);
