@@ -25,7 +25,7 @@ export class ToyChapter extends PlaygroundPreset {
     return "output.mlir";
   }
   getDefaultCodeFile(): string {
-    return "";
+    return "// Code editor not applicable to Toy chapter modes.";
   }
   getDefaultInputFile(): string {
     return defaultToyInput;
