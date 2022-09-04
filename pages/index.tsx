@@ -121,10 +121,21 @@ const Home: NextPage = () => {
     return currentStage().preset;
   }
 
-  function updateState(updater: (state: StageState) => StageState) {
+  function updateCurrentStage(
+    partialStateGetter:
+      | ((oldState: StageState) => Partial<StageState>)
+      | Partial<StageState>
+  ) {
     setStages((prevStages) => {
       return prevStages.map((state, idx) => {
-        return idx == currentStageIdx ? updater(state) : state;
+        if (idx != currentStageIdx) {
+          return state;
+        }
+        const partialState: Partial<StageState> =
+          typeof partialStateGetter == "function"
+            ? partialStateGetter(state)
+            : partialStateGetter;
+        return { ...state, ...partialState };
       });
     });
   }
@@ -268,25 +279,20 @@ const Home: NextPage = () => {
       return;
     }
 
-    updateState((oldState) => {
-      let newStage = { ...oldState };
-      newStage.preset = selection;
-      newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
-      updateAuxiliaryInformation(currentStageIdx, presetProps);
-      newStage.editorContent = presetProps.getDefaultCodeFile();
-      if (currentStageIdx == 0) {
-        setInputEditorContent(presetProps.getDefaultInputFile());
-      }
-
-      return newStage;
+    updateCurrentStage({
+      preset: selection,
+      additionalRunArgs: presetProps.getDefaultAdditionalRunArgs(),
+      editorContent: presetProps.getDefaultCodeFile(),
     });
+    updateAuxiliaryInformation(currentStageIdx, presetProps);
+    if (currentStageIdx == 0) {
+      setInputEditorContent(presetProps.getDefaultInputFile());
+    }
   }
 
   function setCurrentLogs(updater: (log: Array<string>) => Array<string>) {
-    updateState((oldState) => {
-      let newState = { ...oldState };
-      newState.logs = updater(newState.logs);
-      return newState;
+    updateCurrentStage((oldState) => {
+      return { logs: updater(oldState.logs) };
     });
   }
 
@@ -367,11 +373,7 @@ const Home: NextPage = () => {
           setRunProgress(0);
         })
         .then((output: string) => {
-          updateState((oldState) => {
-            let newState = { ...oldState };
-            newState.output = output;
-            return newState;
-          });
+          updateCurrentStage({ output: output });
         }, printer);
     });
   };
@@ -465,11 +467,7 @@ const Home: NextPage = () => {
               rightAddon={runArgsRightAddon}
               additionalRunArgs={currentStage().additionalRunArgs}
               setAdditionalRunArgs={(newArgs) => {
-                updateState((oldState) => {
-                  let newState = { ...oldState };
-                  newState.additionalRunArgs = newArgs;
-                  return newState;
-                });
+                updateCurrentStage({ additionalRunArgs: newArgs });
               }}
             />
             <LabeledEditor
@@ -480,11 +478,7 @@ const Home: NextPage = () => {
               value={currentStage().editorContent}
               onChange={(value, event) => {
                 if (value) {
-                  updateState((oldState) => {
-                    let newState = { ...oldState };
-                    newState.editorContent = value;
-                    return newState;
-                  });
+                  updateCurrentStage({ editorContent: value });
                 }
               }}
             />
@@ -521,11 +515,7 @@ const Home: NextPage = () => {
                 value: stage.output,
                 onChange: (value, event) => {
                   if (value) {
-                    updateState((oldState) => {
-                      let newState = { ...oldState };
-                      newState.output = value;
-                      return newState;
-                    });
+                    updateCurrentStage({ output: value });
                   }
                 },
               }}
