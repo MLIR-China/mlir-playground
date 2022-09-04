@@ -224,6 +224,18 @@ const Home: NextPage = () => {
       }
     }
 
+    if (currentStageIdx > 0 && selection.startsWith("Toy")) {
+      toast({
+        title: "Cannot use Toy in multi-stage mode.",
+        description: "Toy is only available in stage 0. Please switch to stage 0 first.",
+        status: "warning",
+        position: "top",
+        isClosable: true,
+        duration: null,
+      });
+      return;
+    }
+
     updateState((oldState) => {
       let newStage = { ...oldState };
       const presetProps = getPreset(selection);
