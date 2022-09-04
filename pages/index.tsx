@@ -104,9 +104,14 @@ const Home: NextPage = () => {
   // _rawSetCurrentStageIdx should never be used directly (always use the wrapper setCurrentStageIdx).
   const [stages, setStages] = useState<Array<StageState>>([new StageState()]);
   const [currentStageIdx, _rawSetCurrentStageIdx] = useState(0);
+  const [inputEditorContent, setInputEditorContent] = useState("");
 
   function currentStage() {
     return stages[currentStageIdx];
+  }
+
+  function getCurrentPresetSelection() {
+    return currentStage().preset;
   }
 
   function updateState(updater: (state: StageState) => StageState) {
@@ -149,13 +154,6 @@ const Home: NextPage = () => {
       return;
     }
 
-    // save current editor state
-    updateState((oldState) => {
-      let newState = { ...oldState };
-      newState.editorContent = cppEditor.current.getValue();
-      return newState;
-    });
-
     // update raw state
     _rawSetCurrentStageIdx(idx);
 
@@ -163,7 +161,6 @@ const Home: NextPage = () => {
     const newStage = stages[idx];
     const presetProps = getPreset(newStage.preset);
     updateAuxiliaryInformation(presetProps);
-    cppEditor.current.setValue(newStage.editorContent);
 
     newStage.outputEditorWindow!.current.scrollIntoView({
       behavior: "smooth",
@@ -172,16 +169,12 @@ const Home: NextPage = () => {
     });
   }
 
-  function getCurrentPresetSelection() {
-    return currentStage().preset;
-  }
-
   // Returns true if any editor value is non-empty and not the same as the default for their selected preset.
   // If currentOnly, then only the current editor is checked.
   function isEditorDirty(currentOnly: boolean) {
     let isDirty = false;
     const presetProps = getPreset(getCurrentPresetSelection());
-    const currentEditorValue = cppEditor.current.getValue();
+    const currentEditorValue = currentStage().editorContent;
     isDirty ||=
       currentEditorValue.trim().length > 0 &&
       currentEditorValue != presetProps.getDefaultCodeFile();
@@ -237,9 +230,9 @@ const Home: NextPage = () => {
       newStage.preset = selection;
       newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
       updateAuxiliaryInformation(presetProps);
-      cppEditor.current.setValue(presetProps.getDefaultCodeFile());
+      newStage.editorContent = presetProps.getDefaultCodeFile();
       if (currentStageIdx == 0) {
-        inputEditor.current.setValue(presetProps.getDefaultInputFile());
+        setInputEditorContent(presetProps.getDefaultInputFile());
       }
 
       return newStage;
@@ -264,7 +257,8 @@ const Home: NextPage = () => {
       if (
         cppEditor.current &&
         inputEditor.current &&
-        currentStage().outputEditor.current
+        currentStage().outputEditor.current &&
+        !allEditorsMounted
       ) {
         // All editors mounted.
         setAllEditorsMounted(true);
@@ -293,7 +287,7 @@ const Home: NextPage = () => {
 
       let cpp_source = "";
       if (preset.isCodeEditorEnabled()) {
-        cpp_source = cppEditor.current.getValue();
+        cpp_source = currentStage().editorContent;
         setRunStatus("Compiling...");
       } else {
         setRunStatus("Running...");
@@ -301,8 +295,8 @@ const Home: NextPage = () => {
 
       const input_mlir =
         currentStageIdx == 0
-          ? inputEditor.current.getValue()
-          : stages[currentStageIdx - 1].outputEditor.current.getValue();
+          ? inputEditorContent
+          : stages[currentStageIdx - 1].output;
 
       setCurrentLogs((currValue) => [...currValue, ""]);
       const printer = (text: string) => {
@@ -330,7 +324,11 @@ const Home: NextPage = () => {
           setRunProgress(0);
         })
         .then((output: string) => {
-          currentStage().outputEditor.current.setValue(output);
+          updateState((oldState) => {
+            let newState = { ...oldState };
+            newState.output = output;
+            return newState;
+          });
         }, printer);
     });
   };
@@ -430,8 +428,18 @@ const Home: NextPage = () => {
             <LabeledEditor
               height="80vh"
               label="Editor"
-              filename="mlir-opt.cpp"
+              filename={`mlir-opt-${currentStageIdx}.cpp`}
               onMount={onEditorMounted(cppEditor)}
+              value={currentStage().editorContent}
+              onChange={(value, event) => {
+                if (value) {
+                  updateState((oldState) => {
+                    let newState = { ...oldState };
+                    newState.editorContent = value;
+                    return newState;
+                  });
+                }
+              }}
             />
           </VStack>
         </Box>
@@ -447,6 +455,12 @@ const Home: NextPage = () => {
             label="Input"
             filename={inputEditorFileName}
             onMount={onEditorMounted(inputEditor)}
+            value={inputEditorContent}
+            onChange={(value, event) => {
+              if (value) {
+                setInputEditorContent(value);
+              }
+            }}
           />
           {stages.map((stage, idx) => (
             <TransformationOutput
@@ -457,6 +471,16 @@ const Home: NextPage = () => {
                 filename: outputEditorFileName,
                 onMount: onEditorMounted(stage.outputEditor),
                 ref: stage.outputEditorWindow,
+                value: stage.output,
+                onChange: (value, event) => {
+                  if (value) {
+                    updateState((oldState) => {
+                      let newState = { ...oldState };
+                      newState.output = value;
+                      return newState;
+                    });
+                  }
+                },
               }}
               key={idx}
             />
