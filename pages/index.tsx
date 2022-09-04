@@ -465,7 +465,11 @@ const Home: NextPage = () => {
               rightAddon={runArgsRightAddon}
               additionalRunArgs={currentStage().additionalRunArgs}
               setAdditionalRunArgs={(newArgs) => {
-                currentStage().additionalRunArgs = newArgs;
+                updateState((oldState) => {
+                  let newState = { ...oldState };
+                  newState.additionalRunArgs = newArgs;
+                  return newState;
+                });
               }}
             />
             <LabeledEditor
