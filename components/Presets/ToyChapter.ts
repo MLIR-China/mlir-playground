@@ -18,6 +18,9 @@ export class ToyChapter extends PlaygroundPreset {
   isCodeEditorEnabled(): boolean {
     return false;
   }
+  isMultiStageCompatible(): boolean {
+    return false;
+  }
   getInputFileName(): string {
     return "input.toy";
   }
@@ -25,7 +28,7 @@ export class ToyChapter extends PlaygroundPreset {
     return "output.mlir";
   }
   getDefaultCodeFile(): string {
-    return "";
+    return "// Code editor not applicable to Toy chapter modes.";
   }
   getDefaultInputFile(): string {
     return defaultToyInput;
