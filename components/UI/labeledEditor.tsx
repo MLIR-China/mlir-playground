@@ -1,15 +1,18 @@
 import React from "react";
-import Editor, { OnMount } from "@monaco-editor/react";
+import Editor, { OnChange, OnMount } from "@monaco-editor/react";
 import { Box, Flex, Heading, Spacer, Text } from "@chakra-ui/react";
 
 import { monospaceFontFamily } from "./constants";
+import { parentPort } from "worker_threads";
 
 type LabeledEditorProps = {
   height?: string;
   flex?: string;
   label: string;
   filename: string;
+  onChange: OnChange;
   onMount: OnMount;
+  value: string;
 };
 
 const monacoOptions = {
@@ -41,8 +44,11 @@ const LabeledEditor = React.forwardRef(
           <Editor
             height="100%"
             defaultLanguage="cpp"
+            path={props.filename}
+            onChange={props.onChange}
             onMount={props.onMount}
             options={monacoOptions}
+            value={props.value}
           />
         </Box>
       </Flex>
