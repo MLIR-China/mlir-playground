@@ -38,6 +38,9 @@ export class MlirOpt extends PlaygroundPreset {
   isCodeEditorEnabled(): boolean {
     return true;
   }
+  isMultiStageCompatible(): boolean {
+    return true;
+  }
   getInputFileName(): string {
     return "input.mlir";
   }

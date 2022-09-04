@@ -18,6 +18,9 @@ export class ToyChapter extends PlaygroundPreset {
   isCodeEditorEnabled(): boolean {
     return false;
   }
+  isMultiStageCompatible(): boolean {
+    return false;
+  }
   getInputFileName(): string {
     return "input.toy";
   }

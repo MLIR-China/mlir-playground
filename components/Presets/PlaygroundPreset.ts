@@ -2,6 +2,7 @@ import { RunStatusListener } from "../Utils/RunStatus";
 
 export abstract class PlaygroundPreset {
   abstract isCodeEditorEnabled(): boolean;
+  abstract isMultiStageCompatible(): boolean;
   abstract getInputFileName(): string;
   abstract getOutputFileName(): string;
   abstract getDefaultCodeFile(): string;

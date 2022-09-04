@@ -224,10 +224,12 @@ const Home: NextPage = () => {
       }
     }
 
-    if (currentStageIdx > 0 && selection.startsWith("Toy")) {
+    const presetProps = getPreset(selection);
+
+    if (currentStageIdx > 0 && !presetProps.isMultiStageCompatible()) {
       toast({
-        title: "Cannot use Toy in multi-stage mode.",
-        description: "Toy is only available in stage 0. Please switch to stage 0 first.",
+        title: `Cannot use "${selection}" in multi-stage mode.`,
+        description: `"${selection}" is only available in stage 0. Please switch to stage 0 first.`,
         status: "warning",
         position: "top",
         isClosable: true,
@@ -238,7 +240,6 @@ const Home: NextPage = () => {
 
     updateState((oldState) => {
       let newStage = { ...oldState };
-      const presetProps = getPreset(selection);
       newStage.preset = selection;
       newStage.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
       updateAuxiliaryInformation(presetProps);
