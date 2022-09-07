@@ -13,11 +13,14 @@ import {
   InputGroup,
   InputLeftAddon,
   InputRightAddon,
+  LinkBox,
+  LinkOverlay,
   Select,
   Text,
   useToast,
   VStack,
 } from "@chakra-ui/react";
+import { GoMarkGithub } from "react-icons/go";
 import { OnMount } from "@monaco-editor/react";
 import styles from "../styles/Home.module.css";
 import { monospaceFontFamily } from "../components/UI/constants";
@@ -423,7 +426,7 @@ const Home: NextPage = () => {
         width="100%"
         padding="0.5rem 1rem 0 1rem"
       >
-        <VStack spacing={0}>
+        <Flex direction="column">
           {stages.map((_, idx) => {
             return (
               <Button
@@ -450,10 +453,18 @@ const Home: NextPage = () => {
             borderRightColor="gray.200"
             borderRightWidth="1px"
             onClick={appendStage}
+            title="Append a new stage"
           >
             +
           </Button>
-        </VStack>
+          <LinkBox marginTop="auto" title="View source code on GitHub">
+            <Button bg="none" rounded="none" width="100%">
+              <LinkOverlay href="https://github.com/MLIR-China/mlir-playground">
+                <GoMarkGithub />
+              </LinkOverlay>
+            </Button>
+          </LinkBox>
+        </Flex>
         <Divider orientation="vertical" />
         <Box height="100%" className={styles.main_left}>
           <VStack spacing={4} align="left" height="100%">
