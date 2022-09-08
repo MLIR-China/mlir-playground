@@ -22,6 +22,8 @@ import {
 } from "@chakra-ui/react";
 import { GoMarkGithub } from "react-icons/go";
 import { OnMount } from "@monaco-editor/react";
+import { usePlausible } from "next-plausible";
+
 import styles from "../styles/Home.module.css";
 import { monospaceFontFamily } from "../components/UI/constants";
 
@@ -34,6 +36,7 @@ import {
 import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
+import { AllPlaygroundEvents } from "../components/Utils/Events";
 import { RunStatus } from "../components/Utils/RunStatus";
 import { PlaygroundPreset } from "../components/Presets/PlaygroundPreset";
 
@@ -67,6 +70,7 @@ class StageState {
 }
 
 const Home: NextPage = () => {
+  const logEvent = usePlausible<AllPlaygroundEvents>();
   const toast = useToast();
 
   /* Compiler Environment Management */
@@ -91,7 +95,9 @@ const Home: NextPage = () => {
       return Promise.resolve(true);
     }
 
+    logEvent("EnvDownloadStart");
     return WasmCompiler.initialize().then((success) => {
+      logEvent("EnvDownloadDone", { props: { success: success } });
       if (!success) {
         alert("Failed to initialize compiler environment.");
       }
@@ -363,6 +369,7 @@ const Home: NextPage = () => {
         updateCompilerEnvironmentReady();
       };
 
+      logEvent("RunStart", { props: { preset: getCurrentPresetSelection() } });
       preset
         .run(
           cpp_source,
@@ -374,6 +381,7 @@ const Home: NextPage = () => {
         .finally(() => {
           setRunStatus("");
           setRunProgress(0);
+          logEvent("RunEnd");
         })
         .then((output: string) => {
           updateCurrentStage({ output: output });
