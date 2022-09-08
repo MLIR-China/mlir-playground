@@ -4,13 +4,20 @@ import { ChakraProvider } from "@chakra-ui/react";
 import PlausibleProvider from "next-plausible";
 
 function MyApp({ Component, pageProps }: AppProps) {
-  return (
-    <PlausibleProvider domain="playground.mlir-china.org">
-      <ChakraProvider>
-        <Component {...pageProps} />
-      </ChakraProvider>
-    </PlausibleProvider>
+  const page = (
+    <ChakraProvider>
+      <Component {...pageProps} />
+    </ChakraProvider>
   );
+
+  if (process.env.productionDomain) {
+    return (
+      <PlausibleProvider domain={process.env.productionDomain}>
+        {page}
+      </PlausibleProvider>
+    );
+  }
+  return page;
 }
 
 export default MyApp;
