@@ -73,7 +73,7 @@ jobs:
         run: |
           echo "NODE_ENV=production" >> $GITHUB_ENV
           echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
-          echo "PRODUCTION_STATIC_FILE_PATH=https://static.mlir-china.org/file/mlir-playground/files/" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/files/" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build

@@ -16,7 +16,7 @@ const nextConfig = {
     storePicturesInWEBP: true,
     isProduction: process.env.NODE_ENV === "production",
     productionDomain: process.env.PRODUCTION_DOMAIN,
-    productionStaticFilePath: process.env.PRODUCTION_STATIC_FILE_PATH,
+    wasmGenPrefix: process.env.WASM_GEN_PREFIX, // Prefix URL for generated wasm files
   },
   webpack: (config, options) => {
     config.module.rules.push({

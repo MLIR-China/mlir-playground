@@ -5,7 +5,7 @@ import {
 } from "idb-keyval";
 
 const getFilePathPrefix = () => {
-  if (process.env.isProduction) return process.env.productionStaticFilePath;
+  if (process.env.wasmGenPrefix) return process.env.wasmGenPrefix;
   return self.location.origin + "/wasm/";
 };
 
