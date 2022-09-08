@@ -15,8 +15,8 @@ const nextConfig = {
   env: {
     storePicturesInWEBP: true,
     isProduction: process.env.NODE_ENV === "production",
-    productionStaticFilePath:
-      "https://static.mlir-china.org/file/mlir-playground/files/",
+    productionDomain: process.env.PRODUCTION_DOMAIN,
+    productionStaticFilePath: process.env.PRODUCTION_STATIC_FILE_PATH,
   },
   webpack: (config, options) => {
     config.module.rules.push({
