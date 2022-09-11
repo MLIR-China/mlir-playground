@@ -1,4 +1,4 @@
-import { PlaygroundPreset } from "./PlaygroundPreset";
+import { PlaygroundPreset, PlaygroundPresetPane } from "./PlaygroundPreset";
 
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
@@ -26,6 +26,13 @@ const defaultMLIRInput = `module  {
 }
 `;
 
+const presetPanes: Array<PlaygroundPresetPane> = [
+  {
+    shortName: "C++",
+    defaultEditorContent: defaultCode,
+  },
+];
+
 export class MlirOpt extends PlaygroundPreset {
   wasmWorker: Worker | undefined;
   running: boolean;
@@ -35,8 +42,8 @@ export class MlirOpt extends PlaygroundPreset {
     this.running = false;
   }
 
-  isCodeEditorEnabled(): boolean {
-    return true;
+  getPanes(): Array<PlaygroundPresetPane> {
+    return presetPanes;
   }
   isMultiStageCompatible(): boolean {
     return true;
@@ -46,9 +53,6 @@ export class MlirOpt extends PlaygroundPreset {
   }
   getOutputFileExtension(): string {
     return "mlir";
-  }
-  getDefaultCodeFile(): string {
-    return defaultCode;
   }
   getDefaultInputFile(): string {
     return defaultMLIRInput;
@@ -64,7 +68,7 @@ export class MlirOpt extends PlaygroundPreset {
   }
 
   run(
-    code: string,
+    code: Array<string>,
     input: string,
     arg: string,
     printer: (text: string) => void,
@@ -100,7 +104,7 @@ export class MlirOpt extends PlaygroundPreset {
       };
 
       this.wasmWorker!.postMessage({
-        code: code,
+        code: code[0],
         input: input,
         arg: arg,
       });

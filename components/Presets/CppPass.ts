@@ -1,4 +1,5 @@
 import { MlirOpt } from "./MlirOpt";
+import { PlaygroundPresetPane } from "./PlaygroundPreset";
 
 const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
@@ -41,8 +42,10 @@ int main(int argc, char **argv) {
 `;
 
 export class CppPass extends MlirOpt {
-  getDefaultCodeFile(): string {
-    return defaultCode;
+  getPanes(): Array<PlaygroundPresetPane> {
+    let panes = super.getPanes();
+    panes[0].defaultEditorContent = defaultCode;
+    return panes;
   }
   getDefaultAdditionalRunArgs(): string {
     return "--my-pass";

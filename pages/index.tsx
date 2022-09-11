@@ -5,6 +5,7 @@ import Head from "next/head";
 import {
   Box,
   Button,
+  Container,
   Divider,
   Flex,
   Heading,
@@ -16,6 +17,9 @@ import {
   LinkBox,
   LinkOverlay,
   Select,
+  Tab,
+  Tabs,
+  TabList,
   Text,
   useToast,
   VStack,
@@ -38,35 +42,59 @@ import NavBar from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { AllPlaygroundEvents } from "../components/Utils/Events";
 import { RunStatus } from "../components/Utils/RunStatus";
-import { PlaygroundPreset } from "../components/Presets/PlaygroundPreset";
+import {
+  PlaygroundPreset,
+  PlaygroundPresetPane,
+} from "../components/Presets/PlaygroundPreset";
 
 // Stores the configuration of a particular stage.
-class StageState {
+type StageState = {
   preset: string;
   additionalRunArgs: string;
-  editorContent: string;
+  editorContents: Array<string>;
+  currentPaneIdx: number | null;
   logs: Array<string>;
   output: string;
 
-  outputEditor: React.MutableRefObject<any> = React.createRef();
-  outputEditorWindow: React.MutableRefObject<any> = React.createRef();
+  outputEditor: React.MutableRefObject<any>;
+  outputEditorWindow: React.MutableRefObject<any>;
+};
 
-  constructor(preset: string = defaultPreset) {
-    this.preset = preset;
-    const presetProps = getPreset(preset);
-    this.editorContent = presetProps.getDefaultCodeFile();
-    this.additionalRunArgs = presetProps.getDefaultAdditionalRunArgs();
-    this.logs = [];
-    this.output = "";
-  }
+function newStageStateFromPreset(preset: string = defaultPreset): StageState {
+  const presetProps = getPreset(preset);
+  const panes = presetProps.getPanes();
+  return {
+    preset: preset,
+    editorContents: panes.map((pane: PlaygroundPresetPane) => {
+      return pane.defaultEditorContent;
+    }),
+    currentPaneIdx: panes.length > 0 ? 0 : null,
+    additionalRunArgs: presetProps.getDefaultAdditionalRunArgs(),
+    logs: [],
+    output: "",
+    outputEditor: React.createRef(),
+    outputEditorWindow: React.createRef(),
+  };
+}
 
-  static getInputFileBaseName(stageIndex: number) {
-    const prevIndex = stageIndex - 1;
-    return stageIndex == 0 ? "input" : `output${prevIndex}`;
-  }
-  static getOutputFileBaseName(stageIndex: number) {
-    return `output${stageIndex}`;
-  }
+function StageStateIsDirty(state: StageState): boolean {
+  const presetProps = getPreset(state.preset);
+  return presetProps.getPanes().some((pane, paneIndex) => {
+    const editorContent = state.editorContents[paneIndex];
+    return (
+      editorContent.trim().length > 0 &&
+      editorContent != pane.defaultEditorContent
+    );
+  });
+}
+
+function getInputFileBaseName(stageIndex: number) {
+  const prevIndex = stageIndex - 1;
+  return stageIndex == 0 ? "input" : `output${prevIndex}`;
+}
+
+function getOutputFileBaseName(stageIndex: number) {
+  return `output${stageIndex}`;
 }
 
 const Home: NextPage = () => {
@@ -118,7 +146,9 @@ const Home: NextPage = () => {
 
   // Stores the entire state across all stages.
   // _rawSetCurrentStageIdx should never be used directly (always use the wrapper setCurrentStageIdx).
-  const [stages, setStages] = useState<Array<StageState>>([new StageState()]);
+  const [stages, setStages] = useState<Array<StageState>>([
+    newStageStateFromPreset(),
+  ]);
   const [currentStageIdx, _rawSetCurrentStageIdx] = useState(0);
   const [inputEditorContent, setInputEditorContent] = useState("");
 
@@ -151,14 +181,14 @@ const Home: NextPage = () => {
 
   function appendStage() {
     setStages((prevStages) => {
-      return [...prevStages, new StageState()];
+      return [...prevStages, newStageStateFromPreset()];
     });
   }
 
   function getOutputFileName(stageIndex: number) {
     const presetProps = getPreset(stages[stageIndex].preset);
     return (
-      StageState.getOutputFileBaseName(stageIndex) +
+      getOutputFileBaseName(stageIndex) +
       "." +
       presetProps.getOutputFileExtension()
     );
@@ -168,15 +198,12 @@ const Home: NextPage = () => {
     currentIndex: number,
     presetProps: PlaygroundPreset
   ) {
-    cppEditor.current.updateOptions({
-      readOnly: !presetProps.isCodeEditorEnabled(),
-    });
     const inputFileName =
-      StageState.getInputFileBaseName(currentIndex) +
+      getInputFileBaseName(currentIndex) +
       "." +
       presetProps.getInputFileExtension();
     const outputFileName =
-      StageState.getOutputFileBaseName(currentIndex) +
+      getOutputFileBaseName(currentIndex) +
       "." +
       presetProps.getOutputFileExtension();
     setRunArgsLeftAddon(
@@ -222,29 +249,12 @@ const Home: NextPage = () => {
   // Returns true if any editor value is non-empty and not the same as the default for their selected preset.
   // If currentOnly, then only the current editor is checked.
   function isEditorDirty(currentOnly: boolean) {
-    let isDirty = false;
-    const presetProps = getPreset(getCurrentPresetSelection());
-    const currentEditorValue = currentStage().editorContent;
-    isDirty ||=
-      currentEditorValue.trim().length > 0 &&
-      currentEditorValue != presetProps.getDefaultCodeFile();
-
-    if (!currentOnly) {
-      isDirty ||= stages.some((stage, index) => {
-        const presetProps = getPreset(stage.preset);
-
-        if (index == currentStageIdx) {
-          return false; // Already checked above.
-        }
-
-        return (
-          stage.editorContent.trim().length > 0 &&
-          stage.editorContent != presetProps.getDefaultCodeFile()
-        );
-      });
+    if (currentOnly) {
+      return StageStateIsDirty(currentStage());
     }
-
-    return isDirty;
+    return stages.some((stage) => {
+      return StageStateIsDirty(stage);
+    });
   }
 
   const warnUnsavedChanges = (event: BeforeUnloadEvent) => {
@@ -291,7 +301,11 @@ const Home: NextPage = () => {
     updateCurrentStage({
       preset: selection,
       additionalRunArgs: presetProps.getDefaultAdditionalRunArgs(),
-      editorContent: presetProps.getDefaultCodeFile(),
+      editorContents: presetProps
+        .getPanes()
+        .map((pane: PlaygroundPresetPane) => {
+          return pane.defaultEditorContent;
+        }),
     });
     updateAuxiliaryInformation(currentStageIdx, presetProps);
     if (currentStageIdx == 0) {
@@ -336,16 +350,15 @@ const Home: NextPage = () => {
     setRunStatus("Initializing...");
     updateCompilerEnvironmentReady().then((isCached) => {
       const preset = getPreset(getCurrentPresetSelection());
-      if (!isCached && preset.isCodeEditorEnabled()) {
-        // Requires local compiler environment to be downloaded first.
+      if (!isCached && preset.getPanes().length > 0) {
+        // Has at least one editor: Requires local compiler environment to be downloaded first.
         setCompilerEnvironmentPopoverOpen(true);
         setRunStatus("");
         return;
       }
 
-      let cpp_source = "";
-      if (preset.isCodeEditorEnabled()) {
-        cpp_source = currentStage().editorContent;
+      const editorContents = currentStage().editorContents;
+      if (editorContents.length > 0) {
         setRunStatus("Compiling...");
       } else {
         setRunStatus("Running...");
@@ -372,7 +385,7 @@ const Home: NextPage = () => {
       logEvent("RunStart", { props: { preset: getCurrentPresetSelection() } });
       preset
         .run(
-          cpp_source,
+          editorContents,
           input_mlir,
           currentStage().additionalRunArgs,
           printer,
@@ -489,18 +502,49 @@ const Home: NextPage = () => {
                 updateCurrentStage({ additionalRunArgs: newArgs });
               }}
             />
-            <LabeledEditor
-              height="80vh"
-              label="Editor"
-              filename={`mlir-opt-${currentStageIdx}.cpp`}
-              onMount={onEditorMounted(cppEditor)}
-              value={currentStage().editorContent}
-              onChange={(value, event) => {
-                if (value) {
-                  updateCurrentStage({ editorContent: value });
-                }
-              }}
-            />
+            {currentStage().editorContents.length > 0 ? (
+              <Flex flexDirection="column" width="100%" height="80vh">
+                <Tabs index={currentStage().currentPaneIdx!} onChange={(newIndex) => {
+                    updateCurrentStage({currentPaneIdx: newIndex});
+                  }}>
+                  <TabList>
+                    {getPreset(currentStage().preset)
+                      .getPanes()
+                      .map((pane, index) => {
+                        return <Tab key={index}>{pane.shortName}</Tab>;
+                      })}
+                  </TabList>
+                </Tabs>
+                <LabeledEditor
+                  flex="1"
+                  filename={`editor-${currentStageIdx}-${currentStage()
+                    .currentPaneIdx!}`}
+                  onMount={onEditorMounted(cppEditor)}
+                  value={
+                    currentStage().editorContents[
+                      currentStage().currentPaneIdx!
+                    ]
+                  }
+                  onChange={(value, event) => {
+                    if (value) {
+                      updateCurrentStage((prevState) => {
+                        return {
+                          editorContents: prevState.editorContents.map(
+                            (prevValue, index) => {
+                              return index == prevState.currentPaneIdx
+                                ? value
+                                : prevValue;
+                            }
+                          ),
+                        };
+                      });
+                    }
+                  }}
+                />
+              </Flex>
+            ) : (
+              <p>Editor is not needed for the current Preset.</p>
+            )}
           </VStack>
         </Box>
         <Divider orientation="vertical" />

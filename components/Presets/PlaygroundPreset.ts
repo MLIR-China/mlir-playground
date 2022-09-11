@@ -1,11 +1,17 @@
 import { RunStatusListener } from "../Utils/RunStatus";
 
+export type PlaygroundPresetPane = {
+  // The name of this pane to display in the tabs.
+  shortName: string;
+  // The default editor content when user first initializes this pane.
+  defaultEditorContent: string;
+};
+
 export abstract class PlaygroundPreset {
-  abstract isCodeEditorEnabled(): boolean;
+  abstract getPanes(): Array<PlaygroundPresetPane>;
   abstract isMultiStageCompatible(): boolean;
   abstract getInputFileExtension(): string;
   abstract getOutputFileExtension(): string;
-  abstract getDefaultCodeFile(): string;
   abstract getDefaultInputFile(): string;
   abstract getDefaultAdditionalRunArgs(): string;
   abstract getRunArgsLeftAddon(
@@ -18,7 +24,7 @@ export abstract class PlaygroundPreset {
   ): string;
 
   abstract run(
-    code: string,
+    code: Array<string>,
     input: string,
     arg: string,
     printer: (text: string) => void,
