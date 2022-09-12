@@ -628,7 +628,7 @@ const Home: NextPage = () => {
           />
           {stages.map((stage, idx) => (
             <TransformationOutput
-              logWindowProps={{ height: "100%", logs: stage.logs }}
+              logWindowProps={{ height: "30vh", logs: stage.logs }}
               labeledEditorProps={{
                 height: "30vh",
                 label: `Output ${idx}`,
