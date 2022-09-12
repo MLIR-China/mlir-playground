@@ -81,6 +81,24 @@ export class MlirOpt extends PlaygroundPreset {
     printer: (text: string) => void,
     statusListener: RunStatusListener
   ): Promise<string> {
+    let allSources: Record<string, string> = {};
+    allSources["input.cpp"] = code[0];
+    return this.invokeCompilerAndRun(
+      allSources,
+      input,
+      arg,
+      printer,
+      statusListener
+    );
+  }
+
+  invokeCompilerAndRun(
+    allSources: Record<string, string>,
+    input: string,
+    arg: string,
+    printer: (text: string) => void,
+    statusListener: RunStatusListener
+  ): Promise<string> {
     if (this.running) {
       return Promise.reject(
         "Previous instance is still running. Cannot launch another."
@@ -111,7 +129,7 @@ export class MlirOpt extends PlaygroundPreset {
       };
 
       this.wasmWorker!.postMessage({
-        code: code[0],
+        allSources: allSources,
         input: input,
         arg: arg,
       });

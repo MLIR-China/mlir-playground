@@ -1,4 +1,4 @@
-import { MlirOpt } from "./MlirOpt";
+import { CppPattern } from "./CppPattern";
 import {
   PlaygroundPresetPane,
   PlaygroundPresetAction,
@@ -8,10 +8,14 @@ import { RunStatusListener } from "../Utils/RunStatus";
 
 import MlirTblgen from "../MlirTblgen";
 
-const defaultCode = `include "mlir/Dialect/StandardOps/IR/Ops.td"
+const defaultDrrCode = `include "mlir/Dialect/StandardOps/IR/Ops.td"
 include "mlir/IR/OpBase.td"
 
-def MakeConstantsZero : Pat<(ConstantOp I32Attr:$_), (ConstantOp ConstantAttr<I32Attr, "0">)>;
+def NotZero: Constraint<CPred<"$_self.cast<IntegerAttr>().getInt() != 0">, "not zero">;
+
+def MakeConstantsZero : Pat<(ConstantOp I32Attr:$value),
+                            (ConstantOp ConstantAttr<I32Attr, "0">),
+                            [(NotZero:$value)]>;
 `;
 
 const defaultTableGenInput = `module  {
@@ -19,13 +23,60 @@ const defaultTableGenInput = `module  {
     %0 = constant 42 : i32
     return %0 : i32
   }
+}`;
+
+const defaultCppCode = `#include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/Dialect.h"
+#include "mlir/IR/PatternMatch.h"
+#include "mlir/InitAllDialects.h"
+#include "mlir/InitAllPasses.h"
+#include "mlir/Pass/PassRegistry.h"
+#include "mlir/Pass/Pass.h"
+#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+
+namespace mlir {
+
+// This references the generated file. Do not remove.
+#include "generated.h"
+
+class MyRewritePass : public PassWrapper<MyRewritePass, OperationPass<ModuleOp>> {
+    StringRef getArgument() const final {
+        return "my-rewrite-pass";
+    }
+
+    StringRef getDescription() const final {
+        return "Applies my DDR rewrite patterns.";
+    }
+
+    void runOnOperation() {
+        RewritePatternSet patterns(&getContext());
+        populateWithGenerated(patterns);
+
+        if (failed(applyPatternsAndFoldGreedily(getOperation(), std::move(patterns)))) {
+            signalPassFailure();
+        }
+    }
+};
+
+}
+
+int main(int argc, char **argv) {
+  mlir::registerAllPasses();
+  mlir::PassRegistration<mlir::MyRewritePass>();
+
+  mlir::DialectRegistry registry;
+  registerAllDialects(registry);
+
+  return mlir::asMainReturnCode(
+      mlir::MlirOptMain(argc, argv, "Custom optimizer driver\\n", registry));
 }
 `;
 
 const presetPanes: Array<PlaygroundPresetPane> = [
   {
     shortName: "DRR",
-    defaultEditorContent: defaultCode,
+    defaultEditorContent: defaultDrrCode,
   },
   {
     shortName: "Generated",
@@ -33,11 +84,11 @@ const presetPanes: Array<PlaygroundPresetPane> = [
   },
   {
     shortName: "Driver",
-    defaultEditorContent: "",
+    defaultEditorContent: defaultCppCode,
   },
 ];
 
-export class TableGen extends MlirOpt {
+export class TableGen extends CppPattern {
   getPanes(): Array<PlaygroundPresetPane> {
     return presetPanes;
   }
@@ -55,7 +106,16 @@ export class TableGen extends MlirOpt {
     printer: (text: string) => void,
     statusListener: RunStatusListener
   ): Promise<string> {
-    return super.run([code[2]], input, arg, printer, statusListener);
+    let allSources: Record<string, string> = {};
+    allSources["generated.h"] = code[1];
+    allSources["driver.cpp"] = code[2];
+    return this.invokeCompilerAndRun(
+      allSources,
+      input,
+      arg,
+      printer,
+      statusListener
+    );
   }
 
   generate(

@@ -5,7 +5,6 @@ import Head from "next/head";
 import {
   Box,
   Button,
-  Container,
   Divider,
   Flex,
   Heading,
@@ -779,7 +778,7 @@ const RunButton = (props: RunButtonProps) => {
               borderRadius="md"
               mr="0.5rem"
               sx={{
-                "& > div:first-child": {
+                "& > div:first-of-type": {
                   transitionProperty: "width",
                 },
               }}
