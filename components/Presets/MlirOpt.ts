@@ -1,4 +1,8 @@
-import { PlaygroundPreset, PlaygroundPresetPane } from "./PlaygroundPreset";
+import {
+  PlaygroundPreset,
+  PlaygroundPresetPane,
+  PlaygroundPresetAction,
+} from "./PlaygroundPreset";
 
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
@@ -44,6 +48,9 @@ export class MlirOpt extends PlaygroundPreset {
 
   getPanes(): Array<PlaygroundPresetPane> {
     return presetPanes;
+  }
+  getActions(): Record<string, PlaygroundPresetAction> {
+    return {};
   }
   isMultiStageCompatible(): boolean {
     return true;

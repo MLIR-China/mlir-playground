@@ -8,7 +8,11 @@ const WASM_FILE = "mlir-tblgen.wasm";
 class MlirTblgen {
   private static readonly wasmFetcher = WasmFetcher.getSingleton();
 
-  private _run(sourceCode: string, args: Array<string>, printer: (log: string) => void): Promise<string> {
+  private _run(
+    sourceCode: string,
+    args: Array<string>,
+    printer: (log: string) => void
+  ): Promise<string> {
     let output = "";
     const outputPrinter = (text: string) => {
       output += text + "\n";
@@ -27,9 +31,16 @@ class MlirTblgen {
         console.log("Saved source code into file!");
 
         try {
-          let ret = loadedModule.callMain([...args, "-I", "/include", "input.td"]);
+          let ret = loadedModule.callMain([
+            ...args,
+            "-I",
+            "/include",
+            "input.td",
+          ]);
           if (ret) {
-            return Promise.reject("Failed to run. mlir-tblgen exited with: " + ret.toString());
+            return Promise.reject(
+              "Failed to run. mlir-tblgen exited with: " + ret.toString()
+            );
           }
         } catch (e: any) {
           return Promise.reject("Failed to run. Error: " + e.toString());

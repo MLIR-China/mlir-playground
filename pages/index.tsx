@@ -16,13 +16,16 @@ import {
   InputRightAddon,
   LinkBox,
   LinkOverlay,
+  Progress,
   Select,
   Tab,
   Tabs,
   TabList,
   Text,
+  Tooltip,
   useToast,
   VStack,
+  ButtonGroup,
 } from "@chakra-ui/react";
 import { GoMarkGithub } from "react-icons/go";
 import { OnMount } from "@monaco-editor/react";
@@ -346,6 +349,30 @@ const Home: NextPage = () => {
     setPresetSelection(event.target.value);
   };
 
+  const onActionButtonClick = (actionName: string) => {
+    setRunStatus("Performing Action...");
+    updateCompilerEnvironmentReady().then((isCached) => {
+      if (!isCached) {
+        setCompilerEnvironmentPopoverOpen(true);
+        setRunStatus("");
+        return;
+      }
+
+      const editorContents = currentStage().editorContents;
+      const printer = console.log;
+      const preset = getPreset(currentStage().preset);
+      preset
+        .getActions()
+        [actionName](editorContents, printer)
+        .finally(() => {
+          setRunStatus("");
+        })
+        .then((outputs) => {
+          updateCurrentStage({ editorContents: outputs });
+        });
+    });
+  };
+
   const onRunButtonClick = () => {
     setRunStatus("Initializing...");
     updateCompilerEnvironmentReady().then((isCached) => {
@@ -429,14 +456,10 @@ const Home: NextPage = () => {
         />
       </Head>
       <NavBar
-        allEditorsMounted={allEditorsMounted}
         envVersion={compilerEnvironmentVersion}
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
         initiateEnvDownload={downloadCompilerEnvironment}
-        runStatus={runStatus}
-        runProgress={runProgress}
-        onClick={onRunButtonClick}
       />
       <Flex
         as="main"
@@ -504,9 +527,12 @@ const Home: NextPage = () => {
             />
             {currentStage().editorContents.length > 0 ? (
               <Flex flexDirection="column" width="100%" height="80vh">
-                <Tabs index={currentStage().currentPaneIdx!} onChange={(newIndex) => {
-                    updateCurrentStage({currentPaneIdx: newIndex});
-                  }}>
+                <Tabs
+                  index={currentStage().currentPaneIdx!}
+                  onChange={(newIndex) => {
+                    updateCurrentStage({ currentPaneIdx: newIndex });
+                  }}
+                >
                   <TabList>
                     {getPreset(currentStage().preset)
                       .getPanes()
@@ -541,9 +567,44 @@ const Home: NextPage = () => {
                     }
                   }}
                 />
+                <Flex justifyContent="space-between" marginTop={2}>
+                  <ButtonGroup isAttached>
+                    {Object.keys(
+                      getPreset(currentStage().preset).getActions()
+                    ).map((actionName) => {
+                      return (
+                        <Button
+                          key={actionName}
+                          onClick={() => onActionButtonClick(actionName)}
+                        >
+                          {actionName}
+                        </Button>
+                      );
+                    })}
+                  </ButtonGroup>
+                  <RunButton
+                    allEditorsMounted={allEditorsMounted}
+                    runStatus={runStatus}
+                    runProgress={runProgress}
+                    onClick={onRunButtonClick}
+                  />
+                </Flex>
               </Flex>
             ) : (
-              <p>Editor is not needed for the current Preset.</p>
+              <Flex
+                flexDirection="column"
+                width="100%"
+                height="80vh"
+                justifyContent="space-between"
+              >
+                <p>Editor is not needed for the current Preset.</p>
+                <RunButton
+                  allEditorsMounted={allEditorsMounted}
+                  runStatus={runStatus}
+                  runProgress={runProgress}
+                  onClick={onRunButtonClick}
+                />
+              </Flex>
             )}
           </VStack>
         </Box>
@@ -693,6 +754,48 @@ const ArgumentsBar = (props: ArgumentsBarProps) => {
         ></Input>
         <InputRightAddon>{props.rightAddon}</InputRightAddon>
       </InputGroup>
+    </HStack>
+  );
+};
+
+type RunButtonProps = {
+  allEditorsMounted: boolean;
+  runStatus: string;
+  runProgress: number;
+  onClick: () => void;
+};
+
+const RunButton = (props: RunButtonProps) => {
+  return (
+    <HStack h="100%">
+      {props.runProgress > 0 && (
+        <Tooltip hasArrow label={props.runStatus}>
+          <span>
+            <Progress
+              value={props.runProgress}
+              w="10rem"
+              hasStripe
+              isAnimated
+              borderRadius="md"
+              mr="0.5rem"
+              sx={{
+                "& > div:first-child": {
+                  transitionProperty: "width",
+                },
+              }}
+            />
+          </span>
+        </Tooltip>
+      )}
+      <Button
+        isLoading={!props.allEditorsMounted || props.runStatus !== ""}
+        as="a"
+        colorScheme="blue"
+        fontWeight="bold"
+        onClick={props.onClick}
+      >
+        Run
+      </Button>
     </HStack>
   );
 };

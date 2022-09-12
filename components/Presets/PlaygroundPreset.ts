@@ -7,8 +7,17 @@ export type PlaygroundPresetPane = {
   defaultEditorContent: string;
 };
 
+// An action accepts all the editor contents as input, and outputs the new set of editor contents.
+// An action is a non-run action.
+export type PlaygroundPresetAction = (
+  sources: Array<string>,
+  printer: (text: string) => void
+) => Promise<Array<string>>;
+
 export abstract class PlaygroundPreset {
   abstract getPanes(): Array<PlaygroundPresetPane>;
+  abstract getActions(): Record<string, PlaygroundPresetAction>;
+
   abstract isMultiStageCompatible(): boolean;
   abstract getInputFileExtension(): string;
   abstract getOutputFileExtension(): string;

@@ -1,4 +1,8 @@
-import { PlaygroundPreset, PlaygroundPresetPane } from "./PlaygroundPreset";
+import {
+  PlaygroundPreset,
+  PlaygroundPresetPane,
+  PlaygroundPresetAction,
+} from "./PlaygroundPreset";
 
 import { RunStatusListener } from "../Utils/RunStatus";
 
@@ -17,6 +21,9 @@ export class ToyChapter extends PlaygroundPreset {
   }
   getPanes(): Array<PlaygroundPresetPane> {
     return [];
+  }
+  getActions(): Record<string, PlaygroundPresetAction> {
+    return {};
   }
   isMultiStageCompatible(): boolean {
     return false;
