@@ -428,6 +428,15 @@ const Home: NextPage = () => {
     });
   };
 
+  const runButton = (
+    <RunButton
+      allEditorsMounted={allEditorsMounted}
+      runStatus={runStatus}
+      runProgress={runProgress}
+      onClick={onRunButtonClick}
+    />
+  );
+
   return (
     <VStack className={styles.container}>
       <Head>
@@ -575,18 +584,14 @@ const Home: NextPage = () => {
                         <Button
                           key={actionName}
                           onClick={() => onActionButtonClick(actionName)}
+                          isLoading={!allEditorsMounted || runStatus !== ""}
                         >
                           {actionName}
                         </Button>
                       );
                     })}
                   </ButtonGroup>
-                  <RunButton
-                    allEditorsMounted={allEditorsMounted}
-                    runStatus={runStatus}
-                    runProgress={runProgress}
-                    onClick={onRunButtonClick}
-                  />
+                  {runButton}
                 </Flex>
               </Flex>
             ) : (
@@ -597,12 +602,7 @@ const Home: NextPage = () => {
                 justifyContent="space-between"
               >
                 <p>Editor is not needed for the current Preset.</p>
-                <RunButton
-                  allEditorsMounted={allEditorsMounted}
-                  runStatus={runStatus}
-                  runProgress={runProgress}
-                  onClick={onRunButtonClick}
-                />
+                {runButton}
               </Flex>
             )}
           </VStack>

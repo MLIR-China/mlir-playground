@@ -93,7 +93,7 @@ export class TableGen extends CppPattern {
     return presetPanes;
   }
   getActions(): Record<string, PlaygroundPresetAction> {
-    return { Generate: this.generate };
+    return { "Generate Rewriters": this.generate };
   }
   getDefaultInputFile(): string {
     return defaultTableGenInput;
