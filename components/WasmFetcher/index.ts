@@ -73,7 +73,8 @@ class WasmFetcher {
   getModuleParams(
     wasmFile: string,
     dataFile: string,
-    printer: (log: string) => void
+    printer: (log: string) => void,
+    errPrinter: (log: string) => void = printer
   ) {
     const commonFields = {
       noInitialRun: true,
@@ -94,7 +95,7 @@ class WasmFetcher {
           });
       },
       print: printer,
-      printErr: printer,
+      printErr: errPrinter,
     };
 
     if (!dataFile) return Promise.resolve(commonFields);
