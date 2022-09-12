@@ -19,36 +19,59 @@ pushd $LLVM_SRC
 LLVM_GIT_TAG=$(git describe --exact-match)
 popd
 
-printf "export const LLVM_VERSION = \"$LLVM_GIT_TAG\";\n\n" >> $CONSTANTS_FILENAME
+printf "export const LLVM_VERSION=\"$LLVM_GIT_TAG\";\n\n" >> $CONSTANTS_FILENAME
 
-# Step 1: Copy clang and wasm-ld build results
-cp $LLVM_WASM_BUILD/bin/clang.js-13 ./clang_raw.mjs
-cp $LLVM_WASM_BUILD/bin/clang.wasm ./clang.wasm
-cp $LLVM_WASM_BUILD/bin/lld.js ./wasm-ld_raw.mjs
-cp $LLVM_WASM_BUILD/bin/lld.wasm ./lld.wasm
-
-# Step 2: Create sysroot packages inside build directory
+# Create sysroot packages inside build directory
 /app/datagen/package-libs.sh $CONSTANTS_FILENAME
 
-# Step 3: Insert sysroot package loaders into corresponding js modules
-sed -e '/Module = Module || {};/r onlyincludes.js' clang_raw.mjs > clang.mjs
-sed -e '/Module = Module || {};/r onlylibs.js' wasm-ld_raw.mjs > wasm-ld.mjs
+# Export a generated wasm module from the LLVM build directory into the local build directory.
+# Arguments:
+#   $1 - Source JS file name
+#   $2 - Source WASM file name
+#   $3 - Dest JS file name
+#   $4 - Dest WASM file name
+#   $5 - Packaged data file loader path (if empty, don't package any files)
+function export_generated_wasm() {
+    local src_js="$LLVM_WASM_BUILD/bin/$1"
+    local src_wasm="$LLVM_WASM_BUILD/bin/$2"
+    local dst_js=$3
+    local dst_wasm=$4
+    local fs_js=$5
 
-# Step 4: Remove hardcoded wasm file location expectations
-sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' clang.mjs
-sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' wasm-ld.mjs
+    # Step 1: Copy clang and wasm-ld build results
+    local dst_js_raw="$dst_js-raw"
+    cp $src_js $dst_js_raw
+    cp $src_wasm $dst_wasm
 
-# Step 5: Remove typeof window check to work around erroneous JS optimization for web workers
-sed -i -E "s/typeof window === 'object'/false/" clang.mjs
-sed -i -E "s/typeof window === 'object'/false/" wasm-ld.mjs
+    # Step 2: Insert sysroot package loaders into corresponding js modules
+    if [ -z $fs_js ]; then
+        mv $dst_js_raw $dst_js
+    else
+        sed -e "/Module = Module || {};/r $fs_js" $dst_js_raw > $dst_js
+        rm $dst_js_raw
+    fi
 
-# Step 6: Export all toy chapter builds as examples
+    # Step 3: Remove hardcoded wasm file location expectations
+    sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' $dst_js
+
+    # Step 4: Remove typeof window check to work around erroneous JS optimization for web workers
+    sed -i -E "s/typeof window === 'object'/false/" $dst_js
+}
+
+# Export clang & lld
+export_generated_wasm clang.js-13 clang.wasm clang.mjs clang.wasm onlyincludes.js
+export_generated_wasm lld.js lld.wasm wasm-ld.mjs lld.wasm onlylibs.js
+
+# Export mlir-tblgen
+export_generated_wasm mlir-tblgen.js mlir-tblgen.wasm mlir-tblgen.mjs mlir-tblgen.wasm onlyincludes.js
+
+# Export all toy chapter builds as examples
 mkdir /app/build/bin/toy -p
 cd /app/build/bin/toy
 
 for chapter_idx in {1..7}
 do
-    cp "${LLVM_WASM_BUILD}/bin/toyc-ch${chapter_idx}.wasm" .
-    cp "${LLVM_WASM_BUILD}/bin/toyc-ch${chapter_idx}.js" .
-    sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' "toyc-ch${chapter_idx}.js"
+    js_name="toyc-ch${chapter_idx}.js"
+    wasm_name="toyc-ch${chapter_idx}.wasm"
+    export_generated_wasm $js_name $wasm_name $js_name $wasm_name
 done
