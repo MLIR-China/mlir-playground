@@ -348,6 +348,17 @@ const Home: NextPage = () => {
     setPresetSelection(event.target.value);
   };
 
+  // Dims the old logs and returns a function for adding log messages.
+  const getNextLogger = () => {
+    setCurrentLogs((currValue) => [...currValue, ""]);
+    return (text: string) => {
+      setCurrentLogs((currValue) => [
+        ...currValue.slice(0, -1),
+        currValue[currValue.length - 1] + text + "\n",
+      ]);
+    };
+  };
+
   const onActionButtonClick = (actionName: string) => {
     setRunStatus("Performing Action...");
     updateCompilerEnvironmentReady().then((isCached) => {
@@ -358,7 +369,7 @@ const Home: NextPage = () => {
       }
 
       const editorContents = currentStage().editorContents;
-      const printer = console.log;
+      const printer = getNextLogger();
       const preset = getPreset(currentStage().preset);
       preset
         .getActions()
@@ -395,13 +406,7 @@ const Home: NextPage = () => {
           ? inputEditorContent
           : stages[currentStageIdx - 1].output;
 
-      setCurrentLogs((currValue) => [...currValue, ""]);
-      const printer = (text: string) => {
-        setCurrentLogs((currValue) => [
-          ...currValue.slice(0, -1),
-          currValue[currValue.length - 1] + text + "\n",
-        ]);
-      };
+      const printer = getNextLogger();
       const statusListener = (status: RunStatus) => {
         setRunStatus(status.label);
         setRunProgress(status.percentage);
