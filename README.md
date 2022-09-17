@@ -15,11 +15,21 @@ Try it out now at our production site: [MLIR Playground](https://playground.mlir
 
 Create & run your own mlir-opt C++ program.
 
-Using the built-in C++ editor, you can implement any feature you want. For example, you can write a pass and run it on some mlir input. All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use immediately.
+Using the built-in C++ editor, you have the freedom to implement anything that is possible with the framework. For example, you can write a pass and run it on some mlir input. All MLIR & LLVM libraries in the [LLVM codebase](https://github.com/llvm/llvm-project) are available to use immediately.
 
-To compile & run your program, hit the `Run` button above the editor. This will compile your C++ program using clang & lld (compiled to web assembly and run in your browser), and execute the program with the user-provided MLIR input file. You can also edit the command line arguments before hitting `Run` to customize the run behavior.
+To compile & run your program, hit the `Run` button below the editor. This will compile your C++ program using clang & lld (compiled to web assembly and run in your browser), and execute the program with the user-provided MLIR input file. You can also edit the command line arguments before hitting `Run` to customize the run behavior.
 
-The output MLIR editor (read-only) will display the output dumped to `output.mlir`. The Logging window will display any output to stdout/stderr during the entire compile & run phase of the C++ program.
+The output MLIR editor will display the output. The Logging window will display any output to stdout/stderr during the entire compile & run phase of the C++ program.
+
+### Table-Driven Declarative Rewrite Rule (DRR)
+
+Declare your rewrite rules using DRR syntax and avoid all the C++ boilerplate.
+
+Under the "TableGen DRR" preset, you can define your own rewrite rules declaratively ([docs](https://mlir.llvm.org/docs/DeclarativeRewrites/)). This greatly reduces the amount of code needed to implement a transformation.
+
+For heavy users, two other tabs show more information that can be tweaked:
+- The "Generated" tab shows the generated C++ code for your rewrite patterns. This allows you to better understand how things work under the hood, and make sure the pattern you write matches what you expect the code to do.
+- The "Driver" tab shows the mlir-opt-like driver that is actually running the pattern. It is very similar to the preset code for "C++ Pattern". This allows you to further tweak how the rewrite pattern is actually run on the IR.
 
 ### Prebuilt Toy Binaries
 
