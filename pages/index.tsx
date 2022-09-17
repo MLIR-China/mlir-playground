@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 
@@ -428,15 +428,6 @@ const Home: NextPage = () => {
     });
   };
 
-  const runButton = (
-    <RunButton
-      allEditorsMounted={allEditorsMounted}
-      runStatus={runStatus}
-      runProgress={runProgress}
-      onClick={onRunButtonClick}
-    />
-  );
-
   return (
     <VStack className={styles.container}>
       <Head>
@@ -518,23 +509,29 @@ const Home: NextPage = () => {
           </LinkBox>
         </Flex>
         <Divider orientation="vertical" />
-        <Box height="100%" className={styles.main_left}>
-          <VStack spacing={4} align="left" height="100%">
-            <PresetSelector
-              preset={getCurrentPresetSelection()}
-              onPresetChange={onPresetSelectionChange}
-              disabled={!allEditorsMounted}
-            />
-            <ArgumentsBar
-              leftAddon={runArgsLeftAddon}
-              rightAddon={runArgsRightAddon}
-              additionalRunArgs={currentStage().additionalRunArgs}
-              setAdditionalRunArgs={(newArgs) => {
-                updateCurrentStage({ additionalRunArgs: newArgs });
-              }}
-            />
+        <Flex
+          flexDirection="column"
+          align="left"
+          className={styles.main_left}
+          height="100%"
+          width="100%"
+        >
+          <PresetSelector
+            preset={getCurrentPresetSelection()}
+            onPresetChange={onPresetSelectionChange}
+            disabled={!allEditorsMounted}
+          />
+          <ArgumentsBar
+            leftAddon={runArgsLeftAddon}
+            rightAddon={runArgsRightAddon}
+            additionalRunArgs={currentStage().additionalRunArgs}
+            setAdditionalRunArgs={(newArgs) => {
+              updateCurrentStage({ additionalRunArgs: newArgs });
+            }}
+          />
+          <Flex flexDirection="column" width="100%" flex="1">
             {currentStage().editorContents.length > 0 ? (
-              <Flex flexDirection="column" width="100%" height="80vh">
+              <Fragment>
                 <Tabs
                   index={currentStage().currentPaneIdx!}
                   onChange={(newIndex) => {
@@ -575,38 +572,37 @@ const Home: NextPage = () => {
                     }
                   }}
                 />
-                <Flex justifyContent="space-between" marginTop={2}>
-                  <ButtonGroup isAttached>
-                    {Object.keys(
-                      getPreset(currentStage().preset).getActions()
-                    ).map((actionName) => {
-                      return (
-                        <Button
-                          key={actionName}
-                          onClick={() => onActionButtonClick(actionName)}
-                          isLoading={!allEditorsMounted || runStatus !== ""}
-                        >
-                          {actionName}
-                        </Button>
-                      );
-                    })}
-                  </ButtonGroup>
-                  {runButton}
-                </Flex>
-              </Flex>
+              </Fragment>
             ) : (
-              <Flex
-                flexDirection="column"
-                width="100%"
-                height="80vh"
-                justifyContent="space-between"
-              >
-                <p>Editor is not needed for the current Preset.</p>
-                {runButton}
-              </Flex>
+              <Text mt="0.5rem">
+                Editor is not needed for the current Preset.
+              </Text>
             )}
-          </VStack>
-        </Box>
+          </Flex>
+          <Flex justifyContent="space-between" marginTop={2} width="100%">
+            <ButtonGroup isAttached>
+              {Object.keys(getPreset(currentStage().preset).getActions()).map(
+                (actionName) => {
+                  return (
+                    <Button
+                      key={actionName}
+                      onClick={() => onActionButtonClick(actionName)}
+                      isLoading={!allEditorsMounted || runStatus !== ""}
+                    >
+                      {actionName}
+                    </Button>
+                  );
+                }
+              )}
+            </ButtonGroup>
+            <RunButton
+              allEditorsMounted={allEditorsMounted}
+              runStatus={runStatus}
+              runProgress={runProgress}
+              onClick={onRunButtonClick}
+            />
+          </Flex>
+        </Flex>
         <Divider orientation="vertical" />
         <VStack
           height="100%"
@@ -715,7 +711,7 @@ type PresetSelectorProps = {
 
 const PresetSelector = (props: PresetSelectorProps) => {
   return (
-    <HStack>
+    <HStack className={styles.preset_selector_bar}>
       <Text>Preset</Text>
       <Select
         value={props.preset}
@@ -743,7 +739,7 @@ type ArgumentsBarProps = {
 
 const ArgumentsBar = (props: ArgumentsBarProps) => {
   return (
-    <HStack>
+    <HStack className={styles.arguments_bar}>
       <Text>Arguments</Text>
       <InputGroup fontFamily={monospaceFontFamily}>
         <InputLeftAddon>{props.leftAddon}</InputLeftAddon>
