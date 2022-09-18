@@ -28,6 +28,7 @@ Declare your rewrite rules using DRR syntax and avoid all the C++ boilerplate.
 Under the "TableGen DRR" preset, you can define your own rewrite rules declaratively ([docs](https://mlir.llvm.org/docs/DeclarativeRewrites/)). This greatly reduces the amount of code needed to implement a transformation.
 
 For heavy users, two other tabs show more information that can be tweaked:
+
 - The "Generated" tab shows the generated C++ code for your rewrite patterns. This allows you to better understand how things work under the hood, and make sure the pattern you write matches what you expect the code to do.
 - The "Driver" tab shows the mlir-opt-like driver that is actually running the pattern. It is very similar to the preset code for "C++ Pattern". This allows you to further tweak how the rewrite pattern is actually run on the IR.
 
