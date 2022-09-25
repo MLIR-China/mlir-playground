@@ -379,6 +379,7 @@ const Home: NextPage = () => {
         })
         .then((outputs) => {
           updateCurrentStage({ editorContents: outputs });
+          printer("Completed: " + actionName);
         });
     });
   };
@@ -429,6 +430,7 @@ const Home: NextPage = () => {
         })
         .then((output: string) => {
           updateCurrentStage({ output: output });
+          printer("Completed: Run");
         }, printer);
     });
   };
