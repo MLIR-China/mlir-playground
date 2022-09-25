@@ -45,7 +45,7 @@ let PresetStorage: Record<string, PlaygroundPreset> = {};
 
 type presetOption = keyof typeof PresetFactory;
 
-export const defaultPreset: presetOption = "Custom mlir-opt";
+export const defaultPreset: presetOption = "TableGen DRR";
 
 export function getPresetNames() {
   return Object.keys(PresetFactory);
