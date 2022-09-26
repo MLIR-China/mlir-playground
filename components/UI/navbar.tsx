@@ -7,8 +7,7 @@ import {
   HStack,
   Icon,
   Image,
-  LinkBox,
-  LinkOverlay,
+  Link,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -109,15 +108,13 @@ This will incur a download of ~100MB once.`;
   );
 };
 
-const RightEndButtons = (props: BoxProps) => {
+const RightEndButtons = () => {
   return (
-    <LinkBox title="View source code on GitHub" {...props}>
-      <Button bg="none" rightIcon={<Icon as={GoMarkGithub} />}>
-        <LinkOverlay href="https://github.com/MLIR-China/mlir-playground">
-          GitHub
-        </LinkOverlay>
-      </Button>
-    </LinkBox>
+    <HStack spacing="1rem">
+      <Link href="https://github.com/MLIR-China/mlir-playground" title="View source code on GitHub" isExternal>
+        <Icon display="block" as={GoMarkGithub} w={7} h={7} color="gray.600" _hover={{color: "black"}} />
+      </Link>
+    </HStack>
   );
 };
 
