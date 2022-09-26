@@ -13,8 +13,6 @@ import {
   InputGroup,
   InputLeftAddon,
   InputRightAddon,
-  LinkBox,
-  LinkOverlay,
   Progress,
   Select,
   Tab,
@@ -26,7 +24,6 @@ import {
   VStack,
   ButtonGroup,
 } from "@chakra-ui/react";
-import { GoMarkGithub } from "react-icons/go";
 import { OnMount } from "@monaco-editor/react";
 import { usePlausible } from "next-plausible";
 
@@ -507,13 +504,6 @@ const Home: NextPage = () => {
           >
             +
           </Button>
-          <LinkBox marginTop="auto" title="View source code on GitHub">
-            <Button bg="none" rounded="none" width="100%">
-              <LinkOverlay href="https://github.com/MLIR-China/mlir-playground">
-                <GoMarkGithub />
-              </LinkOverlay>
-            </Button>
-          </LinkBox>
         </Flex>
         <Divider orientation="vertical" />
         <Flex

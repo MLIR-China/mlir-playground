@@ -1,10 +1,14 @@
 import React from "react";
 import {
+  BoxProps,
   Button,
   Flex,
   Heading,
   HStack,
+  Icon,
   Image,
+  LinkBox,
+  LinkOverlay,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -14,6 +18,7 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from "@chakra-ui/react";
+import { GoMarkGithub } from "react-icons/go";
 import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
 
 type NavBarProps = LocalEnvironmentStatusProps;
@@ -25,6 +30,7 @@ const NavBar = (props: NavBarProps) => {
         <Logo />
         <LocalEnvironmentStatus {...props} />
       </HStack>
+      <RightEndButtons />
     </NavBarContainer>
   );
 };
@@ -100,6 +106,18 @@ This will incur a download of ~100MB once.`;
         </PopoverFooter>
       </PopoverContent>
     </Popover>
+  );
+};
+
+const RightEndButtons = (props: BoxProps) => {
+  return (
+    <LinkBox title="View source code on GitHub" {...props}>
+      <Button bg="none" rightIcon={<Icon as={GoMarkGithub} />}>
+        <LinkOverlay href="https://github.com/MLIR-China/mlir-playground">
+          GitHub
+        </LinkOverlay>
+      </Button>
+    </LinkBox>
   );
 };
 
