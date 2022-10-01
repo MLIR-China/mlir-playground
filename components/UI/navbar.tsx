@@ -1,10 +1,12 @@
 import React from "react";
 import {
   Button,
+  ButtonGroup,
   Flex,
   Heading,
   HStack,
   Icon,
+  IconButton,
   Image,
   Link,
   Popover,
@@ -17,7 +19,12 @@ import {
   PopoverTrigger,
 } from "@chakra-ui/react";
 import { GoMarkGithub } from "react-icons/go";
-import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
+import {
+  MdImportExport,
+  MdOutlineCode,
+  MdOutlineCodeOff,
+  MdSend,
+} from "react-icons/md";
 
 type NavBarProps = LocalEnvironmentStatusProps;
 
@@ -26,11 +33,12 @@ const NavBar = (props: NavBarProps) => {
     <NavBarContainer>
       <HStack spacing="1rem">
         <Logo />
-        <LocalEnvironmentStatus {...props} />
+        <ShareButton />
       </HStack>
 
       <HStack spacing="1rem">
         <GithubLink />
+        <LocalEnvironmentStatus {...props} />
       </HStack>
     </NavBarContainer>
   );
@@ -64,6 +72,17 @@ const GithubLink = () => {
   );
 };
 
+const ShareButton = () => {
+  return (
+    <ButtonGroup isAttached colorScheme="blue">
+      <Button leftIcon={<MdSend />} borderRight="1px white solid">
+        Share
+      </Button>
+      <IconButton aria-label="Export/Import" icon={<MdImportExport />} />
+    </ButtonGroup>
+  );
+};
+
 type LocalEnvironmentStatusProps = {
   envVersion: string; // empty string means not ready
   envPopoverOpen: boolean;
@@ -93,7 +112,7 @@ This will incur a download of ~100MB once.`;
       initialFocusRef={envReady ? undefined : downloadButtonRef}
       isOpen={props.envPopoverOpen}
       onClose={() => props.setEnvPopoverOpen(false)}
-      placement="bottom"
+      placement="bottom-end"
     >
       <PopoverTrigger>
         <Button
