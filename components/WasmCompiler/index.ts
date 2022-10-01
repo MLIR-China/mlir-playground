@@ -62,7 +62,7 @@ class WasmCompiler {
   );
 
   private _compileSourceToWasm(
-    sourceCode: string,
+    allSources: Record<string, string>,
     printer: (log: string) => void,
     statusListener: RunStatusListener
   ) {
@@ -75,7 +75,13 @@ class WasmCompiler {
       .then((loadedClangModule) => {
         console.log("Loaded Clang Module!");
 
-        loadedClangModule.FS.writeFile("hello.cpp", sourceCode);
+        let cppSources: Array<string> = [];
+        for (const sourceName in allSources) {
+          if (sourceName.endsWith(".cpp")) {
+            cppSources.push(sourceName);
+          }
+          loadedClangModule.FS.writeFile(sourceName, allSources[sourceName]);
+        }
         console.log("Saved source code to file!");
 
         let commonArgs = [
@@ -111,7 +117,7 @@ class WasmCompiler {
             "hello.o",
             "-x",
             "c++",
-            "hello.cpp",
+            ...cppSources,
           ]);
           if (ret) {
             return Promise.reject(
@@ -199,35 +205,35 @@ class WasmCompiler {
 
   private _cachingCompiler = (() => {
     let prev:
-      | { source: string; result: Promise<WebAssembly.Module> }
+      | { sources: Record<string, string>; result: Promise<WebAssembly.Module> }
       | undefined = undefined;
 
     return (
-      sourceCode: string,
+      allSources: Record<string, string>,
       printer: (log: string) => void,
       statusListener: RunStatusListener
     ) => {
-      if (prev && prev.source === sourceCode) {
+      if (prev && prev.sources === allSources) {
         return prev.result;
       }
 
       prev = {
-        source: sourceCode,
-        result: this._compileSourceToWasm(sourceCode, printer, statusListener),
+        sources: allSources,
+        result: this._compileSourceToWasm(allSources, printer, statusListener),
       };
       return prev.result;
     };
   })();
 
   compileAndRun(
-    sourceCode: string,
+    allSources: Record<string, string>,
     inputMlir: string,
     mlirOptArgs: Array<string>,
     printer: (log: string) => void,
     statusListener: RunStatusListener
   ) {
     statusListener(STATUS_FETCHING_DATA);
-    return this._cachingCompiler(sourceCode, printer, statusListener).then(
+    return this._cachingCompiler(allSources, printer, statusListener).then(
       (inst) => {
         console.log(inst);
         return TemplateModule({

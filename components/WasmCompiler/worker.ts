@@ -20,7 +20,7 @@ onmessage = function (event) {
   };
   getWasmCompiler()
     .compileAndRun(
-      data.code,
+      data.allSources,
       data.input,
       data.arg.split(/\s+/),
       printer,

@@ -2,6 +2,7 @@ import { CppPass } from "./CppPass";
 import { CppPattern } from "./CppPattern";
 import { MlirOpt } from "./MlirOpt";
 import { PlaygroundPreset } from "./PlaygroundPreset";
+import { TableGen } from "./TableGen";
 import { ToyChapter } from "./ToyChapter";
 
 const PresetFactory: Record<string, () => PlaygroundPreset> = {
@@ -13,6 +14,9 @@ const PresetFactory: Record<string, () => PlaygroundPreset> = {
   },
   "C++ Pattern": () => {
     return new CppPattern();
+  },
+  "TableGen DRR": () => {
+    return new TableGen();
   },
   "Toy Chapter 1": () => {
     return new ToyChapter(1);
@@ -41,7 +45,7 @@ let PresetStorage: Record<string, PlaygroundPreset> = {};
 
 type presetOption = keyof typeof PresetFactory;
 
-export const defaultPreset: presetOption = "Custom mlir-opt";
+export const defaultPreset: presetOption = "TableGen DRR";
 
 export function getPresetNames() {
   return Object.keys(PresetFactory);

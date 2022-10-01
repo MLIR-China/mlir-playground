@@ -13,12 +13,10 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
-  Progress,
-  Tooltip,
 } from "@chakra-ui/react";
 import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
 
-type NavBarProps = RunButtonProps & LocalEnvironmentStatusProps;
+type NavBarProps = LocalEnvironmentStatusProps;
 
 const NavBar = (props: NavBarProps) => {
   return (
@@ -27,7 +25,6 @@ const NavBar = (props: NavBarProps) => {
         <Logo />
         <LocalEnvironmentStatus {...props} />
       </HStack>
-      <RunButton {...props} />
     </NavBarContainer>
   );
 };
@@ -103,49 +100,6 @@ This will incur a download of ~100MB once.`;
         </PopoverFooter>
       </PopoverContent>
     </Popover>
-  );
-};
-
-type RunButtonProps = {
-  allEditorsMounted: boolean;
-  runStatus: string;
-  runProgress: number;
-  onClick: () => void;
-};
-
-const RunButton = (props: RunButtonProps) => {
-  return (
-    <HStack h="100%">
-      {props.runProgress > 0 && (
-        <Tooltip hasArrow label={props.runStatus}>
-          <span>
-            <Progress
-              value={props.runProgress}
-              w="10rem"
-              hasStripe
-              isAnimated
-              borderRadius="md"
-              mr="0.5rem"
-              sx={{
-                "& > div:first-child": {
-                  transitionProperty: "width",
-                },
-              }}
-            />
-          </span>
-        </Tooltip>
-      )}
-      <Button
-        isLoading={!props.allEditorsMounted || props.runStatus !== ""}
-        as="a"
-        size="lg"
-        colorScheme="blue"
-        fontWeight="bold"
-        onClick={props.onClick}
-      >
-        Run
-      </Button>
-    </HStack>
   );
 };
 

@@ -1,4 +1,8 @@
-import { PlaygroundPreset } from "./PlaygroundPreset";
+import {
+  PlaygroundPreset,
+  PlaygroundPresetPane,
+  PlaygroundPresetAction,
+} from "./PlaygroundPreset";
 
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
@@ -26,6 +30,13 @@ const defaultMLIRInput = `module  {
 }
 `;
 
+const presetPanes: Array<PlaygroundPresetPane> = [
+  {
+    shortName: "C++",
+    defaultEditorContent: defaultCode,
+  },
+];
+
 export class MlirOpt extends PlaygroundPreset {
   wasmWorker: Worker | undefined;
   running: boolean;
@@ -35,8 +46,11 @@ export class MlirOpt extends PlaygroundPreset {
     this.running = false;
   }
 
-  isCodeEditorEnabled(): boolean {
-    return true;
+  getPanes(): Array<PlaygroundPresetPane> {
+    return presetPanes;
+  }
+  getActions(): Record<string, PlaygroundPresetAction> {
+    return {};
   }
   isMultiStageCompatible(): boolean {
     return true;
@@ -46,9 +60,6 @@ export class MlirOpt extends PlaygroundPreset {
   }
   getOutputFileExtension(): string {
     return "mlir";
-  }
-  getDefaultCodeFile(): string {
-    return defaultCode;
   }
   getDefaultInputFile(): string {
     return defaultMLIRInput;
@@ -64,7 +75,25 @@ export class MlirOpt extends PlaygroundPreset {
   }
 
   run(
-    code: string,
+    code: Array<string>,
+    input: string,
+    arg: string,
+    printer: (text: string) => void,
+    statusListener: RunStatusListener
+  ): Promise<string> {
+    let allSources: Record<string, string> = {};
+    allSources["input.cpp"] = code[0];
+    return this.invokeCompilerAndRun(
+      allSources,
+      input,
+      arg,
+      printer,
+      statusListener
+    );
+  }
+
+  invokeCompilerAndRun(
+    allSources: Record<string, string>,
     input: string,
     arg: string,
     printer: (text: string) => void,
@@ -100,7 +129,7 @@ export class MlirOpt extends PlaygroundPreset {
       };
 
       this.wasmWorker!.postMessage({
-        code: code,
+        allSources: allSources,
         input: input,
         arg: arg,
       });

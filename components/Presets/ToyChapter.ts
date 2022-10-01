@@ -1,4 +1,8 @@
-import { PlaygroundPreset } from "./PlaygroundPreset";
+import {
+  PlaygroundPreset,
+  PlaygroundPresetPane,
+  PlaygroundPresetAction,
+} from "./PlaygroundPreset";
 
 import { RunStatusListener } from "../Utils/RunStatus";
 
@@ -15,8 +19,11 @@ export class ToyChapter extends PlaygroundPreset {
     super();
     this.chapterNumber = chapterNumber;
   }
-  isCodeEditorEnabled(): boolean {
-    return false;
+  getPanes(): Array<PlaygroundPresetPane> {
+    return [];
+  }
+  getActions(): Record<string, PlaygroundPresetAction> {
+    return {};
   }
   isMultiStageCompatible(): boolean {
     return false;
@@ -26,9 +33,6 @@ export class ToyChapter extends PlaygroundPreset {
   }
   getOutputFileExtension(): string {
     return "mlir";
-  }
-  getDefaultCodeFile(): string {
-    return "// Code editor not applicable to Toy chapter modes.";
   }
   getDefaultInputFile(): string {
     return defaultToyInput;
@@ -44,7 +48,7 @@ export class ToyChapter extends PlaygroundPreset {
   }
 
   run(
-    _: string,
+    _: Array<string>,
     input: string,
     arg: string,
     printer: (text: string) => void,

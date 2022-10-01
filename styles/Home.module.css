@@ -8,6 +8,14 @@
   flex: 1;
 }
 
+.preset_selector_bar {
+  margin-bottom: 1rem;
+}
+
+.arguments_bar {
+  margin-bottom: 0.5rem;
+}
+
 .main_right {
   margin-left: 1rem;
   flex: 1;

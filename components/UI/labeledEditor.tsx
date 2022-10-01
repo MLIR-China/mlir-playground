@@ -8,7 +8,7 @@ import { parentPort } from "worker_threads";
 type LabeledEditorProps = {
   height?: string;
   flex?: string;
-  label: string;
+  label?: string;
   filename: string;
   onChange: OnChange;
   onMount: OnMount;
@@ -35,11 +35,13 @@ const LabeledEditor = React.forwardRef(
         ref={ref}
         width="100%"
       >
-        <Flex align="end">
-          <Heading>{props.label}</Heading>
-          <Spacer />
-          <Text fontFamily={monospaceFontFamily}>{props.filename}</Text>
-        </Flex>
+        {props.label !== undefined && (
+          <Flex align="end">
+            <Heading>{props.label}</Heading>
+            <Spacer />
+            <Text fontFamily={monospaceFontFamily}>{props.filename}</Text>
+          </Flex>
+        )}
         <Box borderWidth="2px" flexGrow="1" h="100%">
           <Editor
             height="100%"
