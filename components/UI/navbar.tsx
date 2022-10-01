@@ -4,7 +4,9 @@ import {
   Flex,
   Heading,
   HStack,
+  Icon,
   Image,
+  Link,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -14,6 +16,7 @@ import {
   PopoverHeader,
   PopoverTrigger,
 } from "@chakra-ui/react";
+import { GoMarkGithub } from "react-icons/go";
 import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
 
 type NavBarProps = LocalEnvironmentStatusProps;
@@ -25,6 +28,10 @@ const NavBar = (props: NavBarProps) => {
         <Logo />
         <LocalEnvironmentStatus {...props} />
       </HStack>
+
+      <HStack spacing="1rem">
+        <GithubLink />
+      </HStack>
     </NavBarContainer>
   );
 };
@@ -33,8 +40,27 @@ const Logo = () => {
   return (
     <HStack>
       <Image src="/mlir-playground.png" alt="MLIR Playground" boxSize="2em" />
-      <Heading fontFamily="heading">MLIR Playground</Heading>
+      <Heading>MLIR Playground</Heading>
     </HStack>
+  );
+};
+
+const GithubLink = () => {
+  return (
+    <Link
+      href="https://github.com/MLIR-China/mlir-playground"
+      title="View source code on GitHub"
+      isExternal
+    >
+      <Icon
+        display="block"
+        as={GoMarkGithub}
+        w={7}
+        h={7}
+        color="gray.600"
+        _hover={{ color: "black" }}
+      />
+    </Link>
   );
 };
 
@@ -67,6 +93,7 @@ This will incur a download of ~100MB once.`;
       initialFocusRef={envReady ? undefined : downloadButtonRef}
       isOpen={props.envPopoverOpen}
       onClose={() => props.setEnvPopoverOpen(false)}
+      placement="bottom"
     >
       <PopoverTrigger>
         <Button
