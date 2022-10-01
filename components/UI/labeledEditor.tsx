@@ -3,7 +3,6 @@ import Editor, { OnChange, OnMount } from "@monaco-editor/react";
 import { Box, Flex, Heading, Spacer, Text } from "@chakra-ui/react";
 
 import { monospaceFontFamily } from "./constants";
-import { parentPort } from "worker_threads";
 
 type LabeledEditorProps = {
   height?: string;
