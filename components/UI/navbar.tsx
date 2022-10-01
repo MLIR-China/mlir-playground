@@ -27,11 +27,11 @@ const NavBar = (props: NavBarProps) => {
     <NavBarContainer>
       <HStack spacing="1rem">
         <Logo />
-        <GithubLink />
+        <LocalEnvironmentStatus {...props} />
       </HStack>
 
       <HStack spacing="1rem">
-        <LocalEnvironmentStatus {...props} />
+        <GithubLink />
       </HStack>
     </NavBarContainer>
   );
@@ -41,7 +41,7 @@ const Logo = () => {
   return (
     <HStack>
       <Image src="/mlir-playground.png" alt="MLIR Playground" boxSize="2em" />
-      <Heading fontFamily="heading">MLIR Playground</Heading>
+      <Heading>MLIR Playground</Heading>
     </HStack>
   );
 };
@@ -94,7 +94,7 @@ This will incur a download of ~100MB once.`;
       initialFocusRef={envReady ? undefined : downloadButtonRef}
       isOpen={props.envPopoverOpen}
       onClose={() => props.setEnvPopoverOpen(false)}
-      placement="bottom-end"
+      placement="bottom"
     >
       <PopoverTrigger>
         <Button
