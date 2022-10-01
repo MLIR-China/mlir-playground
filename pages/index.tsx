@@ -45,47 +45,11 @@ import {
   PlaygroundPreset,
   PlaygroundPresetPane,
 } from "../components/Presets/PlaygroundPreset";
-
-// Stores the configuration of a particular stage.
-type StageState = {
-  preset: string;
-  additionalRunArgs: string;
-  editorContents: Array<string>;
-  currentPaneIdx: number | null;
-  logs: Array<string>;
-  output: string;
-
-  outputEditor: React.MutableRefObject<any>;
-  outputEditorWindow: React.MutableRefObject<any>;
-};
-
-function newStageStateFromPreset(preset: string = defaultPreset): StageState {
-  const presetProps = getPreset(preset);
-  const panes = presetProps.getPanes();
-  return {
-    preset: preset,
-    editorContents: panes.map((pane: PlaygroundPresetPane) => {
-      return pane.defaultEditorContent;
-    }),
-    currentPaneIdx: panes.length > 0 ? 0 : null,
-    additionalRunArgs: presetProps.getDefaultAdditionalRunArgs(),
-    logs: [],
-    output: "",
-    outputEditor: React.createRef(),
-    outputEditorWindow: React.createRef(),
-  };
-}
-
-function StageStateIsDirty(state: StageState): boolean {
-  const presetProps = getPreset(state.preset);
-  return presetProps.getPanes().some((pane, paneIndex) => {
-    const editorContent = state.editorContents[paneIndex];
-    return (
-      editorContent.trim().length > 0 &&
-      editorContent != pane.defaultEditorContent
-    );
-  });
-}
+import {
+  StageState,
+  newStageStateFromPreset,
+  stageStateIsDirty,
+} from "../components/State/StageState";
 
 function getInputFileBaseName(stageIndex: number) {
   const prevIndex = stageIndex - 1;
@@ -249,10 +213,10 @@ const Home: NextPage = () => {
   // If currentOnly, then only the current editor is checked.
   function isEditorDirty(currentOnly: boolean) {
     if (currentOnly) {
-      return StageStateIsDirty(currentStage());
+      return stageStateIsDirty(currentStage());
     }
     return stages.some((stage) => {
-      return StageStateIsDirty(stage);
+      return stageStateIsDirty(stage);
     });
   }
 
