@@ -27,9 +27,12 @@ const NavBar = (props: NavBarProps) => {
     <NavBarContainer>
       <HStack spacing="1rem">
         <Logo />
+        <GithubLink />
+      </HStack>
+
+      <HStack spacing="1rem">
         <LocalEnvironmentStatus {...props} />
       </HStack>
-      <RightEndButtons />
     </NavBarContainer>
   );
 };
@@ -40,6 +43,25 @@ const Logo = () => {
       <Image src="/mlir-playground.png" alt="MLIR Playground" boxSize="2em" />
       <Heading fontFamily="heading">MLIR Playground</Heading>
     </HStack>
+  );
+};
+
+const GithubLink = () => {
+  return (
+    <Link
+      href="https://github.com/MLIR-China/mlir-playground"
+      title="View source code on GitHub"
+      isExternal
+    >
+      <Icon
+        display="block"
+        as={GoMarkGithub}
+        w={7}
+        h={7}
+        color="gray.600"
+        _hover={{ color: "black" }}
+      />
+    </Link>
   );
 };
 
@@ -72,6 +94,7 @@ This will incur a download of ~100MB once.`;
       initialFocusRef={envReady ? undefined : downloadButtonRef}
       isOpen={props.envPopoverOpen}
       onClose={() => props.setEnvPopoverOpen(false)}
+      placement="bottom-end"
     >
       <PopoverTrigger>
         <Button
@@ -105,16 +128,6 @@ This will incur a download of ~100MB once.`;
         </PopoverFooter>
       </PopoverContent>
     </Popover>
-  );
-};
-
-const RightEndButtons = () => {
-  return (
-    <HStack spacing="1rem">
-      <Link href="https://github.com/MLIR-China/mlir-playground" title="View source code on GitHub" isExternal>
-        <Icon display="block" as={GoMarkGithub} w={7} h={7} color="gray.600" _hover={{color: "black"}} />
-      </Link>
-    </HStack>
   );
 };
 
