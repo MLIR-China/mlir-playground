@@ -1,11 +1,15 @@
 import React from "react";
 
-import { defaultPreset, getPreset } from "../Presets/PresetFactory";
+import {
+  defaultPreset,
+  getPreset,
+  presetOption,
+} from "../Presets/PresetFactory";
 import { PlaygroundPresetPane } from "../Presets/PlaygroundPreset";
 
 // Stores the configuration of a particular stage.
 export type StageState = {
-  preset: string;
+  preset: presetOption;
   additionalRunArgs: string;
   editorContents: Array<string>;
   currentPaneIdx: number | null;
