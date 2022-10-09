@@ -6,14 +6,16 @@ import {
   AccordionPanel,
   AccordionIcon,
   Box,
+  Button,
+  ButtonGroup,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
 } from "@chakra-ui/react";
+import { MdDownload, MdUpload } from "react-icons/md";
 
 export type ShareModalMode = "link" | "file";
 
@@ -34,10 +36,7 @@ export const ShareModal = (props: ShareModalProps) => {
         <ModalCloseButton />
 
         <ModalBody>
-          <Accordion
-            defaultIndex={initialExpandedAccordionItemIndex}
-            reduceMotion={true}
-          >
+          <Accordion defaultIndex={initialExpandedAccordionItemIndex}>
             <AccordionItem>
               <h2>
                 <AccordionButton>
@@ -62,7 +61,15 @@ export const ShareModal = (props: ShareModalProps) => {
                 </AccordionButton>
               </h2>
               <AccordionPanel pb={4}>
-                Export a sharable file, or import an exported file.
+                <Box pb={4}>
+                  <p>Export a sharable file, or import an exported file.</p>
+                  <p>(Note: Importing will overwrite your current work.)</p>
+                </Box>
+
+                <ButtonGroup colorScheme="blue">
+                  <Button leftIcon={<MdDownload />}>Export</Button>
+                  <Button leftIcon={<MdUpload />}>Import</Button>
+                </ButtonGroup>
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
