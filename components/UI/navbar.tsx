@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -17,6 +17,7 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { GoMarkGithub } from "react-icons/go";
 import {
@@ -25,6 +26,8 @@ import {
   MdOutlineCodeOff,
   MdSend,
 } from "react-icons/md";
+
+import { ShareModalMode, ShareModalProps, ShareModal } from "../UI/shareModal";
 
 type NavBarProps = LocalEnvironmentStatusProps;
 
@@ -73,12 +76,30 @@ const GithubLink = () => {
 };
 
 const ShareButton = () => {
+  const [shareModalMode, setShareModalMode] = useState<ShareModalMode>("link");
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <ButtonGroup isAttached colorScheme="blue">
-      <Button leftIcon={<MdSend />} borderRight="1px white solid">
+      <Button
+        leftIcon={<MdSend />}
+        borderRight="1px white solid"
+        onClick={() => {
+          setShareModalMode("link");
+          onOpen();
+        }}
+      >
         Share
       </Button>
-      <IconButton aria-label="Export/Import" icon={<MdImportExport />} />
+      <IconButton
+        aria-label="Export/Import"
+        icon={<MdImportExport />}
+        onClick={() => {
+          setShareModalMode("file");
+          onOpen();
+        }}
+      />
+      <ShareModal isOpen={isOpen} onClose={onClose} mode={shareModalMode} />
     </ButtonGroup>
   );
 };
