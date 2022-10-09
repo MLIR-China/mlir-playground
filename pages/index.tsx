@@ -34,6 +34,7 @@ import {
   defaultPreset,
   getPresetNames,
   getPreset,
+  presetOption,
 } from "../components/Presets/PresetFactory";
 
 import LabeledEditor from "../components/UI/labeledEditor";
@@ -235,7 +236,7 @@ const Home: NextPage = () => {
   });
 
   // Update the preset selection of the current stage.
-  function setPresetSelection(selection: string) {
+  function setPresetSelection(selection: presetOption) {
     if (isEditorDirty(true)) {
       // Check with the user first. If dialogs are disabled, this will always return false.
       if (
@@ -306,7 +307,8 @@ const Home: NextPage = () => {
   const onPresetSelectionChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setPresetSelection(event.target.value);
+    // This is considered implicitly safe since the options are provided by us.
+    setPresetSelection(event.target.value as presetOption);
   };
 
   // Dims the old logs and returns a function for adding log messages.
