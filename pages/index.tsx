@@ -47,6 +47,11 @@ import {
   PlaygroundPresetPane,
 } from "../components/Presets/PlaygroundPreset";
 import {
+  exportToSchema,
+  importFromSchema,
+  SchemaObjectType,
+} from "../components/Sharing/ImportExport";
+import {
   StageState,
   newStageStateFromPreset,
   stageStateIsDirty,
@@ -398,6 +403,32 @@ const Home: NextPage = () => {
     });
   };
 
+  const exportToSchemaObject = () => {
+    return exportToSchema(
+      { input: inputEditorContent, stages: stages },
+      compilerEnvironmentVersion
+    );
+  };
+
+  const importFromSchemaObject = (source: SchemaObjectType) => {
+    const internalState = importFromSchema(source);
+    if (typeof internalState === "string") {
+      // Error during import
+      toast({
+        title: `Error importing from file.`,
+        description: internalState,
+        status: "warning",
+        position: "top",
+        isClosable: true,
+        duration: null,
+      });
+      return;
+    }
+
+    setInputEditorContent(internalState.input);
+    setStages(internalState.stages);
+  };
+
   return (
     <VStack className={styles.container}>
       <Head>
@@ -429,6 +460,8 @@ const Home: NextPage = () => {
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
         initiateEnvDownload={downloadCompilerEnvironment}
+        exportToSchemaObject={exportToSchemaObject}
+        importFromSchemaObject={importFromSchemaObject}
       />
       <Flex
         as="main"

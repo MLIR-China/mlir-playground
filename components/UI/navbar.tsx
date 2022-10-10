@@ -29,14 +29,14 @@ import {
 
 import { ShareModalMode, ShareModalProps, ShareModal } from "../UI/shareModal";
 
-type NavBarProps = LocalEnvironmentStatusProps;
+type NavBarProps = LocalEnvironmentStatusProps & ShareButtonProps;
 
 const NavBar = (props: NavBarProps) => {
   return (
     <NavBarContainer>
       <HStack spacing="1rem">
         <Logo />
-        <ShareButton />
+        <ShareButton {...props} />
       </HStack>
 
       <HStack spacing="1rem">
@@ -75,7 +75,9 @@ const GithubLink = () => {
   );
 };
 
-const ShareButton = () => {
+type ShareButtonProps = Omit<ShareModalProps, "isOpen" | "mode" | "onClose">;
+
+const ShareButton = (props: ShareButtonProps) => {
   const [shareModalMode, setShareModalMode] = useState<ShareModalMode>("link");
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -99,7 +101,12 @@ const ShareButton = () => {
           onOpen();
         }}
       />
-      <ShareModal isOpen={isOpen} onClose={onClose} mode={shareModalMode} />
+      <ShareModal
+        isOpen={isOpen}
+        onClose={onClose}
+        mode={shareModalMode}
+        {...props}
+      />
     </ButtonGroup>
   );
 };

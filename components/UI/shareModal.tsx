@@ -16,6 +16,9 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import { MdDownload, MdUpload } from "react-icons/md";
+import { saveAs } from "file-saver";
+
+import { SchemaObjectType } from "../Sharing/ImportExport";
 
 export type ShareModalMode = "link" | "file";
 
@@ -23,10 +26,20 @@ export type ShareModalProps = {
   isOpen: boolean;
   mode: ShareModalMode;
   onClose: () => void;
+  exportToSchemaObject: () => SchemaObjectType;
+  importFromSchemaObject: (source: SchemaObjectType) => void;
 };
 
 export const ShareModal = (props: ShareModalProps) => {
   const initialExpandedAccordionItemIndex = props.mode == "link" ? 0 : 1;
+
+  const doExport = () => {
+    const schemaObject = props.exportToSchemaObject();
+    const downloadFile = new Blob([JSON.stringify(schemaObject)], {
+      type: "text/plain;charset=utf-8",
+    });
+    saveAs(downloadFile, "playground.json");
+  };
 
   return (
     <Modal isOpen={props.isOpen} onClose={props.onClose} isCentered size="xl">
@@ -67,7 +80,9 @@ export const ShareModal = (props: ShareModalProps) => {
                 </Box>
 
                 <ButtonGroup colorScheme="blue">
-                  <Button leftIcon={<MdDownload />}>Export</Button>
+                  <Button leftIcon={<MdDownload />} onClick={doExport}>
+                    Export
+                  </Button>
                   <Button leftIcon={<MdUpload />}>Import</Button>
                 </ButtonGroup>
               </AccordionPanel>

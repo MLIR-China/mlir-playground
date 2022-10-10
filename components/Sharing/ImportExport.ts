@@ -16,10 +16,12 @@ export type InternalState = {
   stages: Array<StageState>;
 };
 
+export type SchemaObjectType = Schema_0_0_1_Type;
+
 export function exportToSchema(
   internalState: InternalState,
   environment: string
-): Schema_0_0_1_Type {
+): SchemaObjectType {
   return {
     version: "0.0.1",
     environment: environment,
@@ -42,7 +44,7 @@ export function exportToSchema(
 
 // Returns either the parsed InternalState, or an error message.
 export function importFromSchema(
-  source: Schema_0_0_1_Type
+  source: SchemaObjectType
 ): InternalState | string {
   // Maps each stage into either a parsed StageState, or an error message.
   const stageResults: Array<StageState | string> = source.stages.map(
