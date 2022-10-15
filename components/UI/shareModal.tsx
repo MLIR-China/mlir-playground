@@ -23,6 +23,7 @@ import {
   SchemaObjectType,
   validateAgainstSchema,
 } from "../Sharing/ImportExport";
+import { PlaygroundPreset } from "../Presets/PlaygroundPreset";
 
 export type ShareModalMode = "link" | "file";
 
@@ -64,6 +65,15 @@ export const ShareModal = (props: ShareModalProps) => {
         const errorMsg = validateAgainstSchema(parsedObject);
         if (!errorMsg) {
           props.importFromSchemaObject(parsedObject as SchemaObjectType);
+          toast({
+            title: "Import Success!",
+            description: "Successfully imported playground.",
+            status: "success",
+            position: "top",
+            isClosable: true,
+          });
+          uploadFileInput.current!.value = "";
+          props.onClose();
         } else {
           toastError("Error parsing uploaded file.", errorMsg);
         }
