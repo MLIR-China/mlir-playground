@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Accordion,
   AccordionItem,
@@ -14,11 +14,15 @@ import {
   ModalHeader,
   ModalBody,
   ModalCloseButton,
+  useToast,
 } from "@chakra-ui/react";
 import { MdDownload, MdUpload } from "react-icons/md";
 import { saveAs } from "file-saver";
 
-import { SchemaObjectType } from "../Sharing/ImportExport";
+import {
+  SchemaObjectType,
+  validateAgainstSchema,
+} from "../Sharing/ImportExport";
 
 export type ShareModalMode = "link" | "file";
 
@@ -31,7 +35,50 @@ export type ShareModalProps = {
 };
 
 export const ShareModal = (props: ShareModalProps) => {
+  const toast = useToast();
+  const toastError = (title: string, description: string) => {
+    toast({
+      title: title,
+      description: description,
+      status: "error",
+      position: "top",
+      isClosable: true,
+      duration: null,
+    });
+  };
   const initialExpandedAccordionItemIndex = props.mode == "link" ? 0 : 1;
+  const uploadFileInput = React.useRef<HTMLInputElement>(null);
+
+  const onUploadFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!event.target.files) {
+      toastError("Error uploading from file.", "Failed to find upload file.");
+      return;
+    }
+
+    const uploadFile = event.target.files[0];
+    uploadFile.text().then(
+      (rawData) => {
+        const parsedObject = JSON.parse(rawData);
+        const errorMsg = validateAgainstSchema(parsedObject);
+        if (!errorMsg) {
+          props.importFromSchemaObject(parsedObject as SchemaObjectType);
+        } else {
+          toastError("Error parsing uploaded file.", errorMsg);
+        }
+      },
+      (error) => {
+        toastError("Error reading uploaded file.", error);
+      }
+    );
+  };
+
+  const onUploadClick = () => {
+    if (uploadFileInput.current) {
+      uploadFileInput.current.click();
+    }
+  };
 
   const doExport = () => {
     const schemaObject = props.exportToSchemaObject();
@@ -83,8 +130,17 @@ export const ShareModal = (props: ShareModalProps) => {
                   <Button leftIcon={<MdDownload />} onClick={doExport}>
                     Export
                   </Button>
-                  <Button leftIcon={<MdUpload />}>Import</Button>
+                  <Button leftIcon={<MdUpload />} onClick={onUploadClick}>
+                    Import
+                  </Button>
                 </ButtonGroup>
+
+                <input
+                  ref={uploadFileInput}
+                  type="file"
+                  style={{ display: "none" }}
+                  onChange={onUploadFileInputChange}
+                />
               </AccordionPanel>
             </AccordionItem>
           </Accordion>

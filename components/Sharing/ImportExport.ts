@@ -1,3 +1,4 @@
+import Ajv from "ajv";
 import { FromSchema } from "json-schema-to-ts";
 
 import Schema_0_0_1 from "./schema/0.0.1";
@@ -9,14 +10,25 @@ import {
   presetOption,
 } from "../Presets/PresetFactory";
 
-type Schema_0_0_1_Type = FromSchema<typeof Schema_0_0_1>;
+export const SchemaLatest = Schema_0_0_1;
+
+export type SchemaObjectType = FromSchema<typeof SchemaLatest>;
 
 export type InternalState = {
   input: string;
   stages: Array<StageState>;
 };
 
-export type SchemaObjectType = Schema_0_0_1_Type;
+const ajv = new Ajv();
+const validate = ajv.compile(SchemaLatest);
+
+// Returns an error message. If empty, means validation passed.
+export function validateAgainstSchema(source: any): string {
+  if (validate(source)) {
+    return "";
+  }
+  return ajv.errorsText();
+}
 
 export function exportToSchema(
   internalState: InternalState,
@@ -50,7 +62,7 @@ export function importFromSchema(
   const stageResults: Array<StageState | string> = source.stages.map(
     (stageSource) => {
       const presetName = stageSource.preset;
-      if (!(presetName in getPresetNames())) {
+      if (!getPresetNames().includes(presetName)) {
         return `Unknown Preset: ${presetName}`;
       }
 
@@ -60,17 +72,28 @@ export function importFromSchema(
       stage.additionalRunArgs = stageSource.arguments;
       stage.output = stageSource.output || "";
 
-      const expectedEditorNames = new Set(
-        presetProps.getPanes().map((pane) => pane.shortName)
+      let editorNamesSeen = new Map(
+        presetProps.getPanes().map((pane) => [pane.shortName, false])
       );
-      const actualEditorNames = new Set(
-        stageSource.editors.map((editor) => editor.name)
-      );
-      if (actualEditorNames != expectedEditorNames) {
-        return `Unexpected editor panes. Expected: ${Array.from(
-          expectedEditorNames
-        ).join(",")}. Got: ${Array.from(actualEditorNames).join(",")}.`;
+      let editorNameErrors: Array<string> = [];
+      stageSource.editors.forEach((editor) => {
+        if (!editorNamesSeen.has(editor.name)) {
+          editorNameErrors.push(`Unexpected editor pane: ${editor.name}.`);
+        }
+        if (editorNamesSeen.get(editor.name)!) {
+          editorNameErrors.push(`Duplicate editor pane: ${editor.name}.`);
+        }
+        editorNamesSeen.set(editor.name, true);
+      });
+      editorNamesSeen.forEach((val, key) => {
+        if (!val) {
+          editorNameErrors.push(`Missing editor pane: ${key}.`);
+        }
+      });
+      if (editorNameErrors.length > 0) {
+        return editorNameErrors.join("\n");
       }
+
       stage.editorContents = presetProps.getPanes().map((pane) => {
         for (const sourceEditor of stageSource.editors) {
           if (sourceEditor.name == pane.shortName) {
