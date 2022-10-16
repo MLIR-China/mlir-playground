@@ -21,7 +21,7 @@ export type StageState = {
 };
 
 export function newStageStateFromPreset(
-  preset: string = defaultPreset
+  preset: presetOption = defaultPreset
 ): StageState {
   const presetProps = getPreset(preset);
   const panes = presetProps.getPanes();
