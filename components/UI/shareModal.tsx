@@ -41,7 +41,7 @@ export type ShareModalProps = {
   mode: ShareModalMode;
   onClose: () => void;
   exportToSchemaObject: () => SchemaObjectType;
-  importFromSchemaObject: (source: SchemaObjectType) => void;
+  importFromSchemaObject: (source: any) => string;
 };
 
 export const ShareModal = (props: ShareModalProps) => {
@@ -59,6 +59,11 @@ export const ShareModal = (props: ShareModalProps) => {
   const initialExpandedAccordionItemIndex = props.mode == "link" ? 0 : 1;
   const uploadFileInput = React.useRef<HTMLInputElement>(null);
 
+  const [windowLocation, setWindowLocation] = React.useState<string>("");
+  React.useEffect(() => {
+    setWindowLocation(window.location.origin);
+  });
+
   const onUploadFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -71,15 +76,13 @@ export const ShareModal = (props: ShareModalProps) => {
     uploadFile.text().then(
       (rawData) => {
         const parsedObject = JSON.parse(rawData);
-        const errorMsg = validateAgainstSchema(parsedObject);
+        let errorMsg = props.importFromSchemaObject(parsedObject);
         if (!errorMsg) {
-          props.importFromSchemaObject(parsedObject as SchemaObjectType);
           toast({
             title: "Import Success!",
             description: "Successfully imported playground.",
             status: "success",
             position: "top",
-            isClosable: true,
           });
           uploadFileInput.current!.value = "";
           props.onClose();
@@ -172,7 +175,7 @@ export const ShareModal = (props: ShareModalProps) => {
                         <br />
                         <InputGroup fontFamily="mono" variant="flushed">
                           <InputLeftAddon
-                            children={`${window.location.origin}?import=`}
+                            children={`${windowLocation}?import=`}
                           />
                           <Input variant="flushed"></Input>
                         </InputGroup>

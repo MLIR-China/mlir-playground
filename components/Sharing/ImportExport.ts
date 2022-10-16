@@ -27,7 +27,7 @@ export function validateAgainstSchema(source: any): string {
   if (validate(source)) {
     return "";
   }
-  return ajv.errorsText();
+  return ajv.errorsText(validate.errors);
 }
 
 export function exportToSchema(

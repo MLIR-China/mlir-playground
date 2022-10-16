@@ -50,6 +50,7 @@ import {
   exportToSchema,
   importFromSchema,
   SchemaObjectType,
+  validateAgainstSchema,
 } from "../components/Sharing/ImportExport";
 import {
   StageState,
@@ -288,6 +289,44 @@ const Home: NextPage = () => {
     });
   }
 
+  const onAllEditorsMounted = () => {
+    // Import from url params.
+    const urlParams = new URLSearchParams(window.location.search);
+    const importUrl = urlParams.get("import");
+    if (importUrl) {
+      fetch(importUrl)
+        .then((response) => response.json())
+        .then((parsedObject) => {
+          let errorMsg = importFromSchemaObject(parsedObject);
+          if (!errorMsg) {
+            toast({
+              title: "Import Success!",
+              description: "Successfully imported from URL.",
+              status: "success",
+              position: "top",
+            });
+            return;
+          }
+          return Promise.reject("Failed to parse file: " + errorMsg);
+        })
+        .catch((error) => {
+          toast({
+            title: `Failed to import from URL: ${importUrl}`,
+            description: error,
+            status: "error",
+            position: "top",
+            isClosable: true,
+            duration: null,
+          });
+        });
+    }
+
+    // This will unset the loading state of buttons.
+    setAllEditorsMounted(true);
+    setPresetSelection(defaultPreset);
+    updateCompilerEnvironmentReady();
+  };
+
   const onEditorMounted = (editorRef: React.MutableRefObject<any>): OnMount => {
     return (editor, _) => {
       editorRef.current = editor;
@@ -301,10 +340,7 @@ const Home: NextPage = () => {
         currentStage().outputEditor.current &&
         !allEditorsMounted
       ) {
-        // All editors mounted.
-        setAllEditorsMounted(true);
-        setPresetSelection(defaultPreset);
-        updateCompilerEnvironmentReady();
+        onAllEditorsMounted();
       }
     };
   };
@@ -410,23 +446,22 @@ const Home: NextPage = () => {
     );
   };
 
-  const importFromSchemaObject = (source: SchemaObjectType) => {
-    const internalState = importFromSchema(source);
+  // Returns an error message if failed. Otherwise returns an empty string.
+  const importFromSchemaObject = (source: any) => {
+    const validationError = validateAgainstSchema(source);
+    if (validationError) {
+      return validationError;
+    }
+
+    const internalState = importFromSchema(source as SchemaObjectType);
     if (typeof internalState === "string") {
       // Error during import
-      toast({
-        title: `Error importing from file.`,
-        description: internalState,
-        status: "warning",
-        position: "top",
-        isClosable: true,
-        duration: null,
-      });
-      return;
+      return internalState;
     }
 
     setInputEditorContent(internalState.input);
     setStages(internalState.stages);
+    return "";
   };
 
   return (
