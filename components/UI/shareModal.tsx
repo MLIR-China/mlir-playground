@@ -62,7 +62,7 @@ export const ShareModal = (props: ShareModalProps) => {
   const [windowLocation, setWindowLocation] = React.useState<string>("");
   React.useEffect(() => {
     setWindowLocation(window.location.origin);
-  });
+  }, []);
 
   const onUploadFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -156,8 +156,8 @@ export const ShareModal = (props: ShareModalProps) => {
                     <Text>Steps:</Text>
                     <OrderedList>
                       <ListItem>
-                        Use the "Export" feature to save this playground as a
-                        JSON file.
+                        Use the &quot;Export&quot; feature to save this
+                        playground as a JSON file.
                       </ListItem>
                       <ListItem>
                         Host the file somewhere accessible via HTTP (such as by{" "}
@@ -174,9 +174,7 @@ export const ShareModal = (props: ShareModalProps) => {
                         Share the combined link:
                         <br />
                         <InputGroup fontFamily="mono" variant="flushed">
-                          <InputLeftAddon
-                            children={`${windowLocation}?import=`}
-                          />
+                          <InputLeftAddon>{`${windowLocation}?import=`}</InputLeftAddon>
                           <Input variant="flushed"></Input>
                         </InputGroup>
                       </ListItem>
