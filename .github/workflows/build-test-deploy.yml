@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build, Test, Deploy
 # This action will automatically build, test, and deploy to either preview or production.
 # If triggered by a pull request, it will deploy a non-production version to Netlify with everything packaged together.
 # If triggered by a push to `main`, it will deploy a production version to Cloudflare, with wasm artifacts pushed to B2.
