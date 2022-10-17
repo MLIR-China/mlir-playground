@@ -1,0 +1,26 @@
+name: Run Tests
+# This action will make sure all tests pass.
+
+on:
+  pull_request:
+
+concurrency:
+  group: run-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-20.04
+
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Run jest tests
+        run: npm run test
