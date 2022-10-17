@@ -10,6 +10,7 @@ module.exports = {
     "!<rootDir>/.next/**",
     "!<rootDir>/*.config.js",
     "!<rootDir>/coverage/**",
+    "!**/wasm/**",
   ],
   moduleNameMapper: {
     // Handle CSS imports (with CSS modules)
