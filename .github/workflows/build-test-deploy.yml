@@ -1,5 +1,5 @@
 name: Build and Deploy
-# This action will automatically build and deploy to either preview or production.
+# This action will automatically build, test, and deploy to either preview or production.
 # If triggered by a pull request, it will deploy a non-production version to Netlify with everything packaged together.
 # If triggered by a push to `main`, it will deploy a production version to Cloudflare, with wasm artifacts pushed to B2.
 
@@ -10,11 +10,11 @@ on:
       - main
 
 concurrency:
-  group: build-and-deploy-${{ github.ref }}
+  group: build-test-deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build-test-deploy:
     runs-on: ubuntu-20.04
 
     env:
@@ -64,7 +64,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         run: rm -r ./public/wasm
 
-      # Build site
+      # Build site (and run tests if not on `main`)
       - name: Install npm dependencies
         run: npm install
 
@@ -77,6 +77,10 @@ jobs:
       
       - name: Run npm build
         run: npm run build
+
+      - name: Run tests
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: npm run test
       
       - name: Export static website
         run: npx next export
