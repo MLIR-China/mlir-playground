@@ -32,7 +32,6 @@ import {
   SchemaObjectType,
   validateAgainstSchema,
 } from "../Sharing/ImportExport";
-import { PlaygroundPreset } from "../Presets/PlaygroundPreset";
 
 export type ShareModalMode = "link" | "file";
 
