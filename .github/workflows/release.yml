@@ -2,22 +2,73 @@ name: Release
 
 on:
   workflow_dispatch:
+  pull_request:
 
 jobs:
   release-mlir-playground:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
     steps:
-      - name: Checkout the default branch
-        uses: actions/checkout@v3
+      # Build new Docker image if needed
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 8
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # - name: Login to DockerHub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v2
+
+      # - name: Build Docker image
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     load: true
+      #     tags: |
+      #       ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
+      #     cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+      #     cache-to: type=inline
+      #     context: ./cpp/docker
+      
+      # Generate wasm files
+      - name: Run wasm setup
+        working-directory: ./cpp/
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
+
+      # Build site
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Set build environment
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          echo "NODE_ENV=production" >> $GITHUB_ENV
+          echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/files/" >> $GITHUB_ENV
+      
+      - name: Run npm build
+        run: npm run build
+      
+      - name: Export static website
+        run: npx next export
+
       - name: Zip the mlir-playground static site
         id: zip
         run: |
           STATIC_SITE_PATH=mlir-playground-static-${{ matrix.build-type }}.zip
           zip -r ${STATIC_SITE_PATH} out
-          echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_OUTPUT
+          echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_ENV
+
       - name: Release the static site
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{ steps.zip.outputs.STATIC_SITE_PATH }}
-          tag_name: mlir-playground-static-${{ needs.generate_id.outputs.LLVM_COMMIT }}-${{ needs.generate_id.outputs.formatted_date }}
-          body: "Static Website: ${{ needs.generate_id.outputs.LLVM_COMMIT }}"
+          files: ${{ env.STATIC_SITE_PATH }}
+          tag_name: mlir-playground-static-${{ github.sha }}
+          body: "Static Website"
