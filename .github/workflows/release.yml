@@ -2,7 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-  pull_request:
 
 jobs:
   release-mlir-playground:
@@ -41,7 +40,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
           cache-to: type=inline
           context: ./cpp/docker
-      
+
       # Generate wasm files
       - name: Run wasm setup
         working-directory: ./cpp/
@@ -57,19 +56,19 @@ jobs:
           echo "NODE_ENV=production" >> $GITHUB_ENV
           echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
           echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/files/" >> $GITHUB_ENV
-      
+
       - name: Run npm build
         run: npm run build
-      
+
       - name: Export static website
         run: npx next export
-      
+
       - name: Bump version and push tag
         id: version-tag
         uses: anothrNick/github-tag-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_BRANCHES: "main,tanl/add-push-button-deploy-script"
+          RELEASE_BRANCHES: "main"
           DEFAULT_BUMP: "patch"
 
       - name: Package the mlir-playground static site
