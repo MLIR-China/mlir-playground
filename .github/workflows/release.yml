@@ -9,10 +9,15 @@ jobs:
     steps:
       - name: Checkout the default branch
         uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - name: Zip the mlir-playground static site
+        id: zip
+        run: |
+          STATIC_SITE_PATH=mlir-playground-static-${{ matrix.build-type }}.zip
+          zip -r ${STATIC_SITE_PATH} out
+          echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_OUTPUT
+      - name: Release the static site
+        uses: softprops/action-gh-release@v1
         with:
-          python-version: 3.9
-      - name: Get a patch release
-        run: python scripts/release.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.PACKAGE_RELEASE_TOKEN }}
+          files: ${{ steps.zip.outputs.STATIC_SITE_PATH }}
+          tag_name: mlir-playground-static-${{ needs.generate_id.outputs.LLVM_COMMIT }}-${{ needs.generate_id.outputs.formatted_date }}
+          body: "Static Website: ${{ needs.generate_id.outputs.LLVM_COMMIT }}"
