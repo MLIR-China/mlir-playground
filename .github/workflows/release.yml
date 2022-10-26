@@ -74,7 +74,7 @@ jobs:
 
       - name: Package the mlir-playground static site
         run: |
-          STATIC_SITE_PATH=mlir-playground-static.tar.gz
+          STATIC_SITE_PATH=mlir-playground-static-${{ steps.version-tag.outputs.new_tag }}.tar.gz
           cd out
           tar cvzf ../${STATIC_SITE_PATH} .
           echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_ENV
@@ -84,3 +84,4 @@ jobs:
         with:
           files: ${{ env.STATIC_SITE_PATH }}
           tag_name: mlir-playground-static-${{ steps.version-tag.outputs.new_tag }}
+          body: "This release contains a static website without any server side logic. Can be hosted using any web server that serves static content."
