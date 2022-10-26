@@ -8,6 +8,11 @@ jobs:
   release-mlir-playground:
     runs-on: ubuntu-20.04
 
+    env:
+      DOCKER_HUB_NAMESPACE: jackalcooper
+      DOCKER_REPO: clang-wasm
+      NODE_OPTIONS: "--max_old_space_size=4096"
+
     steps:
       # Build new Docker image if needed
       - name: Set Swap Space
