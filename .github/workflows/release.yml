@@ -73,7 +73,7 @@ jobs:
 
       - name: Package the mlir-playground static site
         run: |
-          STATIC_SITE_PATH=mlir-playground-static-${{ steps.version-tag.outputs.new_tag }}.tar.gz
+          STATIC_SITE_PATH=mlir-playground-static.tar.gz
           cd out
           tar cvzf ../${STATIC_SITE_PATH} .
           echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_ENV
