@@ -74,9 +74,9 @@ jobs:
 
       - name: Package the mlir-playground static site
         run: |
-          STATIC_SITE_PATH=mlir-playground-static.zip
+          STATIC_SITE_PATH=mlir-playground-static.tar.gz
           cd out
-          tar cvzf ../foo.tar.gz .
+          tar cvzf ../${STATIC_SITE_PATH} .
           echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_ENV
 
       - name: Release the static site
