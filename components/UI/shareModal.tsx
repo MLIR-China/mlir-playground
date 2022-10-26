@@ -28,10 +28,7 @@ import {
 import { MdDownload, MdUpload } from "react-icons/md";
 import { saveAs } from "file-saver";
 
-import {
-  SchemaObjectType,
-  validateAgainstSchema,
-} from "../Sharing/ImportExport";
+import { SchemaObjectType } from "../Sharing/ImportExport";
 
 export type ShareModalMode = "link" | "file";
 

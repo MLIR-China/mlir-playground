@@ -1,7 +1,7 @@
 import Ajv from "ajv";
-import { FromSchema } from "json-schema-to-ts";
 
-import Schema_0_0_1 from "./schema/0.0.1";
+import Schema_0_0_1_Type from "../../workers/ugc-manager/shared/schema/types/0.0.1";
+import Schema_0_0_1 from "../../workers/ugc-manager/shared/schema/versions/0.0.1.json";
 
 import { newStageStateFromPreset, StageState } from "../State/StageState";
 import {
@@ -10,9 +10,7 @@ import {
   presetOption,
 } from "../Presets/PresetFactory";
 
-export const SchemaLatest = Schema_0_0_1;
-
-export type SchemaObjectType = FromSchema<typeof SchemaLatest>;
+export type SchemaObjectType = Schema_0_0_1_Type.MLIRPlaygroundState;
 
 export type InternalState = {
   input: string;
@@ -20,7 +18,7 @@ export type InternalState = {
 };
 
 const ajv = new Ajv();
-const validate = ajv.compile(SchemaLatest);
+const validate = ajv.compile(Schema_0_0_1);
 
 // Returns an error message. If empty, means validation passed.
 export function validateAgainstSchema(source: any): string {
@@ -40,7 +38,7 @@ export function exportToSchema(
     input: internalState.input,
     stages: internalState.stages.map((stage) => {
       return {
-        preset: stage.preset,
+        preset: stage.preset as string,
         arguments: stage.additionalRunArgs,
         editors: stage.editorContents.map((contents, index) => {
           return {
@@ -50,7 +48,7 @@ export function exportToSchema(
         }),
         output: stage.output,
       };
-    }),
+    }) as SchemaObjectType["stages"],
   };
 }
 
