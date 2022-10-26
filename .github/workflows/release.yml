@@ -2,10 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      description: 'Version Number'
-      type: string
-      required: true
   pull_request:
 
 jobs:
