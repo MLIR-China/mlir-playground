@@ -56,7 +56,7 @@ PRs and suggestions are all warmly welcomed. At the end of the day, it's all abo
 
 1. Clone this repo.
 2. Enter the `cpp` directory.
-3. Run `build-docker.sh` to build the necessary docker image for building the web assembly libraries and binaries. Alternatively, pull from our DockerHub repo (specified in the GitHub workflow `build-and-deploy`).
+3. Run `build-docker.sh` to build the necessary docker image for building the web assembly libraries and binaries (16G RAM is rquired to build the docker image locally). Alternatively, pull from our DockerHub repo (specified in the GitHub workflow `build-and-deploy`).
 4. Run `build-compiler-in-docker.sh` to build the web assembly libraries and binaries. This will run a series of steps using the `clang-wasm` docker image, and export the built files to the locations expected by the web app.
 5. Exit to the project root directory.
 6. Run `npm run dev` to start the development server locally.
