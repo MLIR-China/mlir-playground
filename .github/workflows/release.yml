@@ -2,6 +2,10 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      description: 'Version Number'
+      type: string
+      required: true
   pull_request:
 
 jobs:
@@ -63,17 +67,24 @@ jobs:
       
       - name: Export static website
         run: npx next export
+      
+      - name: Bump version and push tag
+        id: version-tag
+        uses: anothrNick/github-tag-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_BRANCHES: "main,tanl/add-push-button-deploy-script"
+          DEFAULT_BUMP: "patch"
 
-      - name: Zip the mlir-playground static site
-        id: zip
+      - name: Package the mlir-playground static site
         run: |
-          STATIC_SITE_PATH=mlir-playground-static-${{ matrix.build-type }}.zip
-          zip -r ${STATIC_SITE_PATH} out
+          STATIC_SITE_PATH=mlir-playground-static.zip
+          cd out
+          tar cvzf ../foo.tar.gz .
           echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_ENV
 
       - name: Release the static site
         uses: softprops/action-gh-release@v1
         with:
           files: ${{ env.STATIC_SITE_PATH }}
-          tag_name: mlir-playground-static-${{ github.sha }}
-          body: "Static Website"
+          tag_name: mlir-playground-static-${{ steps.version-tag.outputs.new_tag }}
