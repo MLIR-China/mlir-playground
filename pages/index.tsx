@@ -50,13 +50,14 @@ import {
   exportToSchema,
   importFromSchema,
   SchemaObjectType,
-  validateAgainstSchema,
-} from "../components/Sharing/ImportExport";
+} from "../components/State/ImportExport";
 import {
   StageState,
   newStageStateFromPreset,
   stageStateIsDirty,
 } from "../components/State/StageState";
+
+import {validateAgainstSchema} from "../workers/ugc-manager/shared/schema/validation";
 
 function getInputFileBaseName(stageIndex: number) {
   const prevIndex = stageIndex - 1;

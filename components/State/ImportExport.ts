@@ -1,9 +1,6 @@
-import Ajv from "ajv";
-
 import Schema_0_0_1_Type from "../../workers/ugc-manager/shared/schema/types/0.0.1";
-import Schema_0_0_1 from "../../workers/ugc-manager/shared/schema/versions/0.0.1.json";
 
-import { newStageStateFromPreset, StageState } from "../State/StageState";
+import { newStageStateFromPreset, StageState } from "./StageState";
 import {
   getPreset,
   getPresetNames,
@@ -16,17 +13,6 @@ export type InternalState = {
   input: string;
   stages: Array<StageState>;
 };
-
-const ajv = new Ajv();
-const validate = ajv.compile(Schema_0_0_1);
-
-// Returns an error message. If empty, means validation passed.
-export function validateAgainstSchema(source: any): string {
-  if (validate(source)) {
-    return "";
-  }
-  return ajv.errorsText(validate.errors);
-}
 
 export function exportToSchema(
   internalState: InternalState,

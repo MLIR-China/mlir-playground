@@ -1,6 +1,6 @@
 import { Validator, Schema } from "@cfworker/json-schema";
 
-import Schema_0_0_1 from "./versions/0.0.1.json";
+import Schema_0_0_1 from "./raw/0.0.1.json";
 
 const validator = new Validator(Schema_0_0_1 as Schema);
 

@@ -1,6 +1,6 @@
 import { expect, test } from "@jest/globals";
 
-import { importFromSchema, validateAgainstSchema } from "./ImportExport";
+import { importFromSchema, validateAgainstSchema } from "../State/ImportExport";
 
 test("catch empty input", () => {
   expect(validateAgainstSchema("")).toBeTruthy();
