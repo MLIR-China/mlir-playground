@@ -1,3 +1,5 @@
+const esModules = ['@cfworker/json-schema'].join('|');
+
 module.exports = {
   collectCoverage: true,
   // on node 14.x coverage provider v8 offers good speed and more or less good report
@@ -46,7 +48,7 @@ module.exports = {
     ],
   },
   transformIgnorePatterns: [
-    "/node_modules/",
+    `/node_modules/(?!${esModules})`,
     "^.+\\.module\\.(css|sass|scss)$",
   ],
 };

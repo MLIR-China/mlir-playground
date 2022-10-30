@@ -57,7 +57,7 @@ import {
   stageStateIsDirty,
 } from "../components/State/StageState";
 
-import {validateAgainstSchema} from "../workers/ugc-manager/shared/schema/validation";
+import {validateAgainstSchema} from "../schema/validation";
 
 function getInputFileBaseName(stageIndex: number) {
   const prevIndex = stageIndex - 1;

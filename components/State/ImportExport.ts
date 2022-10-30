@@ -1,4 +1,4 @@
-import Schema_0_0_1_Type from "../../workers/ugc-manager/shared/schema/types/0.0.1";
+import Schema_0_0_1_Type from "../../schema/types/0.0.1";
 
 import { newStageStateFromPreset, StageState } from "./StageState";
 import {

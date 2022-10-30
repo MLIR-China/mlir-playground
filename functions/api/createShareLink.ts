@@ -1,4 +1,4 @@
-import { validateAgainstSchema } from "../shared/schema/validation";
+import { validateAgainstSchema } from "../../schema/validation";
 
 const USER_CONTENT_SIZE_LIMIT = 128 * 2 ** 10; // 128KB
 
