@@ -1,4 +1,4 @@
-const esModules = ['@cfworker/json-schema'].join('|');
+const esModules = ["@cfworker/json-schema"].join("|");
 
 module.exports = {
   collectCoverage: true,

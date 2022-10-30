@@ -3,7 +3,7 @@ import { expect, test } from "@jest/globals";
 import { importFromSchema, SchemaObjectType } from "../State/ImportExport";
 
 test("accept valid input", () => {
-  const inputJson : SchemaObjectType = {
+  const inputJson: SchemaObjectType = {
     version: "0.0.1",
     environment: "myenv",
     input: "// test",
