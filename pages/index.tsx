@@ -21,6 +21,7 @@ import {
   Text,
   Tooltip,
   useToast,
+  UseToastOptions,
   VStack,
   ButtonGroup,
 } from "@chakra-ui/react";
@@ -296,7 +297,12 @@ const Home: NextPage = () => {
     const importUrl = urlParams.get("import");
     if (importUrl) {
       fetch(importUrl)
-        .then((response) => response.json())
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          return Promise.reject("Failed to fetch resource.");
+        })
         .then((parsedObject) => {
           let errorMsg = importFromSchemaObject(parsedObject);
           if (!errorMsg) {
@@ -311,9 +317,11 @@ const Home: NextPage = () => {
           return Promise.reject("Failed to parse file: " + errorMsg);
         })
         .catch((error) => {
+          const errorTitle = `Failed to import from URL: ${importUrl}`;
+          console.log(errorTitle + "\n" + error);
           toast({
-            title: `Failed to import from URL: ${importUrl}`,
-            description: error,
+            title: errorTitle,
+            description: String(error),
             status: "error",
             position: "top",
             isClosable: true,
