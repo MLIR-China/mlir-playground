@@ -62,7 +62,7 @@ async function handleRequest(request: Request, env: any) {
   /// Everything legal. Save into R2.
   const hashBuffer = await crypto.subtle.digest("SHA-256", encodedData);
   const filename = buf2hex(hashBuffer) + ".json";
-  // await env.UGC_BUCKET.put(filename, readResult.result);
+  await env.UGC_BUCKET.put(filename, readResult.result);
 
   return new Response(
     JSON.stringify({
