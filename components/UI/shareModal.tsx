@@ -9,6 +9,8 @@ import {
   Button,
   ButtonGroup,
   Heading,
+  HStack,
+  IconButton,
   Input,
   InputGroup,
   InputLeftAddon,
@@ -25,7 +27,7 @@ import {
   ListItem,
   OrderedList,
 } from "@chakra-ui/react";
-import { MdDownload, MdUpload } from "react-icons/md";
+import { MdContentCopy, MdDownload, MdUpload } from "react-icons/md";
 import { saveAs } from "file-saver";
 
 import { SchemaObjectType } from "../State/ImportExport";
@@ -40,7 +42,38 @@ export type ShareModalProps = {
   importFromSchemaObject: (source: any) => string;
 };
 
+const createShareLink = (data: string) => {
+  return fetch(process.env.shareLinkGenerator!, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: data,
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      return Promise.reject(
+        "Failed to upload state to share link generator. " + response.statusText
+      );
+    })
+    .then((data) => {
+      if ("filename" in data) {
+        return data["filename"];
+      }
+      return Promise.reject("Unexpected response from share link generator.");
+    });
+};
+
 export const ShareModal = (props: ShareModalProps) => {
+  const [createShareLinkPressed, setCreateShareLinkPressed] =
+    React.useState<boolean>(false);
+  const closeModal = () => {
+    props.onClose();
+    setCreateShareLinkPressed(false);
+  };
+
   const toast = useToast();
   const toastError = (title: string, description: string) => {
     toast({
@@ -59,6 +92,14 @@ export const ShareModal = (props: ShareModalProps) => {
   React.useEffect(() => {
     setWindowLocation(window.location.origin);
   }, []);
+
+  const [sharedFileLocation, setSharedFileLocation] =
+    React.useState<string>("");
+  const onSharedFileLocationChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSharedFileLocation(event.target.value);
+  };
 
   const onUploadFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -81,7 +122,6 @@ export const ShareModal = (props: ShareModalProps) => {
             position: "top",
           });
           uploadFileInput.current!.value = "";
-          props.onClose();
         } else {
           toastError("Error parsing uploaded file.", errorMsg);
         }
@@ -106,8 +146,21 @@ export const ShareModal = (props: ShareModalProps) => {
     saveAs(downloadFile, "playground.json");
   };
 
+  const onGetLinkClick = () => {
+    setCreateShareLinkPressed(true);
+    const schemaObject = props.exportToSchemaObject();
+    createShareLink(JSON.stringify(schemaObject)).then(
+      (filename) => {
+        setSharedFileLocation(filename);
+      },
+      (error) => {
+        toastError("Error creating quick share link.", error);
+      }
+    );
+  };
+
   return (
-    <Modal isOpen={props.isOpen} onClose={props.onClose} isCentered size="3xl">
+    <Modal isOpen={props.isOpen} onClose={closeModal} isCentered size="3xl">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Share your playground with others</ModalHeader>
@@ -126,20 +179,43 @@ export const ShareModal = (props: ShareModalProps) => {
               </h2>
               <AccordionPanel pb={4}>
                 <VStack spacing={4} align="start">
-                  <Box>
+                  <Box width="100%">
                     <Text>Share a direct link that others can visit.</Text>
+
+                    <HStack pt={2} width="100%">
+                      <IconButton
+                        aria-label="Copy to Clipboard"
+                        icon={<MdContentCopy />}
+                      ></IconButton>
+                      <InputGroup fontFamily="mono" variant="flushed">
+                        <InputLeftAddon>{`${windowLocation}?import=`}</InputLeftAddon>
+                        <Input
+                          variant="flushed"
+                          placeholder="https://example.com/example.json"
+                          value={sharedFileLocation}
+                          onChange={onSharedFileLocationChange}
+                        ></Input>
+                      </InputGroup>
+                    </HStack>
                   </Box>
 
-                  <Box>
-                    <Heading as="h4" size="sm">
-                      Playground-Hosted Link
-                    </Heading>
-                    <Text pt={2} pb={2}>
-                      Fastest way for sharing temporary work. MLIR Playground
-                      will host your code for 48 hours.
-                    </Text>
-                    <Button>Get Link</Button>
-                  </Box>
+                  {process.env.shareLinkGenerator && (
+                    <Box width="100%">
+                      <Heading as="h4" size="sm">
+                        Playground-Hosted Link
+                      </Heading>
+                      <Text pt={2} pb={2}>
+                        Fastest way for sharing temporary work. MLIR Playground
+                        will host your code for 48 hours.
+                      </Text>
+                      <Button
+                        disabled={createShareLinkPressed}
+                        onClick={onGetLinkClick}
+                      >
+                        Get Link
+                      </Button>
+                    </Box>
+                  )}
 
                   <Box width="100%">
                     <Heading as="h4" size="sm">
@@ -156,7 +232,8 @@ export const ShareModal = (props: ShareModalProps) => {
                         playground as a JSON file.
                       </ListItem>
                       <ListItem>
-                        Host the file somewhere accessible via HTTP (such as by{" "}
+                        Host the file somewhere accessible via HTTP GET (such as
+                        by{" "}
                         <Link
                           href="https://gist.github.com/"
                           isExternal
@@ -167,12 +244,8 @@ export const ShareModal = (props: ShareModalProps) => {
                         ).
                       </ListItem>
                       <ListItem>
-                        Share the combined link:
-                        <br />
-                        <InputGroup fontFamily="mono" variant="flushed">
-                          <InputLeftAddon>{`${windowLocation}?import=`}</InputLeftAddon>
-                          <Input variant="flushed"></Input>
-                        </InputGroup>
+                        Place the resource URL in the text input box above to
+                        form the share URL.
                       </ListItem>
                     </OrderedList>
                   </Box>

@@ -16,7 +16,11 @@ const nextConfig = {
     storePicturesInWEBP: true,
     isProduction: process.env.NODE_ENV === "production",
     productionDomain: process.env.PRODUCTION_DOMAIN,
-    wasmGenPrefix: process.env.WASM_GEN_PREFIX, // Prefix URL for generated wasm files
+    // Prefix URL for generated wasm files.
+    wasmGenPrefix: process.env.WASM_GEN_PREFIX,
+    // API endpoint for generating quick share links.
+    // If empty, quick share link button will not appear.
+    shareLinkGenerator: process.env.SHARE_LINK_GENERATOR,
   },
   webpack: (config, options) => {
     config.module.rules.push({
