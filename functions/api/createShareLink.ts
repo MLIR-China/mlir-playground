@@ -8,6 +8,12 @@ function createUserErrorResponse(message: string) {
   });
 }
 
+function buf2hex(buffer: ArrayBuffer): string {
+  return [...new Uint8Array(buffer)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 async function handleRequest(request: Request, env: any) {
   /// Legalize incoming data.
   const readResult: { success: boolean; result: string } = await request
@@ -54,8 +60,8 @@ async function handleRequest(request: Request, env: any) {
   }
 
   /// Everything legal. Save into R2.
-  const hash = await crypto.subtle.digest("SHA-256", encodedData);
-  const filename = hash + ".json";
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encodedData);
+  const filename = buf2hex(hashBuffer) + ".json";
   // await env.UGC_BUCKET.put(filename, readResult.result);
 
   return new Response(
