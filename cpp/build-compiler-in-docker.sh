@@ -8,7 +8,7 @@ set -e
 image=${1:-clang-wasm:latest}
 
 # Run script inside docker.
-docker run --rm -w /app/ -v $(pwd):/app/ $image bash -c "./build-compiler.sh"
+docker run --rm -w /app/ -v $(readlink -f `pwd`):/app/ $image bash -c "./build-compiler.sh"
 
 # Copy results to where they're needed.
 mkdir -p ../public/wasm
