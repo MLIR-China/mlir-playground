@@ -44,7 +44,7 @@ export type ShareModalProps = {
 
 const createShareLink = (data: string) => {
   return fetch(process.env.shareLinkGenerator!, {
-    method: "PUT",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
@@ -59,8 +59,8 @@ const createShareLink = (data: string) => {
       );
     })
     .then((data) => {
-      if ("filename" in data) {
-        return data["filename"];
+      if ("resource" in data) {
+        return data["resource"];
       }
       return Promise.reject("Unexpected response from share link generator.");
     });
@@ -150,8 +150,8 @@ export const ShareModal = (props: ShareModalProps) => {
     setCreateShareLinkPressed(true);
     const schemaObject = props.exportToSchemaObject();
     createShareLink(JSON.stringify(schemaObject)).then(
-      (filename) => {
-        setSharedFileLocation(filename);
+      (resource) => {
+        setSharedFileLocation(resource);
       },
       (error) => {
         toastError("Error creating quick share link.", String(error));

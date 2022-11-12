@@ -66,7 +66,7 @@ async function handleRequest(request: Request, env: any) {
 
   return new Response(
     JSON.stringify({
-      filename: filename,
+      resource: env.UGC_URL_PREFIX + filename,
     })
   );
 }
