@@ -20,7 +20,8 @@ const nextConfig = {
     wasmGenPrefix: process.env.WASM_GEN_PREFIX,
     // API endpoint for generating quick share links.
     // If empty, quick share link button will not appear.
-    shareLinkGenerator: process.env.SHARE_LINK_GENERATOR,
+    shareLinkGenerator:
+      process.env.SHARE_LINK_GENERATOR || "api/createShareLink",
   },
   webpack: (config, options) => {
     config.module.rules.push({
