@@ -18,6 +18,7 @@
     "@chakra-ui/react": "^1.8.6",
     "@monaco-editor/react": "^4.3.1",
     "ajv": "^6.12.6",
+    "clipboard-copy": "^4.0.1",
     "idb-keyval": "^6.2.0",
     "next": "12.1.0",
     "next-image-export-optimizer": "^0.9.6",

@@ -29,6 +29,7 @@ import {
 } from "@chakra-ui/react";
 import { MdContentCopy, MdDownload, MdUpload } from "react-icons/md";
 import { saveAs } from "file-saver";
+import copy from "clipboard-copy";
 
 import { SchemaObjectType } from "../State/ImportExport";
 
@@ -159,6 +160,26 @@ export const ShareModal = (props: ShareModalProps) => {
     );
   };
 
+  const onCopyLinkToClipboardClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    copy(`${windowLocation}/?import=${sharedFileLocation}`).then(
+      () => {
+        toast({
+          title: "Copied URL to clipboard.",
+          status: "success",
+          position: "top",
+        });
+      },
+      () => {
+        toastError(
+          "Error copying URL to clipboard.",
+          "Try selecting and copying the URL manually instead."
+        );
+      }
+    );
+  };
+
   return (
     <Modal isOpen={props.isOpen} onClose={closeModal} isCentered size="3xl">
       <ModalOverlay />
@@ -186,9 +207,10 @@ export const ShareModal = (props: ShareModalProps) => {
                       <IconButton
                         aria-label="Copy to Clipboard"
                         icon={<MdContentCopy />}
+                        onClick={onCopyLinkToClipboardClick}
                       ></IconButton>
                       <InputGroup fontFamily="mono" variant="flushed">
-                        <InputLeftAddon>{`${windowLocation}?import=`}</InputLeftAddon>
+                        <InputLeftAddon>{`${windowLocation}/?import=`}</InputLeftAddon>
                         <Input
                           variant="flushed"
                           placeholder="https://example.com/example.json"
