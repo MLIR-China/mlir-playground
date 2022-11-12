@@ -61,7 +61,7 @@ jobs:
         run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
       
       - name: Remove wasm files from production build
-        if: ${{ github.ref == 'refs/heads/main' }}
+        # if: ${{ github.ref == 'refs/heads/main' }}
         run: rm -r ./public/wasm
 
       # Build site (and run tests if not on `main`)
@@ -99,23 +99,23 @@ jobs:
           context: ./cpp/docker
 
       # Deploy site. Netlify for previews, Cloudflare for production.
-      - name: Deploy to Netlify
-        if: ${{ github.ref != 'refs/heads/main' }}
-        uses: nwtgck/actions-netlify@v1.2.3
-        with:
-          publish-dir: './out'
-          production-deploy: ${{ github.ref == 'refs/heads/main' }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deployed ${{ github.ref }} to Netlify"
-          enable-pull-request-comment: false
-          enable-commit-comment: false
-          enable-commit-status: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      # - name: Deploy to Netlify
+      #   if: ${{ github.ref != 'refs/heads/main' }}
+      #   uses: nwtgck/actions-netlify@v1.2.3
+      #   with:
+      #     publish-dir: './out'
+      #     production-deploy: ${{ github.ref == 'refs/heads/main' }}
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     deploy-message: "Deployed ${{ github.ref }} to Netlify"
+      #     enable-pull-request-comment: false
+      #     enable-commit-comment: false
+      #     enable-commit-status: true
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       
       - name: Push site to Cloudflare Pages
-        if: ${{ github.ref == 'refs/heads/main' }}
+        # if: ${{ github.ref == 'refs/heads/main' }}
         uses: cloudflare/pages-action@v1.1.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -123,4 +123,3 @@ jobs:
           projectName: mlir-playground
           directory: out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref_name }}
