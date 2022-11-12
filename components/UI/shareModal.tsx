@@ -154,7 +154,7 @@ export const ShareModal = (props: ShareModalProps) => {
         setSharedFileLocation(filename);
       },
       (error) => {
-        toastError("Error creating quick share link.", error);
+        toastError("Error creating quick share link.", String(error));
       }
     );
   };
