@@ -116,10 +116,8 @@ jobs:
       
       - name: Push site to Cloudflare Pages
         # if: ${{ github.ref == 'refs/heads/main' }}
-        uses: cloudflare/pages-action@v1.1.0
+        uses: cloudflare/wrangler-action@2.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: mlir-playground
-          directory: out
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages publish out --project-name=mlir-playground-direct
