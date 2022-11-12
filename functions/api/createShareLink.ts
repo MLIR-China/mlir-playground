@@ -47,7 +47,7 @@ async function handleRequest(request: Request, env: any) {
     parsedResult = JSON.parse(readResult.result);
   } catch (error: any) {
     return createUserErrorResponse(
-      "Failed to parse incoming data as JSON." + error.message
+      "Failed to parse incoming data as JSON. " + error.message
     );
   }
 
