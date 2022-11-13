@@ -74,12 +74,14 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
+      - name: Set common build environment
+        run: echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/${{ env.REMOTE_WASM_PATH }}/" >> $GITHUB_ENV
+
       - name: Set build environment
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           echo "NODE_ENV=production" >> $GITHUB_ENV
           echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
-          echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/${{ env.REMOTE_WASM_PATH }}/" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build
