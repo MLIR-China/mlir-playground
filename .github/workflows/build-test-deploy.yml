@@ -56,12 +56,18 @@ jobs:
         working-directory: ./cpp/
         run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
 
-      - name: Upload artifacts to B2
+      - name: Generate remote file location for production
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm files
+        run: echo "REMOTE_WASM_PATH=files" >> $GITHUB_ENV
+
+      - name: Generate remote file location for preview
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: echo "REMOTE_WASM_PATH=preview/${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Upload artifacts to B2
+        run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm ${{ env.REMOTE_WASM_PATH }}
       
-      - name: Remove wasm files from production build
-        # if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Remove wasm files after upload
         run: rm -r ./public/wasm
 
       # Build site (and run tests if not on `main`)
@@ -73,7 +79,7 @@ jobs:
         run: |
           echo "NODE_ENV=production" >> $GITHUB_ENV
           echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
-          echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/files/" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/${{ env.REMOTE_WASM_PATH }}/" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build
@@ -97,25 +103,8 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
           cache-to: type=inline
           context: ./cpp/docker
-
-      # Deploy site. Netlify for previews, Cloudflare for production.
-      # - name: Deploy to Netlify
-      #   if: ${{ github.ref != 'refs/heads/main' }}
-      #   uses: nwtgck/actions-netlify@v1.2.3
-      #   with:
-      #     publish-dir: './out'
-      #     production-deploy: ${{ github.ref == 'refs/heads/main' }}
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     deploy-message: "Deployed ${{ github.ref }} to Netlify"
-      #     enable-pull-request-comment: false
-      #     enable-commit-comment: false
-      #     enable-commit-status: true
-      #   env:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       
       - name: Push site to Cloudflare Pages
-        # if: ${{ github.ref == 'refs/heads/main' }}
         uses: cloudflare/wrangler-action@2.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
