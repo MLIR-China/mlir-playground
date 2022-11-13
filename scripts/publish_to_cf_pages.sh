@@ -12,7 +12,7 @@ BRANCH_NAME=${3}
 OUTPUT_FILE=${4}
 
 # Install wrangler
-npm -i -g wrangler@2.2.1
+npm i -g wrangler@2.2.1
 
 # Publish to CF Pages
 export API_CREDENTIALS="API Token"
