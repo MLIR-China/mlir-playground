@@ -77,7 +77,7 @@ jobs:
       - name: Set common build environment
         run: echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/${{ env.REMOTE_WASM_PATH }}/" >> $GITHUB_ENV
 
-      - name: Set build environment
+      - name: Set production build environment
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           echo "NODE_ENV=production" >> $GITHUB_ENV
@@ -107,8 +107,9 @@ jobs:
           context: ./cpp/docker
       
       - name: Push site to Cloudflare Pages
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages publish out --project-name=mlir-playground-direct --branch=${{ github.head_ref }}
+        id: publish-to-cf-pages
+        run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.head_ref }} $GITHUB_OUTPUT
+      
+      - name: Echo output
+        run: echo "The output URL is ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}"
+
