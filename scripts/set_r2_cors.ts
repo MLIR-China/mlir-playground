@@ -5,6 +5,7 @@
  */
 
 const R2_ENDPOINT = "<FILL IN R2 ENDPOINT HERE>";
+const BUCKET_NAME = "mlir-playground-ugc";
 
 import {
   S3Client,
@@ -28,7 +29,7 @@ const corsRules = [
 ];
 
 const putCommand = new PutBucketCorsCommand({
-  Bucket: "mlir-playground-ugc",
+  Bucket: BUCKET_NAME,
   CORSConfiguration: { CORSRules: corsRules },
 });
 client.send(putCommand).then((response) => {
@@ -36,7 +37,7 @@ client.send(putCommand).then((response) => {
 
   // Get and check
   const getCommand = new GetBucketCorsCommand({
-    Bucket: "mlir-playground-ugc",
+    Bucket: BUCKET_NAME,
   });
   client.send(getCommand).then((response) => {
     console.log("GET response:\n" + response);
