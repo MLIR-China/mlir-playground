@@ -1,0 +1,25 @@
+name: Cleanup Previews
+# This action will clean up any resources used only for preview deployments of a PR when it is closed for any reason.
+
+on:
+  pull_request:
+    types:
+      - closed
+
+concurrency:
+  group: cleanup-previews-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup-b2:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Generate remote file location for preview
+        run: echo "REMOTE_WASM_PATH=preview/${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Run b2 cleanup script
+        run: ./scripts/remove_from_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm ${{ env.REMOTE_WASM_PATH }}
