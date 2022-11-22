@@ -1,0 +1,25 @@
+name: Cleanup Stale User Content
+# This action will clean up any user generated content that has passed expiration.
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run every day at 0:00
+  workflow_dispatch:
+
+concurrency:
+  group: cleanup-stale-user-content-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup-stale-r2-files:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Run r2 cleanup script
+        run: npx ts-node scripts/remove_stale_user_content.ts ${{ secrets.CF_R2_S3_ENDPOINT }} ${{ secrets.CF_R2_UGC_BUCKET }}
