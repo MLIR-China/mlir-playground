@@ -1,12 +1,10 @@
 /**
- * Remove stale user content from R2.
+ * Remove stale user content from an S3-compatible bucket.
  *
  * Requires npm package @aws-sdk/client-s3.
  */
 
-const R2_ENDPOINT = "<FILL IN R2 ENDPOINT HERE>";
-const BUCKET_NAME = "mlir-playground-ugc";
-const STALE_TIME_THRESHOLD = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
+const STALE_TIME_THRESHOLD = 7 * (24 * 60 * 60 * 1000); // 7 days in milliseconds
 
 import {
   S3Client,
@@ -17,9 +15,20 @@ import {
   DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
 
+if (process.argv.length != 4) {
+  console.log(process.argv.length);
+  console.error("Expected two command line arguments.");
+  console.log("Usage: npx ts-node remove_stale_user_contents.ts <S3_ENDPOINT> <BUCKET_NAME>");
+  process.exit(1);
+}
+
+// First 2 args are "ts-node" and the script file respectively.
+const S3_ENDPOINT = process.argv[2];
+const BUCKET_NAME = process.argv[3];
+
 const client = new S3Client({
   region: "auto",
-  endpoint: R2_ENDPOINT,
+  endpoint: S3_ENDPOINT,
 });
 
 async function removeStaleUserContents(staleBeforeTime: number) {
@@ -90,6 +99,8 @@ async function removeStaleUserContents(staleBeforeTime: number) {
       return;
     }
   }
+
+  console.log("All stale objects deleted successfully!");
 }
 
 removeStaleUserContents(Date.now() - STALE_TIME_THRESHOLD);
