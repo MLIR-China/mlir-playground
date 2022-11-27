@@ -68,11 +68,21 @@ const createShareLink = (data: string) => {
 };
 
 export const ShareModal = (props: ShareModalProps) => {
+  const [sharedFileLocation, setSharedFileLocation] =
+    React.useState<string>("");
+  const onSharedFileLocationChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSharedFileLocation(event.target.value);
+  };
+
   const [createShareLinkPressed, setCreateShareLinkPressed] =
     React.useState<boolean>(false);
   const closeModal = () => {
     props.onClose();
+    // Reset modal state.
     setCreateShareLinkPressed(false);
+    setSharedFileLocation("");
   };
 
   const toast = useToast();
@@ -93,14 +103,6 @@ export const ShareModal = (props: ShareModalProps) => {
   React.useEffect(() => {
     setWindowLocation(window.location.origin);
   }, []);
-
-  const [sharedFileLocation, setSharedFileLocation] =
-    React.useState<string>("");
-  const onSharedFileLocationChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setSharedFileLocation(event.target.value);
-  };
 
   const onUploadFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
