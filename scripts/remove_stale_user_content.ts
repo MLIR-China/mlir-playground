@@ -16,7 +16,6 @@ import {
 } from "@aws-sdk/client-s3";
 
 if (process.argv.length != 4) {
-  console.log(process.argv.length);
   console.error("Expected two command line arguments.");
   console.log(
     "Usage: npx ts-node remove_stale_user_contents.ts <S3_ENDPOINT> <BUCKET_NAME>"
