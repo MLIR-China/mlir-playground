@@ -58,24 +58,32 @@ jobs:
 
       - name: Generate remote file location for production
         if: ${{ github.ref == 'refs/heads/main' }}
-        run: echo "REMOTE_WASM_PATH=files" >> $GITHUB_ENV
+        run: |
+          echo "REMOTE_WASM_PATH=deployment-data-prod" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static.playground.mlir-china.org/" >> $GITHUB_ENV
 
       - name: Generate remote file location for preview
         if: ${{ github.ref != 'refs/heads/main' }}
-        run: echo "REMOTE_WASM_PATH=preview/${{ github.event.number }}" >> $GITHUB_ENV
+        run: |
+          echo "REMOTE_WASM_PATH=deployment-data-preview/${{ github.event.number }}" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static-preview.playground.mlir-china.org/${{ github.event.number }}" >> $GITHUB_ENV
 
-      - name: Upload artifacts to B2
-        run: ./scripts/upload_to_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm ${{ env.REMOTE_WASM_PATH }}
-      
+      - name: Upload artifacts to R2
+        uses: wei/rclone@v1
+        env:
+          RCLONE_CONFIG_CFR2_TYPE: s3
+          RCLONE_CONFIG_CFR2_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_CFR2_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_CFR2_ENDPOINT: ${{ secrets.CF_R2_S3_ENDPOINT }}
+        with:
+          args: copy ./public/wasm cfr2:${{ env.REMOTE_WASM_PATH }}
+
       - name: Remove wasm files after upload
         run: rm -r ./public/wasm
 
       # Build site (and run tests if not on `main`)
       - name: Install npm dependencies
         run: npm install
-
-      - name: Set common build environment
-        run: echo "WASM_GEN_PREFIX=https://static.mlir-china.org/file/mlir-playground/${{ env.REMOTE_WASM_PATH }}/" >> $GITHUB_ENV
 
       - name: Set production build environment
         if: ${{ github.ref == 'refs/heads/main' }}
