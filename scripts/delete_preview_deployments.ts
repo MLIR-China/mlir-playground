@@ -73,8 +73,7 @@ async function getPreviewDeploymentsOfBranch(branch: string) {
 }
 
 async function deleteDeployments(deploymentIds: Array<string>) {
-  const deleteUrl =
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PROJECT_NAME}/deployments/`;
+  const deleteUrl = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PROJECT_NAME}/deployments/`;
   let successCount = 0;
   for (const deploymentId of deploymentIds) {
     const deleteResponse = await (
