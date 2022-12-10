@@ -72,6 +72,7 @@ jobs:
         uses: wei/rclone@v1
         env:
           RCLONE_CONFIG_CFR2_TYPE: s3
+          RCLONE_CONFIG_CFR2_PROVIDER: Cloudflare
           RCLONE_CONFIG_CFR2_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
           RCLONE_CONFIG_CFR2_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
           RCLONE_CONFIG_CFR2_ENDPOINT: ${{ secrets.CF_R2_S3_ENDPOINT }}
