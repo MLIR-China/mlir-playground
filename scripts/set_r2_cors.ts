@@ -4,14 +4,21 @@
  * Requires npm package @aws-sdk/client-s3.
  */
 
-const R2_ENDPOINT = "<FILL IN R2 ENDPOINT HERE>";
-const BUCKET_NAME = "mlir-playground-ugc";
-
 import {
   S3Client,
   GetBucketCorsCommand,
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
+
+if (process.argv.length != 4) {
+  console.error("Expected two command line arguments.");
+  console.log("Usage: npx ts-node set_r2_cors.ts <R2_ENDPOINT> <BUCKET_NAME>");
+  process.exit(1);
+}
+
+// First 2 args are "ts-node" and the script file respectively.
+const R2_ENDPOINT = process.argv[2];
+const BUCKET_NAME = process.argv[3];
 
 const client = new S3Client({
   region: "auto",
