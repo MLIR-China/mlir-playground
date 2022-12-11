@@ -77,7 +77,7 @@ jobs:
           RCLONE_CONFIG_CFR2_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
           RCLONE_CONFIG_CFR2_ENDPOINT: ${{ secrets.CF_R2_S3_ENDPOINT }}
         with:
-          args: copy ./public/wasm cfr2:${{ env.REMOTE_WASM_PATH }}
+          args: sync ./public/wasm cfr2:${{ env.REMOTE_WASM_PATH }}
 
       - name: Remove wasm files after upload
         run: rm -r ./public/wasm
@@ -121,4 +121,3 @@ jobs:
       
       - name: Echo output
         run: echo "The output URL is ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}"
-
