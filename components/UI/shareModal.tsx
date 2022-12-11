@@ -209,23 +209,6 @@ export const ShareModal = (props: ShareModalProps) => {
                 <VStack spacing={4} align="start">
                   <Box width="100%">
                     <Text>Share a direct link that others can visit.</Text>
-
-                    <HStack pt={2} width="100%">
-                      <IconButton
-                        aria-label="Copy to Clipboard"
-                        icon={<MdContentCopy />}
-                        onClick={onCopyLinkToClipboardClick}
-                      ></IconButton>
-                      <InputGroup fontFamily="mono" variant="flushed">
-                        <InputLeftAddon>{`${windowLocation}/?import=`}</InputLeftAddon>
-                        <Input
-                          variant="flushed"
-                          placeholder="https://example.com/example.json"
-                          value={sharedFileLocation}
-                          onChange={onSharedFileLocationChange}
-                        ></Input>
-                      </InputGroup>
-                    </HStack>
                   </Box>
 
                   {process.env.shareLinkGenerator && (
@@ -261,7 +244,7 @@ export const ShareModal = (props: ShareModalProps) => {
                         playground as a JSON file.
                       </ListItem>
                       <ListItem>
-                        Host the file somewhere accessible via HTTP GET (such as
+                        Host the file somewhere accessible via http(s) (such as
                         by{" "}
                         <Link
                           href="https://gist.github.com/"
@@ -273,10 +256,27 @@ export const ShareModal = (props: ShareModalProps) => {
                         ).
                       </ListItem>
                       <ListItem>
-                        Place the resource URL in the text input box above to
+                        Place the raw file URL in the text input box below to
                         form the share URL.
                       </ListItem>
                     </OrderedList>
+
+                    <HStack pt={2} width="100%">
+                      <IconButton
+                        aria-label="Copy to Clipboard"
+                        icon={<MdContentCopy />}
+                        onClick={onCopyLinkToClipboardClick}
+                      ></IconButton>
+                      <InputGroup fontFamily="mono" variant="flushed">
+                        <InputLeftAddon>{`${windowLocation}/?import=`}</InputLeftAddon>
+                        <Input
+                          variant="flushed"
+                          placeholder="gist.github.com/[user]/[id]/raw/file.json"
+                          value={sharedFileLocation}
+                          onChange={onSharedFileLocationChange}
+                        ></Input>
+                      </InputGroup>
+                    </HStack>
                   </Box>
                 </VStack>
               </AccordionPanel>
