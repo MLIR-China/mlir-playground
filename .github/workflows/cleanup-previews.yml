@@ -19,10 +19,18 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Generate remote file location for preview
-        run: echo "REMOTE_WASM_PATH=preview/${{ github.event.number }}" >> $GITHUB_ENV
+        run: echo "REMOTE_WASM_PATH=deployment-data-preview/${{ github.event.number }}" >> $GITHUB_ENV
 
-      - name: Run b2 cleanup script
-        run: ./scripts/remove_from_b2.sh mlir-playground ${{ secrets.B2_APPLICATION_KEY_ID }} ${{ secrets.B2_APPLICATION_KEY }} ./public/wasm ${{ env.REMOTE_WASM_PATH }}
+      - name: Upload artifacts to R2
+        uses: wei/rclone@v1
+        env:
+          RCLONE_CONFIG_CFR2_TYPE: s3
+          RCLONE_CONFIG_CFR2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_CFR2_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_CFR2_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_CFR2_ENDPOINT: ${{ secrets.CF_R2_S3_ENDPOINT }}
+        with:
+          args: delete cfr2:${{ env.REMOTE_WASM_PATH }}
 
   delete-preview-deployments:
     runs-on: ubuntu-20.04
