@@ -149,26 +149,11 @@ export const ShareModal = (props: ShareModalProps) => {
     saveAs(downloadFile, "playground.json");
   };
 
-  const onGetLinkClick = () => {
-    setCreateShareLinkPressed(true);
-    const schemaObject = props.exportToSchemaObject();
-    createShareLink(JSON.stringify(schemaObject)).then(
-      (resource) => {
-        setSharedFileLocation(resource);
-      },
-      (error) => {
-        toastError("Error creating quick share link.", String(error));
-      }
-    );
-  };
-
-  const onCopyLinkToClipboardClick = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    copy(`${windowLocation}/?import=${sharedFileLocation}`).then(
+  const copyResourceLinktoClipboard = (resourceLocation: string) => {
+    copy(`${windowLocation}/?import=${resourceLocation}`).then(
       () => {
         toast({
-          title: "Copied URL to clipboard.",
+          title: "Copied Share Link to clipboard.",
           status: "success",
           position: "top",
         });
@@ -180,6 +165,26 @@ export const ShareModal = (props: ShareModalProps) => {
         );
       }
     );
+  };
+
+  const onGetLinkClick = () => {
+    setCreateShareLinkPressed(true);
+    const schemaObject = props.exportToSchemaObject();
+    createShareLink(JSON.stringify(schemaObject)).then(
+      (resource) => {
+        setSharedFileLocation(resource);
+        copyResourceLinktoClipboard(resource);
+      },
+      (error) => {
+        toastError("Error creating quick share link.", String(error));
+      }
+    );
+  };
+
+  const onCopyLinkToClipboardClick = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    copyResourceLinktoClipboard(sharedFileLocation);
   };
 
   return (
