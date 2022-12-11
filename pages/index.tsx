@@ -294,8 +294,13 @@ const Home: NextPage = () => {
   const onAllEditorsMounted = () => {
     // Import from url params.
     const urlParams = new URLSearchParams(window.location.search);
-    const importUrl = urlParams.get("import");
+    let importUrl = urlParams.get("import");
     if (importUrl) {
+      // Allow user to omit "http(s)://" prefix.
+      if (!/^https?:\/\//i.test(importUrl)) {
+        importUrl = "https://" + importUrl;
+      }
+
       fetch(importUrl)
         .then((response) => {
           if (response.ok) {
