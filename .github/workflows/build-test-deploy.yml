@@ -114,18 +114,27 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
           cache-to: type=inline
           context: ./cpp/docker
+
+      - name: Start Deployment for Previews
+        uses: bobheadxi/deployments@v1
+        if: ${{ github.ref != 'refs/heads/main' }}
+        id: deployment-start
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: pull request
       
       - name: Push site to Cloudflare Pages
         id: publish-to-cf-pages
         run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.head_ref }} $GITHUB_OUTPUT
       
-      - name: Update Deployment Status for Previews
+      - name: Finish Deployment for Previews
         uses: bobheadxi/deployments@v1
         if: ${{ github.ref != 'refs/heads/main' }}
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: pull request
-          deployment_id: ${{ github.event.deployment.id }}
+          env: ${{ steps.deployment-start.outputs.env }}
+          deployment_id: ${{ steps.deployment-start.outputs.deployment_id }}
           status: ${{ job.status }}
           env_url: ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}
