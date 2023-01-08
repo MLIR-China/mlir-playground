@@ -123,6 +123,7 @@ jobs:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
           env: pull request
+          ref: ${{ github.head_ref }}
       
       - name: Push site to Cloudflare Pages
         id: publish-to-cf-pages
