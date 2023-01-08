@@ -39,7 +39,7 @@ import {
 } from "../components/Presets/PresetFactory";
 
 import LabeledEditor from "../components/UI/labeledEditor";
-import NavBar from "../components/UI/navbar";
+import NavBar, { LocalEnvironmentCachingStatus } from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { AllPlaygroundEvents } from "../components/Utils/Events";
 import { RunStatus } from "../components/Utils/RunStatus";
@@ -76,8 +76,9 @@ const Home: NextPage = () => {
   /* Compiler Environment Management */
   const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
     useState("");
-  const [compilerEnvironmentStatus, setCompilerEnvironmentStatus] =
-    useState("Pending");
+  const [compilerEnvironmentStatus, setCompilerEnvironmentStatus] = useState(
+    LocalEnvironmentCachingStatus.PENDING
+  );
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
     useState(false);
   const [runStatus, setRunStatus] = useState("");
@@ -89,7 +90,11 @@ const Home: NextPage = () => {
       ([version, isCompatible]) => {
         setCompilerEnvironmentVersion(version);
         setCompilerEnvironmentStatus(
-          version ? (isCompatible ? "Ready" : "Outdated") : "Pending"
+          version
+            ? isCompatible
+              ? LocalEnvironmentCachingStatus.READY
+              : LocalEnvironmentCachingStatus.OUTDATED
+            : LocalEnvironmentCachingStatus.PENDING
         );
         return !!version && isCompatible;
       }

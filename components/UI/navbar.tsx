@@ -111,9 +111,15 @@ const ShareButton = (props: ShareButtonProps) => {
   );
 };
 
+export enum LocalEnvironmentCachingStatus {
+  PENDING = "Pending",
+  OUTDATED = "Outdated",
+  READY = "Ready",
+}
+
 type LocalEnvironmentStatusProps = {
   envVersion: string;
-  envStatus: "Pending" | "Outdated" | "Ready";
+  envStatus: LocalEnvironmentCachingStatus;
   envPopoverOpen: boolean;
   setEnvPopoverOpen: (isOpen: boolean) => void;
   initiateEnvDownload: () => Promise<boolean>;
@@ -132,8 +138,8 @@ This will incur a download of ~100MB once.`;
     });
   };
 
-  const envCached = props.envStatus != "Pending";
-  const envReady = props.envStatus == "Ready";
+  const envCached = props.envStatus != LocalEnvironmentCachingStatus.PENDING;
+  const envReady = props.envStatus == LocalEnvironmentCachingStatus.READY;
 
   return (
     <Popover
