@@ -5,7 +5,7 @@ import { PlaygroundPreset } from "./PlaygroundPreset";
 import { TableGen } from "./TableGen";
 import { ToyChapter } from "./ToyChapter";
 
-const PresetFactory: Record<string, () => PlaygroundPreset> = {
+const PresetFactory = {
   "Custom mlir-opt": () => {
     return new MlirOpt();
   },
@@ -39,11 +39,11 @@ const PresetFactory: Record<string, () => PlaygroundPreset> = {
   "Toy Chapter 7": () => {
     return new ToyChapter(7);
   },
-};
+} as const;
 
 let PresetStorage: Record<string, PlaygroundPreset> = {};
 
-type presetOption = keyof typeof PresetFactory;
+export type presetOption = keyof typeof PresetFactory;
 
 export const defaultPreset: presetOption = "TableGen DRR";
 
@@ -51,7 +51,7 @@ export function getPresetNames() {
   return Object.keys(PresetFactory);
 }
 
-export function getPreset(name: string) {
+export function getPreset(name: presetOption) {
   if (!(name in PresetStorage)) {
     PresetStorage[name] = PresetFactory[name]();
   }

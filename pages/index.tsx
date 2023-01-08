@@ -21,6 +21,7 @@ import {
   Text,
   Tooltip,
   useToast,
+  UseToastOptions,
   VStack,
   ButtonGroup,
 } from "@chakra-ui/react";
@@ -34,6 +35,7 @@ import {
   defaultPreset,
   getPresetNames,
   getPreset,
+  presetOption,
 } from "../components/Presets/PresetFactory";
 
 import LabeledEditor from "../components/UI/labeledEditor";
@@ -45,47 +47,18 @@ import {
   PlaygroundPreset,
   PlaygroundPresetPane,
 } from "../components/Presets/PlaygroundPreset";
+import {
+  exportToSchema,
+  importFromSchema,
+  SchemaObjectType,
+} from "../components/State/ImportExport";
+import {
+  StageState,
+  newStageStateFromPreset,
+  stageStateIsDirty,
+} from "../components/State/StageState";
 
-// Stores the configuration of a particular stage.
-type StageState = {
-  preset: string;
-  additionalRunArgs: string;
-  editorContents: Array<string>;
-  currentPaneIdx: number | null;
-  logs: Array<string>;
-  output: string;
-
-  outputEditor: React.MutableRefObject<any>;
-  outputEditorWindow: React.MutableRefObject<any>;
-};
-
-function newStageStateFromPreset(preset: string = defaultPreset): StageState {
-  const presetProps = getPreset(preset);
-  const panes = presetProps.getPanes();
-  return {
-    preset: preset,
-    editorContents: panes.map((pane: PlaygroundPresetPane) => {
-      return pane.defaultEditorContent;
-    }),
-    currentPaneIdx: panes.length > 0 ? 0 : null,
-    additionalRunArgs: presetProps.getDefaultAdditionalRunArgs(),
-    logs: [],
-    output: "",
-    outputEditor: React.createRef(),
-    outputEditorWindow: React.createRef(),
-  };
-}
-
-function StageStateIsDirty(state: StageState): boolean {
-  const presetProps = getPreset(state.preset);
-  return presetProps.getPanes().some((pane, paneIndex) => {
-    const editorContent = state.editorContents[paneIndex];
-    return (
-      editorContent.trim().length > 0 &&
-      editorContent != pane.defaultEditorContent
-    );
-  });
-}
+import { validateAgainstSchema } from "../schema/validation";
 
 function getInputFileBaseName(stageIndex: number) {
   const prevIndex = stageIndex - 1;
@@ -249,10 +222,10 @@ const Home: NextPage = () => {
   // If currentOnly, then only the current editor is checked.
   function isEditorDirty(currentOnly: boolean) {
     if (currentOnly) {
-      return StageStateIsDirty(currentStage());
+      return stageStateIsDirty(currentStage());
     }
     return stages.some((stage) => {
-      return StageStateIsDirty(stage);
+      return stageStateIsDirty(stage);
     });
   }
 
@@ -271,7 +244,7 @@ const Home: NextPage = () => {
   });
 
   // Update the preset selection of the current stage.
-  function setPresetSelection(selection: string) {
+  function setPresetSelection(selection: presetOption) {
     if (isEditorDirty(true)) {
       // Check with the user first. If dialogs are disabled, this will always return false.
       if (
@@ -318,6 +291,56 @@ const Home: NextPage = () => {
     });
   }
 
+  const onAllEditorsMounted = () => {
+    // Import from url params.
+    const urlParams = new URLSearchParams(window.location.search);
+    let importUrl = urlParams.get("import");
+    if (importUrl) {
+      // Allow user to omit "http(s)://" prefix.
+      if (!/^https?:\/\//i.test(importUrl)) {
+        importUrl = "https://" + importUrl;
+      }
+
+      fetch(importUrl)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          return Promise.reject("Failed to fetch resource.");
+        })
+        .then((parsedObject) => {
+          let errorMsg = importFromSchemaObject(parsedObject);
+          if (!errorMsg) {
+            toast({
+              title: "Import Success!",
+              description: "Successfully imported from URL.",
+              status: "success",
+              position: "top",
+            });
+            return;
+          }
+          return Promise.reject("Failed to parse file: " + errorMsg);
+        })
+        .catch((error) => {
+          const errorTitle = `Failed to import from URL: ${importUrl}`;
+          console.log(errorTitle + "\n" + error);
+          toast({
+            title: errorTitle,
+            description: String(error),
+            status: "error",
+            position: "top",
+            isClosable: true,
+            duration: null,
+          });
+        });
+    }
+
+    // This will unset the loading state of buttons.
+    setAllEditorsMounted(true);
+    setPresetSelection(defaultPreset);
+    updateCompilerEnvironmentReady();
+  };
+
   const onEditorMounted = (editorRef: React.MutableRefObject<any>): OnMount => {
     return (editor, _) => {
       editorRef.current = editor;
@@ -331,10 +354,7 @@ const Home: NextPage = () => {
         currentStage().outputEditor.current &&
         !allEditorsMounted
       ) {
-        // All editors mounted.
-        setAllEditorsMounted(true);
-        setPresetSelection(defaultPreset);
-        updateCompilerEnvironmentReady();
+        onAllEditorsMounted();
       }
     };
   };
@@ -342,7 +362,8 @@ const Home: NextPage = () => {
   const onPresetSelectionChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setPresetSelection(event.target.value);
+    // This is considered implicitly safe since the options are provided by us.
+    setPresetSelection(event.target.value as presetOption);
   };
 
   // Dims the old logs and returns a function for adding log messages.
@@ -432,6 +453,31 @@ const Home: NextPage = () => {
     });
   };
 
+  const exportToSchemaObject = () => {
+    return exportToSchema(
+      { input: inputEditorContent, stages: stages },
+      compilerEnvironmentVersion
+    );
+  };
+
+  // Returns an error message if failed. Otherwise returns an empty string.
+  const importFromSchemaObject = (source: any) => {
+    const validationError = validateAgainstSchema(source);
+    if (validationError) {
+      return validationError;
+    }
+
+    const internalState = importFromSchema(source as SchemaObjectType);
+    if (typeof internalState === "string") {
+      // Error during import
+      return internalState;
+    }
+
+    setInputEditorContent(internalState.input);
+    setStages(internalState.stages);
+    return "";
+  };
+
   return (
     <VStack className={styles.container}>
       <Head>
@@ -463,6 +509,8 @@ const Home: NextPage = () => {
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
         initiateEnvDownload={downloadCompilerEnvironment}
+        exportToSchemaObject={exportToSchemaObject}
+        importFromSchemaObject={importFromSchemaObject}
       />
       <Flex
         as="main"

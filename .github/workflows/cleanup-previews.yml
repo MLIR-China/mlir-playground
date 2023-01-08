@@ -1,0 +1,46 @@
+name: Cleanup Previews
+# This action will clean up any resources used only for preview deployments of a PR when it is closed for any reason.
+
+on:
+  pull_request:
+    types:
+      - closed
+
+concurrency:
+  group: cleanup-previews-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup-b2:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Generate remote file location for preview
+        run: echo "REMOTE_WASM_PATH=deployment-data-preview/${{ github.event.number }}" >> $GITHUB_ENV
+
+      - name: Upload artifacts to R2
+        uses: wei/rclone@v1
+        env:
+          RCLONE_CONFIG_CFR2_TYPE: s3
+          RCLONE_CONFIG_CFR2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_CFR2_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_CFR2_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_CFR2_ENDPOINT: ${{ secrets.CF_R2_S3_ENDPOINT }}
+        with:
+          args: delete cfr2:${{ env.REMOTE_WASM_PATH }}
+
+  delete-preview-deployments:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Run deployment cleanup script
+        run: npx ts-node ./scripts/delete_preview_deployments.ts ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} mlir-playground-direct ${{ github.head_ref }}

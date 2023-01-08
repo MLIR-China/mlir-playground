@@ -1,0 +1,137 @@
+name: Build, Test, Deploy
+# This action will automatically build, test, and deploy to either preview or production.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: build-test-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-20.04
+
+    env:
+      DOCKER_HUB_NAMESPACE: jackalcooper
+      DOCKER_REPO: clang-wasm
+      NODE_OPTIONS: "--max_old_space_size=4096"
+
+    steps:
+      # Build new Docker image if needed
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 8
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v3
+        with:
+          load: true
+          tags: |
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+          cache-to: type=inline
+          context: ./cpp/docker
+      
+      # Generate wasm files
+      - name: Run wasm setup
+        working-directory: ./cpp/
+        run: ./build-compiler-in-docker.sh ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
+
+      - name: Generate remote file location for production
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          echo "REMOTE_WASM_PATH=deployment-data-prod" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static.playground.mlir-china.org/" >> $GITHUB_ENV
+
+      - name: Generate remote file location for preview
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: |
+          echo "REMOTE_WASM_PATH=deployment-data-preview/${{ github.event.number }}" >> $GITHUB_ENV
+          echo "WASM_GEN_PREFIX=https://static-preview.playground.mlir-china.org/${{ github.event.number }}/" >> $GITHUB_ENV
+
+      - name: Upload artifacts to R2
+        uses: wei/rclone@v1
+        env:
+          RCLONE_CONFIG_CFR2_TYPE: s3
+          RCLONE_CONFIG_CFR2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_CFR2_ACCESS_KEY_ID: ${{ secrets.CF_R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_CFR2_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_CFR2_ENDPOINT: ${{ secrets.CF_R2_S3_ENDPOINT }}
+        with:
+          args: sync ./public/wasm cfr2:${{ env.REMOTE_WASM_PATH }}
+
+      - name: Remove wasm files after upload
+        run: rm -r ./public/wasm
+
+      # Build site (and run tests if not on `main`)
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Set production build environment
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          echo "NODE_ENV=production" >> $GITHUB_ENV
+          echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
+      
+      - name: Run npm build
+        run: npm run build
+
+      - name: Run tests
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: npm run test
+      
+      - name: Export static website
+        run: npx next export
+      
+      # Push docker image if on `main`
+      - name: Push Docker image
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: |
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+            ${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_HUB_NAMESPACE }}/${{ env.DOCKER_REPO }}:latest
+          cache-to: type=inline
+          context: ./cpp/docker
+
+      - name: Mark start of deployment
+        uses: bobheadxi/deployments@v1
+        id: deployment-start
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ github.ref == 'refs/heads/main' && 'production' || 'pull request' }}
+          ref: ${{ github.head_ref }}
+      
+      - name: Push site to Cloudflare Pages
+        id: publish-to-cf-pages
+        run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.head_ref }} $GITHUB_OUTPUT
+      
+      - name: Mark end of deployment
+        uses: bobheadxi/deployments@v1
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: ${{ steps.deployment-start.outputs.env }}
+          deployment_id: ${{ steps.deployment-start.outputs.deployment_id }}
+          status: ${{ job.status }}
+          env_url: ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}

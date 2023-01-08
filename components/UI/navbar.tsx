@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Button,
+  ButtonGroup,
   Flex,
   Heading,
   HStack,
   Icon,
+  IconButton,
   Image,
   Link,
   Popover,
@@ -15,22 +17,31 @@ import {
   PopoverFooter,
   PopoverHeader,
   PopoverTrigger,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { GoMarkGithub } from "react-icons/go";
-import { MdOutlineCode, MdOutlineCodeOff } from "react-icons/md";
+import {
+  MdImportExport,
+  MdOutlineCode,
+  MdOutlineCodeOff,
+  MdSend,
+} from "react-icons/md";
 
-type NavBarProps = LocalEnvironmentStatusProps;
+import { ShareModalMode, ShareModalProps, ShareModal } from "../UI/shareModal";
+
+type NavBarProps = LocalEnvironmentStatusProps & ShareButtonProps;
 
 const NavBar = (props: NavBarProps) => {
   return (
     <NavBarContainer>
       <HStack spacing="1rem">
         <Logo />
-        <LocalEnvironmentStatus {...props} />
+        <ShareButton {...props} />
       </HStack>
 
       <HStack spacing="1rem">
         <GithubLink />
+        <LocalEnvironmentStatus {...props} />
       </HStack>
     </NavBarContainer>
   );
@@ -64,6 +75,42 @@ const GithubLink = () => {
   );
 };
 
+type ShareButtonProps = Omit<ShareModalProps, "isOpen" | "mode" | "onClose">;
+
+const ShareButton = (props: ShareButtonProps) => {
+  const [shareModalMode, setShareModalMode] = useState<ShareModalMode>("link");
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  return (
+    <ButtonGroup isAttached colorScheme="blue">
+      <Button
+        leftIcon={<MdSend />}
+        borderRight="1px white solid"
+        onClick={() => {
+          setShareModalMode("link");
+          onOpen();
+        }}
+      >
+        Share
+      </Button>
+      <IconButton
+        aria-label="Export/Import"
+        icon={<MdImportExport />}
+        onClick={() => {
+          setShareModalMode("file");
+          onOpen();
+        }}
+      />
+      <ShareModal
+        isOpen={isOpen}
+        onClose={onClose}
+        mode={shareModalMode}
+        {...props}
+      />
+    </ButtonGroup>
+  );
+};
+
 type LocalEnvironmentStatusProps = {
   envVersion: string; // empty string means not ready
   envPopoverOpen: boolean;
@@ -93,7 +140,7 @@ This will incur a download of ~100MB once.`;
       initialFocusRef={envReady ? undefined : downloadButtonRef}
       isOpen={props.envPopoverOpen}
       onClose={() => props.setEnvPopoverOpen(false)}
-      placement="bottom"
+      placement="bottom-end"
     >
       <PopoverTrigger>
         <Button

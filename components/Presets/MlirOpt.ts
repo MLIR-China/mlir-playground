@@ -4,7 +4,9 @@ import {
   PlaygroundPresetAction,
 } from "./PlaygroundPreset";
 
-import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
+import { RunStatusListener } from "../Utils/RunStatus";
+
+import { WasmCompilerWorkerManager } from "../WasmCompiler/workerManager";
 
 const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
@@ -38,12 +40,10 @@ const presetPanes: Array<PlaygroundPresetPane> = [
 ];
 
 export class MlirOpt extends PlaygroundPreset {
-  wasmWorker: Worker | undefined;
-  running: boolean;
+  wasmWorkerManager: WasmCompilerWorkerManager;
   constructor() {
     super();
-    this.wasmWorker = undefined;
-    this.running = false;
+    this.wasmWorkerManager = new WasmCompilerWorkerManager();
   }
 
   getPanes(): Array<PlaygroundPresetPane> {
@@ -99,40 +99,12 @@ export class MlirOpt extends PlaygroundPreset {
     printer: (text: string) => void,
     statusListener: RunStatusListener
   ): Promise<string> {
-    if (this.running) {
-      return Promise.reject(
-        "Previous instance is still running. Cannot launch another."
-      );
-    }
-
-    if (!this.wasmWorker) {
-      this.wasmWorker = new Worker(
-        new URL("../WasmCompiler/worker.ts", import.meta.url)
-      );
-    }
-
-    return new Promise((resolve, reject) => {
-      this.wasmWorker!.onmessage = (event) => {
-        if (event.data.log) {
-          printer(event.data.log);
-        } else if (event.data.error) {
-          reject(event.data.error);
-          this.running = false;
-        } else if (event.data.output) {
-          resolve(event.data.output);
-          this.running = false;
-        } else if (event.data.percentage) {
-          statusListener(
-            new RunStatus(event.data.label, event.data.percentage)
-          );
-        }
-      };
-
-      this.wasmWorker!.postMessage({
-        allSources: allSources,
-        input: input,
-        arg: arg,
-      });
-    });
+    return this.wasmWorkerManager.invokeCompilerAndRun(
+      allSources,
+      input,
+      arg,
+      printer,
+      statusListener
+    );
   }
 }
