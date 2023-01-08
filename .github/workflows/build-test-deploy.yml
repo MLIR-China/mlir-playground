@@ -1,7 +1,5 @@
 name: Build, Test, Deploy
 # This action will automatically build, test, and deploy to either preview or production.
-# If triggered by a pull request, it will deploy a non-production version to Netlify with everything packaged together.
-# If triggered by a push to `main`, it will deploy a production version to Cloudflare, with wasm artifacts pushed to B2.
 
 on:
   pull_request:
@@ -115,23 +113,21 @@ jobs:
           cache-to: type=inline
           context: ./cpp/docker
 
-      - name: Start Deployment for Previews
+      - name: Mark start of deployment
         uses: bobheadxi/deployments@v1
-        if: ${{ github.ref != 'refs/heads/main' }}
         id: deployment-start
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: pull request
+          env: ${{ github.ref == 'refs/heads/main' && 'production' || 'pull request' }}
           ref: ${{ github.head_ref }}
       
       - name: Push site to Cloudflare Pages
         id: publish-to-cf-pages
         run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.head_ref }} $GITHUB_OUTPUT
       
-      - name: Finish Deployment for Previews
+      - name: Mark end of deployment
         uses: bobheadxi/deployments@v1
-        if: ${{ github.ref != 'refs/heads/main' }}
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
