@@ -295,23 +295,33 @@ class WasmCompiler {
       WasmCompiler.wasmFetcher.fetchWasm(CLANG_WASM_FILE),
       WasmCompiler.wasmFetcher.fetchWasm(LLD_WASM_FILE),
     ];
-    return Promise.all(fetches).then(
-      (results) => {
-        // set metadata version
-        idb_setMany([
-          [LLVM_VERSION_METADATA_KEY, LLVM_VERSION],
-          [LLVM_PACKAGE_CHECKSUM_METADATA_KEY, LLVM_PACKAGE_CHECKSUM],
-        ]);
-        return true;
-      },
-      (err) => {
-        idb_delMany([
-          LLVM_VERSION_METADATA_KEY,
-          LLVM_PACKAGE_CHECKSUM_METADATA_KEY,
-        ]);
-        return false;
-      }
-    );
+    return WasmCompiler.wasmFetcher
+      .idbInvalidateKeys([
+        CLANG_DATA_FILE,
+        LLD_DATA_FILE,
+        CLANG_WASM_FILE,
+        LLD_WASM_FILE,
+      ])
+      .then(() => {
+        return Promise.all(fetches);
+      })
+      .then(
+        (results) => {
+          // set metadata version
+          idb_setMany([
+            [LLVM_VERSION_METADATA_KEY, LLVM_VERSION],
+            [LLVM_PACKAGE_CHECKSUM_METADATA_KEY, LLVM_PACKAGE_CHECKSUM],
+          ]);
+          return true;
+        },
+        (err) => {
+          idb_delMany([
+            LLVM_VERSION_METADATA_KEY,
+            LLVM_PACKAGE_CHECKSUM_METADATA_KEY,
+          ]);
+          return false;
+        }
+      );
   }
 
   // If data files are cached, returns the llvm version & whether the cached llvm package matches with what the wasm code expects.

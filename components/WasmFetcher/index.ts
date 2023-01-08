@@ -1,4 +1,5 @@
 import {
+  delMany as idb_delMany,
   get as idb_get,
   getMany as idb_getMany,
   set as idb_set,
@@ -116,6 +117,11 @@ class WasmFetcher {
       (vals) => vals.every((val) => !!val),
       () => false
     );
+  }
+
+  // Delete the following keys from the idb cache.
+  idbInvalidateKeys(keys: Array<string>): Promise<void> {
+    return idb_delMany(keys);
   }
 }
 
