@@ -104,7 +104,7 @@ jobs:
       
       # Push docker image if on `main`
       - name: Push Docker image
-        if: ${{ github.ref == 'refs/heads/main' }}d
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: docker/build-push-action@v3
         with:
           push: true
