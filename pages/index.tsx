@@ -21,7 +21,6 @@ import {
   Text,
   Tooltip,
   useToast,
-  UseToastOptions,
   VStack,
   ButtonGroup,
 } from "@chakra-ui/react";
