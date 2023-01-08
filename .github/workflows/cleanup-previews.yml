@@ -43,4 +43,4 @@ jobs:
         run: npm install
 
       - name: Run deployment cleanup script
-        run: npx ts-node ./scripts/delete_preview_deployments.ts ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} mlir-playground-direct ${{ github.ref_name }}
+        run: npx ts-node ./scripts/delete_preview_deployments.ts ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} mlir-playground-direct ${{ github.head_ref || github.ref_name }}
