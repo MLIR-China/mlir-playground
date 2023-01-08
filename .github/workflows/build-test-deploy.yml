@@ -126,5 +126,6 @@ jobs:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
           env: pull request
+          deployment_id: ${{ github.event.deployment.id }}
           status: ${{ job.status }}
           env_url: ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}
