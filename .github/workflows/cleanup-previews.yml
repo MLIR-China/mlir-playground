@@ -3,8 +3,6 @@ name: Cleanup Previews
 
 on:
   pull_request:
-    types:
-      - closed
 
 concurrency:
   group: cleanup-previews-${{ github.ref }}
