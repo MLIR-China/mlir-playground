@@ -124,7 +124,7 @@ jobs:
       
       - name: Push site to Cloudflare Pages
         id: publish-to-cf-pages
-        run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.head_ref }} $GITHUB_OUTPUT
+        run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.ref_name }} $GITHUB_OUTPUT
       
       - name: Mark end of deployment
         uses: bobheadxi/deployments@v1
