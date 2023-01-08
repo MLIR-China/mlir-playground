@@ -112,7 +112,8 @@ const ShareButton = (props: ShareButtonProps) => {
 };
 
 type LocalEnvironmentStatusProps = {
-  envVersion: string; // empty string means not ready
+  envVersion: string;
+  envStatus: "Pending" | "Outdated" | "Ready";
   envPopoverOpen: boolean;
   setEnvPopoverOpen: (isOpen: boolean) => void;
   initiateEnvDownload: () => Promise<boolean>;
@@ -131,7 +132,8 @@ This will incur a download of ~100MB once.`;
     });
   };
 
-  const envReady = !!props.envVersion;
+  const envCached = props.envStatus != "Pending";
+  const envReady = props.envStatus == "Ready";
 
   return (
     <Popover
@@ -149,7 +151,7 @@ This will incur a download of ~100MB once.`;
           backgroundColor={envReady ? "green.200" : "gray.200"}
           onClick={() => props.setEnvPopoverOpen(true)}
         >
-          {envReady ? "Ready" : "Pending"}
+          {props.envStatus}
         </Button>
       </PopoverTrigger>
       <PopoverContent>
@@ -160,7 +162,7 @@ This will incur a download of ~100MB once.`;
         <PopoverCloseButton />
         <PopoverBody style={{ whiteSpace: "pre-wrap" }}>
           <p>{popoverMessage}</p>
-          {envReady && <i>Local Version: {props.envVersion}</i>}
+          {envCached && <i>Local Version: {props.envVersion}</i>}
         </PopoverBody>
         <PopoverFooter d="flex" justifyContent="flex-end">
           <Button
@@ -169,7 +171,7 @@ This will incur a download of ~100MB once.`;
             isLoading={downloadInProgress}
             onClick={onDownloadButtonClick}
           >
-            {envReady ? "Downloaded" : "Download"}
+            {envReady ? "Downloaded" : envCached ? "Update" : "Download"}
           </Button>
         </PopoverFooter>
       </PopoverContent>

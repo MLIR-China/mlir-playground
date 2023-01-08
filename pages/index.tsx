@@ -76,6 +76,8 @@ const Home: NextPage = () => {
   /* Compiler Environment Management */
   const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
     useState("");
+  const [compilerEnvironmentStatus, setCompilerEnvironmentStatus] =
+    useState("Pending");
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
     useState(false);
   const [runStatus, setRunStatus] = useState("");
@@ -83,18 +85,18 @@ const Home: NextPage = () => {
 
   // Returns whether or not the data is cached after checking.
   function updateCompilerEnvironmentReady(): Promise<boolean> {
-    return WasmCompiler.dataFilesCachedVersion().then((version) => {
-      const isCached = !!version;
-      setCompilerEnvironmentVersion(version);
-      return isCached;
-    });
+    return WasmCompiler.dataFilesCachedVersion().then(
+      ([version, isCompatible]) => {
+        setCompilerEnvironmentVersion(version);
+        setCompilerEnvironmentStatus(
+          version ? (isCompatible ? "Ready" : "Outdated") : "Pending"
+        );
+        return !!version && isCompatible;
+      }
+    );
   }
 
   function downloadCompilerEnvironment(): Promise<boolean> {
-    if (compilerEnvironmentVersion) {
-      return Promise.resolve(true);
-    }
-
     logEvent("EnvDownloadStart");
     return WasmCompiler.initialize().then((success) => {
       logEvent("EnvDownloadDone", { props: { success: success } });
@@ -506,6 +508,7 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         envVersion={compilerEnvironmentVersion}
+        envStatus={compilerEnvironmentStatus}
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
         initiateEnvDownload={downloadCompilerEnvironment}
