@@ -39,8 +39,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Configure Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
       - name: Install npm dependencies
         run: npm install
 
       - name: Run deployment cleanup script
-        run: npx ts-node ./scripts/delete_preview_deployments.ts ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} mlir-playground-direct ${{ github.head_ref }}
+        run: npx ts-node ./scripts/delete_preview_deployments.ts ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} mlir-playground-direct ${{ github.head_ref || github.ref_name }}
