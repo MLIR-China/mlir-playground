@@ -102,7 +102,9 @@ const Home: NextPage = () => {
   }
 
   function downloadCompilerEnvironment(): Promise<boolean> {
-    logEvent("EnvDownloadStart");
+    logEvent("EnvDownloadStart", {
+      props: { isUpdate: !!compilerEnvironmentVersion },
+    });
     return WasmCompiler.initialize().then((success) => {
       logEvent("EnvDownloadDone", { props: { success: success } });
       if (!success) {

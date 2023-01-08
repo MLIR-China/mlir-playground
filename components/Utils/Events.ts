@@ -1,4 +1,7 @@
-type EnvDownloadStart = { kind: "EnvDownloadStart"; props: never };
+type EnvDownloadStart = {
+  kind: "EnvDownloadStart";
+  props: { isUpdate: boolean };
+};
 type EnvDownloadDone = { kind: "EnvDownloadDone"; props: { success: boolean } };
 type RunStart = { kind: "RunStart"; props: { preset: string } };
 type RunEnd = { kind: "RunEnd"; props: never };
