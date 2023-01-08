@@ -39,7 +39,7 @@ import {
 } from "../components/Presets/PresetFactory";
 
 import LabeledEditor from "../components/UI/labeledEditor";
-import NavBar from "../components/UI/navbar";
+import NavBar, { LocalEnvironmentCachingStatus } from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { AllPlaygroundEvents } from "../components/Utils/Events";
 import { RunStatus } from "../components/Utils/RunStatus";
@@ -76,6 +76,9 @@ const Home: NextPage = () => {
   /* Compiler Environment Management */
   const [compilerEnvironmentVersion, setCompilerEnvironmentVersion] =
     useState("");
+  const [compilerEnvironmentStatus, setCompilerEnvironmentStatus] = useState(
+    LocalEnvironmentCachingStatus.PENDING
+  );
   const [compilerEnvironmentPopoverOpen, setCompilerEnvironmentPopoverOpen] =
     useState(false);
   const [runStatus, setRunStatus] = useState("");
@@ -83,19 +86,25 @@ const Home: NextPage = () => {
 
   // Returns whether or not the data is cached after checking.
   function updateCompilerEnvironmentReady(): Promise<boolean> {
-    return WasmCompiler.dataFilesCachedVersion().then((version) => {
-      const isCached = !!version;
-      setCompilerEnvironmentVersion(version);
-      return isCached;
-    });
+    return WasmCompiler.dataFilesCachedVersion().then(
+      ([version, isCompatible]) => {
+        setCompilerEnvironmentVersion(version);
+        setCompilerEnvironmentStatus(
+          version
+            ? isCompatible
+              ? LocalEnvironmentCachingStatus.READY
+              : LocalEnvironmentCachingStatus.OUTDATED
+            : LocalEnvironmentCachingStatus.PENDING
+        );
+        return !!version && isCompatible;
+      }
+    );
   }
 
   function downloadCompilerEnvironment(): Promise<boolean> {
-    if (compilerEnvironmentVersion) {
-      return Promise.resolve(true);
-    }
-
-    logEvent("EnvDownloadStart");
+    logEvent("EnvDownloadStart", {
+      props: { isUpdate: !!compilerEnvironmentVersion },
+    });
     return WasmCompiler.initialize().then((success) => {
       logEvent("EnvDownloadDone", { props: { success: success } });
       if (!success) {
@@ -506,6 +515,7 @@ const Home: NextPage = () => {
       </Head>
       <NavBar
         envVersion={compilerEnvironmentVersion}
+        envStatus={compilerEnvironmentStatus}
         envPopoverOpen={compilerEnvironmentPopoverOpen}
         setEnvPopoverOpen={setCompilerEnvironmentPopoverOpen}
         initiateEnvDownload={downloadCompilerEnvironment}

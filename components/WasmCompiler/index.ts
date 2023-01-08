@@ -1,4 +1,8 @@
-import { del as idb_del, get as idb_get, set as idb_set } from "idb-keyval";
+import {
+  delMany as idb_delMany,
+  getMany as idb_getMany,
+  setMany as idb_setMany,
+} from "idb-keyval";
 
 import WasmFetcher from "../WasmFetcher";
 
@@ -6,6 +10,7 @@ import {
   LLVM_VERSION,
   SYSTEM_LIB_NAMES,
   LLVM_LIB_FILES,
+  LLVM_PACKAGE_CHECKSUM,
 } from "./wasm/constants.js";
 import ClangModule from "./wasm/clang.mjs";
 import LldModule from "./wasm/wasm-ld.mjs";
@@ -13,6 +18,7 @@ import TemplateModule from "./template.js";
 
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
+const LLVM_PACKAGE_CHECKSUM_METADATA_KEY = "llvm_package_checksum";
 const LLVM_VERSION_METADATA_KEY = "llvm_version";
 const CLANG_DATA_FILE = "onlyincludes.data";
 const CLANG_WASM_FILE = "clang.wasm";
@@ -292,32 +298,37 @@ class WasmCompiler {
     return Promise.all(fetches).then(
       (results) => {
         // set metadata version
-        idb_set(LLVM_VERSION_METADATA_KEY, LLVM_VERSION);
+        idb_setMany([
+          [LLVM_VERSION_METADATA_KEY, LLVM_VERSION],
+          [LLVM_PACKAGE_CHECKSUM_METADATA_KEY, LLVM_PACKAGE_CHECKSUM],
+        ]);
         return true;
       },
       (err) => {
-        idb_del(LLVM_VERSION_METADATA_KEY);
+        idb_delMany([
+          LLVM_VERSION_METADATA_KEY,
+          LLVM_PACKAGE_CHECKSUM_METADATA_KEY,
+        ]);
         return false;
       }
     );
   }
 
-  // If data files are cached, returns the version of the cache.
-  // If not cached, returns an empty string.
-  static dataFilesCachedVersion(): Promise<string> {
+  // If data files are cached, returns the llvm version & whether the cached llvm package matches with what the wasm code expects.
+  // If not cached, returns llvm version as an empty string.
+  static dataFilesCachedVersion(): Promise<[string, boolean]> {
     return WasmCompiler.wasmFetcher
       .idbCachesExists([CLANG_DATA_FILE, LLD_DATA_FILE])
       .then((cached) => {
         if (cached) {
-          return idb_get(LLVM_VERSION_METADATA_KEY).then((version) => {
-            if (version) {
-              return version;
-            }
-            // Unable to retrieve version.
-            return "(unknown)";
+          return idb_getMany([
+            LLVM_VERSION_METADATA_KEY,
+            LLVM_PACKAGE_CHECKSUM_METADATA_KEY,
+          ]).then(([version, checksum]) => {
+            return [version || "", checksum === LLVM_PACKAGE_CHECKSUM];
           });
         }
-        return "";
+        return ["", false];
       });
   }
 }
