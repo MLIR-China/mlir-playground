@@ -1,7 +1,4 @@
 import {
-  del as idb_del,
-  get as idb_get,
-  set as idb_set,
   delMany as idb_delMany,
   getMany as idb_getMany,
   setMany as idb_setMany,
