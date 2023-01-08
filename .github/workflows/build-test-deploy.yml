@@ -119,5 +119,12 @@ jobs:
         id: publish-to-cf-pages
         run: ./scripts/publish_to_cf_pages.sh ${{ secrets.CLOUDFLARE_API_TOKEN }} ${{ secrets.CLOUDFLARE_ACCOUNT_ID }} ${{ github.head_ref }} $GITHUB_OUTPUT
       
-      - name: Echo output
-        run: echo "The output URL is ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}"
+      - name: Update Deployment Status for Previews
+        uses: bobheadxi/deployments@v1
+        if: ${{ github.ref != 'refs/heads/main' }}
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: pull request
+          status: ${{ job.status }}
+          env_url: ${{ steps.publish-to-cf-pages.outputs.PUBLISHED_URL }}
