@@ -2,10 +2,7 @@ name: Build, Test, Deploy
 # This action will automatically build, test, and deploy to either preview or production.
 
 on:
-  pull_request:
   push:
-    branches:
-      - main
 
 concurrency:
   group: build-test-deploy-${{ github.ref }}
