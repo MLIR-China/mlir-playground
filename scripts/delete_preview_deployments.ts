@@ -90,7 +90,6 @@ async function deleteDeployments(deploymentIds: Array<string>) {
       console.log("Deleted: " + deploymentId);
       successCount++;
     }
-    break;
   }
 
   console.log("Successfully deleted %d deployments.", successCount);
