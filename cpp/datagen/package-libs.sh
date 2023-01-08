@@ -50,5 +50,8 @@ printf "export const LLVM_LIB_FILES = [\n" >> $CONSTANTS_FILENAME
 printf "  \"/lib/%s\",\n" "${LLVM_LIB_NAMES[@]}" >> $CONSTANTS_FILENAME
 printf "];\n\n" >> $CONSTANTS_FILENAME
 
+LLVM_PACKAGE_CHECKSUM=$(sha256sum -b onlyincludes.data onlyincludes.js onlylibs.data onlylibs.js | sha256sum | cut -f 1 -d ' ')
+printf "export const LLVM_PACKAGE_CHECKSUM = \"$LLVM_PACKAGE_CHECKSUM\";\n\n" >> $CONSTANTS_FILENAME
+
 # Cleanup
 rm -r tmp
