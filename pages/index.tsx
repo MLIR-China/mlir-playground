@@ -325,11 +325,13 @@ const Home: NextPage = () => {
               status: "success",
               position: "top",
             });
+            logEvent("Import", { props: { isLocal: false, success: true } });
             return;
           }
           return Promise.reject("Failed to parse file: " + errorMsg);
         })
         .catch((error) => {
+          logEvent("Import", { props: { isLocal: false, success: false } });
           const errorTitle = `Failed to import from URL: ${importUrl}`;
           console.log(errorTitle + "\n" + error);
           toast({

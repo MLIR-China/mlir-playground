@@ -28,9 +28,11 @@ import {
   OrderedList,
 } from "@chakra-ui/react";
 import { MdContentCopy, MdDownload, MdUpload } from "react-icons/md";
+import { usePlausible } from "next-plausible";
 import { saveAs } from "file-saver";
 import copy from "clipboard-copy";
 
+import { AllPlaygroundEvents } from "../Utils/Events";
 import { SchemaObjectType } from "../State/ImportExport";
 
 export type ShareModalMode = "link" | "file";
@@ -68,6 +70,8 @@ const createShareLink = (data: string) => {
 };
 
 export const ShareModal = (props: ShareModalProps) => {
+  const logEvent = usePlausible<AllPlaygroundEvents>();
+
   const [sharedFileLocation, setSharedFileLocation] =
     React.useState<string>("");
   const onSharedFileLocationChange = (
@@ -124,13 +128,16 @@ export const ShareModal = (props: ShareModalProps) => {
             status: "success",
             position: "top",
           });
+          logEvent("Import", { props: { isLocal: true, success: true } });
           uploadFileInput.current!.value = "";
         } else {
           toastError("Error parsing uploaded file.", errorMsg);
+          logEvent("Import", { props: { isLocal: true, success: false } });
         }
       },
       (error) => {
         toastError("Error reading uploaded file.", error);
+        logEvent("Import", { props: { isLocal: true, success: false } });
       }
     );
   };
@@ -146,6 +153,7 @@ export const ShareModal = (props: ShareModalProps) => {
     const downloadFile = new Blob([JSON.stringify(schemaObject)], {
       type: "text/plain;charset=utf-8",
     });
+    logEvent("Export", { props: { isLocal: true, success: true } });
     saveAs(downloadFile, "playground.json");
   };
 
@@ -174,9 +182,11 @@ export const ShareModal = (props: ShareModalProps) => {
       (resource) => {
         setSharedFileLocation(resource);
         copyResourceLinktoClipboard(resource);
+        logEvent("Export", { props: { isLocal: false, success: true } });
       },
       (error) => {
         toastError("Error creating quick share link.", String(error));
+        logEvent("Export", { props: { isLocal: false, success: false } });
       }
     );
   };
