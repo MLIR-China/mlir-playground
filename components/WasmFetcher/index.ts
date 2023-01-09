@@ -1,4 +1,5 @@
 import {
+  clear as idb_clear,
   get as idb_get,
   getMany as idb_getMany,
   set as idb_set,
@@ -116,6 +117,11 @@ class WasmFetcher {
       (vals) => vals.every((val) => !!val),
       () => false
     );
+  }
+
+  // Clear the local cache.
+  invalidateAll(): Promise<void> {
+    return idb_clear();
   }
 }
 
