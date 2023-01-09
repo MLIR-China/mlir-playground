@@ -89,11 +89,8 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
-      - name: Set production build environment
-        if: ${{ github.ref == 'refs/heads/main' }}
-        run: |
-          echo "NODE_ENV=production" >> $GITHUB_ENV
-          echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
+      - name: Set build environment
+        run: echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
       
       - name: Run npm build
         run: npm run build
