@@ -1,5 +1,5 @@
 import {
-  delMany as idb_delMany,
+  clear as idb_clear,
   get as idb_get,
   getMany as idb_getMany,
   set as idb_set,
@@ -119,9 +119,9 @@ class WasmFetcher {
     );
   }
 
-  // Delete the following keys from the idb cache.
-  idbInvalidateKeys(keys: Array<string>): Promise<void> {
-    return idb_delMany(keys);
+  // Clear the local cache.
+  invalidateAll(): Promise<void> {
+    return idb_clear();
   }
 }
 

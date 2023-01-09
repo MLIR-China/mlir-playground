@@ -288,24 +288,14 @@ class WasmCompiler {
 
   // Returns whether initialization was successful.
   static initialize(): Promise<boolean> {
-    // prefetch data files
-    const fetches = [
-      WasmCompiler.wasmFetcher.fetchData(CLANG_DATA_FILE),
-      WasmCompiler.wasmFetcher.fetchData(LLD_DATA_FILE),
-      WasmCompiler.wasmFetcher.fetchWasm(CLANG_WASM_FILE),
-      WasmCompiler.wasmFetcher.fetchWasm(LLD_WASM_FILE),
-    ];
-    return WasmCompiler.wasmFetcher
-      .idbInvalidateKeys([
-        CLANG_DATA_FILE,
-        LLD_DATA_FILE,
-        CLANG_WASM_FILE,
-        LLD_WASM_FILE,
-      ])
-      .then(() => {
-        return Promise.all(fetches);
-      })
-      .then(
+    return WasmCompiler.wasmFetcher.invalidateAll().then(() => {
+      const fetches = [
+        WasmCompiler.wasmFetcher.fetchData(CLANG_DATA_FILE),
+        WasmCompiler.wasmFetcher.fetchData(LLD_DATA_FILE),
+        WasmCompiler.wasmFetcher.fetchWasm(CLANG_WASM_FILE),
+        WasmCompiler.wasmFetcher.fetchWasm(LLD_WASM_FILE),
+      ];
+      return Promise.all(fetches).then(
         (results) => {
           // set metadata version
           idb_setMany([
@@ -322,6 +312,7 @@ class WasmCompiler {
           return false;
         }
       );
+    });
   }
 
   // If data files are cached, returns the llvm version & whether the cached llvm package matches with what the wasm code expects.
