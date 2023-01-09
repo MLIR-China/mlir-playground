@@ -14,22 +14,25 @@ type RunStart = { kind: "RunStart"; props: { preset: string } };
 // Compiler finished running.
 type RunEnd = { kind: "RunEnd"; props: never };
 
-// User triggered an export of the playground.
-// - isLocal: whether the export is a local file download, or creating a shared link.
-// - success: whether the export succeeded or not.
-type Export = { kind: "Export"; props: { isLocal: boolean; success: boolean } };
-// User triggered an import of a playground.
-// - isLocal: whether the import is a local file upload, or from a shared link.
-// - success: whether the import succeeded or not.
-type Import = { kind: "Import"; props: { isLocal: boolean; success: boolean } };
+// User created / imported a share link.
+// - success: whether the action succeeded or not.
+type CreateShareLink = { kind: "CreateShareLink"; props: { success: boolean } };
+type ImportShareLink = { kind: "ImportShareLink"; props: { success: boolean } };
+
+// User triggered a local file export / import
+// - success: whether the action succeeded or not.
+type FileExport = { kind: "FileExport"; props: never };
+type FileImport = { kind: "FileImport"; props: { success: boolean } };
 
 type PlaygroundEvent =
   | EnvDownloadStart
   | EnvDownloadDone
   | RunStart
   | RunEnd
-  | Export
-  | Import;
+  | CreateShareLink
+  | ImportShareLink
+  | FileExport
+  | FileImport;
 
 export type AllPlaygroundEvents = {
   [EventKind in PlaygroundEvent as EventKind["kind"]]: EventKind["props"];

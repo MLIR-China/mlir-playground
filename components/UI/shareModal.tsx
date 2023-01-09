@@ -128,16 +128,16 @@ export const ShareModal = (props: ShareModalProps) => {
             status: "success",
             position: "top",
           });
-          logEvent("Import", { props: { isLocal: true, success: true } });
+          logEvent("FileImport", { props: { success: true } });
           uploadFileInput.current!.value = "";
         } else {
           toastError("Error parsing uploaded file.", errorMsg);
-          logEvent("Import", { props: { isLocal: true, success: false } });
+          logEvent("FileImport", { props: { success: false } });
         }
       },
       (error) => {
         toastError("Error reading uploaded file.", error);
-        logEvent("Import", { props: { isLocal: true, success: false } });
+        logEvent("FileImport", { props: { success: false } });
       }
     );
   };
@@ -153,7 +153,7 @@ export const ShareModal = (props: ShareModalProps) => {
     const downloadFile = new Blob([JSON.stringify(schemaObject)], {
       type: "text/plain;charset=utf-8",
     });
-    logEvent("Export", { props: { isLocal: true, success: true } });
+    logEvent("FileExport");
     saveAs(downloadFile, "playground.json");
   };
 
@@ -182,11 +182,11 @@ export const ShareModal = (props: ShareModalProps) => {
       (resource) => {
         setSharedFileLocation(resource);
         copyResourceLinktoClipboard(resource);
-        logEvent("Export", { props: { isLocal: false, success: true } });
+        logEvent("CreateShareLink", { props: { success: true } });
       },
       (error) => {
         toastError("Error creating quick share link.", String(error));
-        logEvent("Export", { props: { isLocal: false, success: false } });
+        logEvent("CreateShareLink", { props: { success: false } });
       }
     );
   };
