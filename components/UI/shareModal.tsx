@@ -28,9 +28,11 @@ import {
   OrderedList,
 } from "@chakra-ui/react";
 import { MdContentCopy, MdDownload, MdUpload } from "react-icons/md";
+import { usePlausible } from "next-plausible";
 import { saveAs } from "file-saver";
 import copy from "clipboard-copy";
 
+import { AllPlaygroundEvents } from "../Utils/Events";
 import { SchemaObjectType } from "../State/ImportExport";
 
 export type ShareModalMode = "link" | "file";
@@ -68,6 +70,8 @@ const createShareLink = (data: string) => {
 };
 
 export const ShareModal = (props: ShareModalProps) => {
+  const logEvent = usePlausible<AllPlaygroundEvents>();
+
   const [sharedFileLocation, setSharedFileLocation] =
     React.useState<string>("");
   const onSharedFileLocationChange = (
@@ -124,13 +128,16 @@ export const ShareModal = (props: ShareModalProps) => {
             status: "success",
             position: "top",
           });
+          logEvent("FileImport", { props: { success: true } });
           uploadFileInput.current!.value = "";
         } else {
           toastError("Error parsing uploaded file.", errorMsg);
+          logEvent("FileImport", { props: { success: false } });
         }
       },
       (error) => {
         toastError("Error reading uploaded file.", error);
+        logEvent("FileImport", { props: { success: false } });
       }
     );
   };
@@ -146,6 +153,7 @@ export const ShareModal = (props: ShareModalProps) => {
     const downloadFile = new Blob([JSON.stringify(schemaObject)], {
       type: "text/plain;charset=utf-8",
     });
+    logEvent("FileExport");
     saveAs(downloadFile, "playground.json");
   };
 
@@ -174,9 +182,11 @@ export const ShareModal = (props: ShareModalProps) => {
       (resource) => {
         setSharedFileLocation(resource);
         copyResourceLinktoClipboard(resource);
+        logEvent("CreateShareLink", { props: { success: true } });
       },
       (error) => {
         toastError("Error creating quick share link.", String(error));
+        logEvent("CreateShareLink", { props: { success: false } });
       }
     );
   };
