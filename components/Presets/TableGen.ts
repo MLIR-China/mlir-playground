@@ -106,6 +106,14 @@ export class TableGen extends CppPattern {
     printer: (text: string) => void,
     statusListener: RunStatusListener
   ): Promise<string> {
+    // Report error if user provided an empty "generated.h" file.
+    // This is likely not what they had intended.
+    if (code[1].trim().length == 0) {
+      return Promise.reject(
+        "'Generated' file is empty. Please run 'Generate Rewriters' first."
+      );
+    }
+
     let allSources: Record<string, string> = {};
     allSources["generated.h"] = code[1];
     allSources["driver.cpp"] = code[2];
