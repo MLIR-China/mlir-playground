@@ -7,7 +7,7 @@ Play with [MLIR](https://mlir.llvm.org/) directly in your browser.
 
 Try it out now at our production site: [MLIR Playground](https://playground.mlir-china.org/).
 
-![Screenshot](https://user-images.githubusercontent.com/3676913/215291044-c3939310-fe02-4f10-9061-81b72f06e1f1.png)
+![Screenshot](https://user-images.githubusercontent.com/3676913/215291123-5b3d2ca3-5560-44db-be55-2d19ec9e23f7.png)
 
 ## Features
 
