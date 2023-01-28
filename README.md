@@ -50,8 +50,6 @@ PRs and suggestions are all warmly welcomed. At the end of the day, it's all abo
 
 ## Contributing
 
-[![Build and Deploy](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml/badge.svg?branch=main)](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml)
-
 ### Running Locally
 
 1. Clone this repo.
