@@ -68,6 +68,7 @@ jobs:
         run: |
           echo "NODE_ENV=production" >> $GITHUB_ENV
           echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
+          echo "SHARE_LINK_GENERATOR=https://playground.mlir-china.org/api/createShareLink" >> $GITHUB_ENV
 
       - name: Run npm build
         run: npm run build
