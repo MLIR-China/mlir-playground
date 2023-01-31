@@ -2,6 +2,7 @@ name: Release
 
 on:
   workflow_dispatch:
+  pull_request:
 
 jobs:
   release-mlir-playground:
@@ -82,9 +83,9 @@ jobs:
           tar cvzf ../${STATIC_SITE_PATH} .
           echo "STATIC_SITE_PATH=${STATIC_SITE_PATH}" >> $GITHUB_ENV
 
-      - name: Release the static site
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{ env.STATIC_SITE_PATH }}
-          tag_name: ${{ env.NEXT_TAG }}
-          body: "This release contains a static website without any server side logic. Can be hosted using any web server that serves static content."
+      # - name: Release the static site
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     files: ${{ env.STATIC_SITE_PATH }}
+      #     tag_name: ${{ env.NEXT_TAG }}
+      #     body: "This release contains a static website without any server side logic. Can be hosted using any web server that serves static content."
