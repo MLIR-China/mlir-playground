@@ -7,7 +7,7 @@ Play with [MLIR](https://mlir.llvm.org/) directly in your browser.
 
 Try it out now at our production site: [MLIR Playground](https://playground.mlir-china.org/).
 
-![Screenshot](https://user-images.githubusercontent.com/3676913/190872831-ec97d68f-31df-4058-974c-90bfc0b2d1bc.png)
+![Screenshot](https://user-images.githubusercontent.com/3676913/215291123-5b3d2ca3-5560-44db-be55-2d19ec9e23f7.png)
 
 ## Features
 
@@ -49,8 +49,6 @@ To test out this idea on both the technical side and the “business” side, es
 PRs and suggestions are all warmly welcomed. At the end of the day, it's all about building something together, especially when it can improve our daily life in some practical ways.
 
 ## Contributing
-
-[![Build and Deploy](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml/badge.svg?branch=main)](https://github.com/MLIR-China/mlir-playground/actions/workflows/build-and-deploy.yml)
 
 ### Running Locally
 

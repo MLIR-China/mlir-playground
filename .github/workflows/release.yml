@@ -13,7 +13,7 @@ jobs:
       NODE_OPTIONS: "--max_old_space_size=4096"
 
     steps:
-      # Build new Docker image if needed
+      # Set up environment
       - name: Set Swap Space
         uses: pierotofy/set-swap-space@v1.0
         with:
@@ -21,7 +21,20 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v2
+      
+      - name: Configure Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
 
+      # Get the version number to tag with
+      - name: Find current version number
+        run: echo "NEXT_TAG=mlir-playground-static-$(jq -r .version package.json)" >> $GITHUB_ENV
+
+      - name: Ensure current version is not already tagged
+        run: test -z $(git tag -l ${{ env.NEXT_TAG }})
+
+      # Prepare website build
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
@@ -50,26 +63,18 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
-      - name: Set build environment
+      - name: Set static production build environment
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           echo "NODE_ENV=production" >> $GITHUB_ENV
           echo "PRODUCTION_DOMAIN=playground.mlir-china.org" >> $GITHUB_ENV
-          echo "WASM_GEN_PREFIX=https://static.playground.mlir-china.org/" >> $GITHUB_ENV
+          echo "SHARE_LINK_GENERATOR=https://playground.mlir-china.org/api/createShareLink" >> $GITHUB_ENV
 
       - name: Run npm build
         run: npm run build
 
       - name: Export static website
         run: npx next export
-
-      - name: Bump version and push tag
-        id: version-tag
-        uses: anothrNick/github-tag-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_BRANCHES: "main"
-          DEFAULT_BUMP: "patch"
 
       - name: Package the mlir-playground static site
         run: |
@@ -82,5 +87,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: ${{ env.STATIC_SITE_PATH }}
-          tag_name: mlir-playground-static-${{ steps.version-tag.outputs.new_tag }}
+          tag_name: ${{ env.NEXT_TAG }}
           body: "This release contains a static website without any server side logic. Can be hosted using any web server that serves static content."
