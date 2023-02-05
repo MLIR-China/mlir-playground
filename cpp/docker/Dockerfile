@@ -1,4 +1,4 @@
-FROM emscripten/emsdk:3.1.7
+FROM emscripten/emsdk:3.1.31
 
 # Install required packages
 RUN apt-get update && \
