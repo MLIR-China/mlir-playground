@@ -47,7 +47,12 @@ function export_generated_wasm() {
     if [ -z $fs_js ]; then
         mv $dst_js_raw $dst_js
     else
-        sed -e "/Module = Module || {};/r $fs_js" $dst_js_raw > $dst_js
+        local insertion_after_pattern='function(Module = {})  {'
+        if ! grep -q "$insertion_after_pattern" $dst_js_raw; then
+            echo "Failed to find replacement pattern '$insertion_before_pattern' in JS"
+            exit 1
+        fi
+        sed -e "/$insertion_after_pattern/r $fs_js" $dst_js_raw > $dst_js
         rm $dst_js_raw
     fi
 

@@ -98,7 +98,7 @@ class WasmCompiler {
           "-internal-isystem",
           "/include/c++/v1",
           "-internal-isystem",
-          "/clang-15",
+          "/clang-17",
           "-internal-isystem",
           "/include",
           "-triple",
