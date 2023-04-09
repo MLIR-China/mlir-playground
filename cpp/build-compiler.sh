@@ -2,16 +2,16 @@
 
 set -e
 
-# Run inside docker to get these three emscripten packages:
-# 1. clang: compiler executable
-# 2. wasm-ld: linker executable
-# 3. libs: sysroot file package
+# Run this script inside a clang-wasm docker container to package and fetch
+# the necessary emscripten-generated wasm files needed by the web app.
 
 source /app/docker/common.sh
 mkdir /app/build/bin -p
 cd /app/build/bin
 
-# Step 0: Create constant metadata file and insert llvm version
+###############################################################################
+#  1. Create constant metadata file and insert llvm version.
+###############################################################################
 CONSTANTS_FILENAME="constants.js"
 > $CONSTANTS_FILENAME
 
@@ -21,10 +21,17 @@ popd
 
 printf "export const LLVM_VERSION=\"$LLVM_GIT_TAG\";\n\n" >> $CONSTANTS_FILENAME
 
-# Create sysroot packages inside build directory
-/app/datagen/package-libs.sh $CONSTANTS_FILENAME
+###############################################################################
+#  2. Create sysroot and llvm/mlir library packages.
+###############################################################################
+/app/wasmgen/package-libs.sh $CONSTANTS_FILENAME
 
-# Export a generated wasm module from the LLVM build directory into the local build directory.
+###############################################################################
+#  3. Fetch and patch the emscripten-compiled clang & lld executables.
+#     Also fetch the pre-compiled toy executables.
+###############################################################################
+# Export a generated wasm module from the LLVM build directory into the local
+# build directory.
 # Arguments:
 #   $1 - Source JS file name
 #   $2 - Source WASM file name
@@ -47,7 +54,7 @@ function export_generated_wasm() {
     if [ -z $fs_js ]; then
         mv $dst_js_raw $dst_js
     else
-        local insertion_after_pattern='function(Module = {})  {'
+        local insertion_after_pattern='var Module = config || {};'
         if ! grep -q "$insertion_after_pattern" $dst_js_raw; then
             echo "Failed to find replacement pattern '$insertion_before_pattern' in JS"
             exit 1
@@ -57,14 +64,14 @@ function export_generated_wasm() {
     fi
 
     # Step 3: Remove hardcoded wasm file location expectations
-    sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module."}/' $dst_js
+    sed -i -E 's/\{wasmBinaryFile=new URL[^\}]+\}/{throw "must implement locateFile method on Module.";}/' $dst_js
 
     # Step 4: Remove typeof window check to work around erroneous JS optimization for web workers
     sed -i -E "s/typeof window === 'object'/false/" $dst_js
 }
 
 # Export clang & lld
-export_generated_wasm clang.js-13 clang.wasm clang.mjs clang.wasm onlyincludes.js
+export_generated_wasm clang.js clang.wasm clang.mjs clang.wasm onlyincludes.js
 export_generated_wasm lld.js lld.wasm wasm-ld.mjs lld.wasm onlylibs.js
 
 # Export mlir-tblgen
@@ -72,11 +79,32 @@ export_generated_wasm mlir-tblgen.js mlir-tblgen.wasm mlir-tblgen.mjs mlir-tblge
 
 # Export all toy chapter builds as examples
 mkdir /app/build/bin/toy -p
-cd /app/build/bin/toy
+pushd /app/build/bin/toy
 
-for chapter_idx in {1..7}
+for chapter_idx in {1..5}
 do
     js_name="toyc-ch${chapter_idx}.js"
     wasm_name="toyc-ch${chapter_idx}.wasm"
     export_generated_wasm $js_name $wasm_name $js_name $wasm_name
 done
+popd
+
+###############################################################################
+#  4. Generate emscripten JS glue template for instantiating wasm-compiled
+#     modules in the web-app. (Not a foolproof solution, but in most cases
+#     will be good enough).
+###############################################################################
+# Generate js driver template
+pushd /app/wasmgen/template
+./compile-template.sh
+popd
+
+cp /app/wasmgen/template/build/MlirOptTemplate.js template.js
+# Remove hardcoded wasm file location expectations
+sed -i -E 's/wasmBinaryFile = new URL.+;/throw "must implement locateFile method on Module.";/' template.js
+
+###############################################################################
+#  5. Calculate checksum for entire build/bin dir and append to constants file
+###############################################################################
+LLVM_PACKAGE_CHECKSUM=$(find /app/build/bin -type f -exec sha256sum {} + | sort | sha256sum | cut -f 1 -d ' ')
+printf "export const LLVM_PACKAGE_CHECKSUM = \"$LLVM_PACKAGE_CHECKSUM\";\n\n" >> $CONSTANTS_FILENAME

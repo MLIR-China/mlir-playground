@@ -29,3 +29,5 @@ cp build/bin/constants.js ../components/WasmCompiler/wasm/constants.js
 
 cp build/bin/toy/*.js ../components/Toy/wasm/
 cp build/bin/toy/*.wasm ../public/wasm/
+
+cp build/bin/template.js ../components/WasmCompiler/wasm/template.js
