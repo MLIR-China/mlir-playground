@@ -14,7 +14,7 @@ import {
 } from "./wasm/constants.js";
 import ClangModule from "./wasm/clang.mjs";
 import LldModule from "./wasm/wasm-ld.mjs";
-import TemplateModule from "./template.js";
+import TemplateModule from "./wasm/template.js";
 
 import { RunStatus, RunStatusListener } from "../Utils/RunStatus";
 
@@ -98,7 +98,7 @@ class WasmCompiler {
           "-internal-isystem",
           "/include/c++/v1",
           "-internal-isystem",
-          "/clang-17",
+          "/clang-16",
           "-internal-isystem",
           "/include",
           "-triple",
@@ -108,8 +108,7 @@ class WasmCompiler {
           "-iwithsysroot/include/SDL",
           "-iwithsysroot/include/compat",
           "-fgnuc-version=4.2.1",
-          "-fvisibility",
-          "default",
+          "-fvisibility=default",
           "-fno-rtti",
         ];
         statusListener(STATUS_COMPILING_SOURCE_CODE);
@@ -158,7 +157,8 @@ class WasmCompiler {
             const linkOptions = [
               "--strip-debug",
               "--no-entry",
-              "--export=main",
+              "--export-if-defined=__main",
+              "--export-if-defined=__main_argc_argv",
               "--import-undefined",
               "--export-table",
               "--export-if-defined=__start_em_asm",
@@ -173,6 +173,8 @@ class WasmCompiler {
               "--export=stackAlloc",
               "--export=__wasm_call_ctors",
               "--export=__errno_location",
+              "--export=__funcs_on_exit",
+              "--export=fflush",
               "-z",
               "stack-size=5242880",
               "--initial-memory=16777216",
@@ -245,6 +247,9 @@ class WasmCompiler {
         return TemplateModule({
           noInitialRun: true,
           thisProgram: "mlir-opt",
+          locateFile: (path: string, scriptDir: string) => {
+            return "mlir-opt";
+          },
           instantiateWasm: (
             imports: WebAssembly.Imports,
             callback: (inst: WebAssembly.Instance) => void
