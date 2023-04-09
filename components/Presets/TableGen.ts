@@ -8,19 +8,20 @@ import { RunStatusListener } from "../Utils/RunStatus";
 
 import MlirTblgen from "../MlirTblgen";
 
-const defaultDrrCode = `include "mlir/Dialect/StandardOps/IR/Ops.td"
+const defaultDrrCode = `include "mlir/Dialect/Arith/IR/ArithOps.td"
 include "mlir/IR/OpBase.td"
+include "mlir/IR/PatternBase.td"
 
 def NotZero: Constraint<CPred<"$_self.cast<IntegerAttr>().getInt() != 0">, "not zero">;
 
-def MakeConstantsZero : Pat<(ConstantOp I32Attr:$value),
-                            (ConstantOp ConstantAttr<I32Attr, "0">),
+def MakeConstantsZero : Pat<(Arith_ConstantOp I32Attr:$value),
+                            (Arith_ConstantOp ConstantAttr<I32Attr, "0">),
                             [(NotZero:$value)]>;
 `;
 
 const defaultTableGenInput = `module  {
-  func @main() -> i32 {
-    %0 = constant 42 : i32
+  func.func @main() -> i32 {
+    %0 = arith.constant 42 : i32
     return %0 : i32
   }
 }`;
@@ -32,7 +33,7 @@ const defaultCppCode = `#include "mlir/IR/BuiltinOps.h"
 #include "mlir/InitAllPasses.h"
 #include "mlir/Pass/PassRegistry.h"
 #include "mlir/Pass/Pass.h"
-#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Tools/mlir-opt/MlirOptMain.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir {
