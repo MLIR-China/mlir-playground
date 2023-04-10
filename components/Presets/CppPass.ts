@@ -6,7 +6,7 @@ const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllPasses.h"
 #include "mlir/Pass/PassRegistry.h"
 #include "mlir/Pass/Pass.h"
-#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Tools/mlir-opt/MlirOptMain.h"
 
 namespace mlir {
 

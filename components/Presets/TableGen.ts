@@ -24,7 +24,8 @@ const defaultTableGenInput = `module  {
     %0 = arith.constant 42 : i32
     return %0 : i32
   }
-}`;
+}
+`;
 
 const defaultCppCode = `#include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/Dialect.h"

@@ -11,7 +11,7 @@ import { WasmCompilerWorkerManager } from "../WasmCompiler/workerManager";
 const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/InitAllPasses.h"
-#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Tools/mlir-opt/MlirOptMain.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
@@ -25,8 +25,8 @@ int main(int argc, char **argv) {
 `;
 
 const defaultMLIRInput = `module  {
-  func @main() -> i32 {
-    %0 = constant 42 : i32
+  func.func @main() -> i32 {
+    %0 = arith.constant 42 : i32
     return %0 : i32
   }
 }
