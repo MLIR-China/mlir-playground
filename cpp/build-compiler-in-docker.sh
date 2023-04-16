@@ -5,7 +5,7 @@
 set -e
 
 # Command line argument to override docker image. Default is `clang-wasm`.
-image=${1:-clang-wasm:latest}
+image=${1:-ghcr.io/mlir-china/clang-wasm:latest}
 
 # Run script inside docker.
 docker run --rm -w /app/ -v $(pwd):/app/ $image bash -c "./build-compiler.sh"
