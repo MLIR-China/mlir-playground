@@ -33,7 +33,7 @@ import { saveAs } from "file-saver";
 import copy from "clipboard-copy";
 
 import { AllPlaygroundEvents } from "../Utils/Events";
-import { Result, Ok, Err } from "../Utils/Result";
+import { Result } from "../Utils/Result";
 import { SchemaObjectType } from "../State/ImportExport";
 
 export type ShareModalMode = "link" | "file";

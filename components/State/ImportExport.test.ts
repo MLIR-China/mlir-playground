@@ -30,17 +30,20 @@ test("accept valid input", () => {
   };
 
   expect(importFromSchema(inputJson)).toMatchObject({
-    input: inputJson.input,
-    stages: [
-      {
-        preset: inputJson.stages[0].preset,
-        additionalRunArgs: inputJson.stages[0].arguments,
-        editorContents: inputJson.stages[0].editors.map(
-          (editor) => editor.contents
-        ),
-        currentPaneIdx: 0,
-        output: "",
-      },
-    ],
+    ok: true,
+    value: {
+      input: inputJson.input,
+      stages: [
+        {
+          preset: inputJson.stages[0].preset,
+          additionalRunArgs: inputJson.stages[0].arguments,
+          editorContents: inputJson.stages[0].editors.map(
+            (editor) => editor.contents
+          ),
+          currentPaneIdx: 0,
+          output: "",
+        },
+      ],
+    },
   });
 });

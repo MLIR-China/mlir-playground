@@ -500,13 +500,13 @@ const Home: NextPage = () => {
     }
 
     const internalState = importFromSchema(validatedSource);
-    if (typeof internalState === "string") {
+    if (!internalState.ok) {
       // Error during import
-      return Err(internalState);
+      return Err(internalState.error);
     }
 
-    setInputEditorContent(internalState.input);
-    setStages(internalState.stages);
+    setInputEditorContent(internalState.value.input);
+    setStages(internalState.value.stages);
     return Ok(null, warning);
   };
 
