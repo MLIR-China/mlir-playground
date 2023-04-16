@@ -6,8 +6,6 @@ import Module2 from "./wasm/toyc-ch2.js";
 import Module3 from "./wasm/toyc-ch3.js";
 import Module4 from "./wasm/toyc-ch4.js";
 import Module5 from "./wasm/toyc-ch5.js";
-import Module6 from "./wasm/toyc-ch6.js";
-import Module7 from "./wasm/toyc-ch7.js";
 
 const ToyWasm = (() => {
   const wasmFetcher = WasmFetcher.getSingleton();
@@ -18,8 +16,6 @@ const ToyWasm = (() => {
     3: Module3,
     4: Module4,
     5: Module5,
-    6: Module6,
-    7: Module7,
   };
 
   let runChapter = (
@@ -28,7 +24,7 @@ const ToyWasm = (() => {
     args: Array<String>,
     printer: (log: string) => void
   ) => {
-    if (chapterIndex < 1 || chapterIndex > 7) {
+    if (chapterIndex < 1 || chapterIndex > 5) {
       console.log(
         "Internal Error: Looking for non-existent Toy chapter: " +
           chapterIndex.toString()
