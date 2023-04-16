@@ -33,6 +33,7 @@ import { saveAs } from "file-saver";
 import copy from "clipboard-copy";
 
 import { AllPlaygroundEvents } from "../Utils/Events";
+import { Result, Ok, Err } from "../Utils/Result";
 import { SchemaObjectType } from "../State/ImportExport";
 
 export type ShareModalMode = "link" | "file";
@@ -42,7 +43,7 @@ export type ShareModalProps = {
   mode: ShareModalMode;
   onClose: () => void;
   exportToSchemaObject: () => SchemaObjectType;
-  importFromSchemaObject: (source: any) => string;
+  importFromSchemaObject: (source: any) => Result<null>;
 };
 
 const createShareLink = (data: string) => {
@@ -120,18 +121,29 @@ export const ShareModal = (props: ShareModalProps) => {
     uploadFile.text().then(
       (rawData) => {
         const parsedObject = JSON.parse(rawData);
-        let errorMsg = props.importFromSchemaObject(parsedObject);
-        if (!errorMsg) {
-          toast({
-            title: "Import Success!",
-            description: "Successfully imported playground.",
-            status: "success",
-            position: "top",
-          });
+        const result = props.importFromSchemaObject(parsedObject);
+        if (result.ok) {
+          if (!result.warning) {
+            toast({
+              title: "Import Success!",
+              description: "Successfully imported playground.",
+              status: "success",
+              position: "top",
+            });
+          } else {
+            toast({
+              title: "Import Warning",
+              description: `Warning: $(result.warning)`,
+              status: "warning",
+              position: "top",
+              isClosable: true,
+              duration: null,
+            });
+          }
           logEvent("FileImport", { props: { success: true } });
           uploadFileInput.current!.value = "";
         } else {
-          toastError("Error parsing uploaded file.", errorMsg);
+          toastError("Error parsing uploaded file.", result.error);
           logEvent("FileImport", { props: { success: false } });
         }
       },
