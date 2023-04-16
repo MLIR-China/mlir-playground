@@ -65,7 +65,7 @@ export class MlirOpt extends PlaygroundPreset {
     return defaultMLIRInput;
   }
   getDefaultAdditionalRunArgs(): string {
-    return "--convert-std-to-llvm";
+    return "--convert-func-to-llvm";
   }
   getRunArgsLeftAddon(inputFileName: string, outputFileName: string): string {
     return "mlir-opt";
