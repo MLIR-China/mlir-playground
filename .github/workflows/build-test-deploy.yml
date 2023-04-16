@@ -30,7 +30,7 @@ jobs:
       # Generate wasm files
       - name: Run wasm setup
         working-directory: ./cpp/
-        run: ./build-compiler-in-docker.sh $(cat clang-wasm-image.txt)
+        run: ./export-wasm.sh $(cat clang-wasm-image.txt)
 
       - name: Generate remote file location for production
         if: ${{ github.ref == 'refs/heads/main' }}

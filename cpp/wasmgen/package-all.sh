@@ -5,9 +5,11 @@ set -e
 # Run this script inside a clang-wasm docker container to package and fetch
 # the necessary emscripten-generated wasm files needed by the web app.
 
+BUILD_DIR=/app/wasmgen/build/bin
+
 source /app/docker/common.sh
-mkdir /app/build/bin -p
-cd /app/build/bin
+mkdir $BUILD_DIR -p
+cd $BUILD_DIR
 
 ###############################################################################
 #  1. Create constant metadata file and insert llvm version.
@@ -78,8 +80,8 @@ export_generated_wasm lld.js lld.wasm wasm-ld.mjs lld.wasm onlylibs.js
 export_generated_wasm mlir-tblgen.js mlir-tblgen.wasm mlir-tblgen.mjs mlir-tblgen.wasm onlyincludes.js
 
 # Export all toy chapter builds as examples
-mkdir /app/build/bin/toy -p
-pushd /app/build/bin/toy
+mkdir $BUILD_DIR/toy -p
+pushd $BUILD_DIR/toy
 
 for chapter_idx in {1..5}
 do
@@ -106,5 +108,5 @@ sed -i -E 's/wasmBinaryFile = new URL.+;/throw "must implement locateFile method
 ###############################################################################
 #  5. Calculate checksum for entire build/bin dir and append to constants file
 ###############################################################################
-LLVM_PACKAGE_CHECKSUM=$(find /app/build/bin -type f -exec sha256sum {} + | sort | sha256sum | cut -f 1 -d ' ')
+LLVM_PACKAGE_CHECKSUM=$(find $BUILD_DIR -type f -exec sha256sum {} + | sort | sha256sum | cut -f 1 -d ' ')
 printf "export const LLVM_PACKAGE_CHECKSUM = \"$LLVM_PACKAGE_CHECKSUM\";\n\n" >> $CONSTANTS_FILENAME

@@ -42,7 +42,7 @@ yarn-error.log*
 
 # wasm
 ## cpp build results
-/cpp/build
+/cpp/wasmgen/build
 /cpp/wasmgen/template/build
 *.wasm
 
