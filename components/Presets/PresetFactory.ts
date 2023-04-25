@@ -33,12 +33,6 @@ const PresetFactory = {
   "Toy Chapter 5": () => {
     return new ToyChapter(5);
   },
-  "Toy Chapter 6": () => {
-    return new ToyChapter(6);
-  },
-  "Toy Chapter 7": () => {
-    return new ToyChapter(7);
-  },
 } as const;
 
 let PresetStorage: Record<string, PlaygroundPreset> = {};
