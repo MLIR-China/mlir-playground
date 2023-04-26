@@ -66,6 +66,7 @@ We provide a standalone static release package that contains all you need to hos
 Visit our [Releases page](https://github.com/MLIR-China/mlir-playground/releases) to view and download a static release (`mlir-playground-static.tar.gz`). Each release is self-sufficient, and is ready to be served without any special dependencies.
 
 For example, to download and start a simple HTTP server serving the site, run:
+
 ```sh
 # Download the latest release.
 wget https://github.com/MLIR-China/mlir-playground/releases/latest/download/mlir-playground-static.tar.gz
