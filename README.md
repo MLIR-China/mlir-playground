@@ -50,23 +50,29 @@ PRs and suggestions are all warmly welcomed. At the end of the day, it's all abo
 
 ## Contributing
 
-### Running Locally
+### Local Development
 
 1. Clone this repo.
 2. Enter the `cpp` directory.
-3. (Optional) Run `build-image.sh` to build the necessary docker image for building the web assembly libraries and binaries (32G RAM is required to build the docker image locally). Pre-built images are available at ghcr.io/mlir-china/clang-wasm to use directly.
+3. (Optional) Run `build-image.sh` to build the necessary docker image for building the web assembly libraries and binaries (32G RAM is required to build the docker image locally). Pre-built images are available at [ghcr.io/mlir-china/clang-wasm](https://ghcr.io/mlir-china/clang-wasm) to use directly.
 4. Run `export-wasm.sh` to build the web assembly libraries and binaries. This will run a series of steps using the `clang-wasm` docker image, and export the built files to the locations expected by the web app.
 5. Exit to the project root directory.
 6. Run `npm run dev` to start the development server locally.
 
-### Self-Host Instruction
+### Static Deployment
 
-To selfhost MLIR-Playground locally, you need to have Docker installed beforehand.
-To install Docker, please refer to the [official docs](https://docs.docker.com/get-started/#download-and-install-docker).
-Once docker is installed properly, all you need is running the following command in terminal. This process could take up to several minutes depending on your internet connection.
+We provide a standalone static release package that contains all you need to host your own MLIR-Playground instance.
 
+Visit our [Releases page](https://github.com/MLIR-China/mlir-playground/releases) to view and download a static release (`mlir-playground-static.tar.gz`). Each release is self-sufficient, and is ready to be served without any special dependencies.
+
+For example, to download and start a simple HTTP server serving the site, run:
 ```sh
-docker run -d -p 3000:3000 mlirchina/mlir-playground
+# Download the latest release.
+wget https://github.com/MLIR-China/mlir-playground/releases/latest/download/mlir-playground-static.tar.gz
+# Untar the package.
+tar xzf mlir-playground-static.tar.gz
+# Serve the website with python.
+python3 -m http.server
 ```
 
-Once the command finishes, you can access MLIR-Playground by opening http://localhost:3000 in your browser. Have fun!
+The entire experience does not require an internet connection (The only exception is when generating a share link, which requires contacting our api servers. However, local export / import will always be available offline).
