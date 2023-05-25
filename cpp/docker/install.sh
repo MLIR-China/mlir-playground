@@ -11,7 +11,7 @@ popd
 
 # build and install clang and mlir libs
 CXXFLAGS="-Dwait4=__syscall_wait4 -stdlib=libc++" \
-LDFLAGS="-s ENVIRONMENT='web' -s EXPORT_ES6=1 -s MODULARIZE=1 -s LLD_REPORT_UNDEFINED=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=_main,_free,_malloc -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,PROXYFS,allocateUTF8,FS_createPath,FS_createDataFile,FS_createPreloadedFile,addRunDependency,removeRunDependency,callMain -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=\$Browser -s LZ4=1 -lproxyfs.js" \
+LDFLAGS="-s ENVIRONMENT='web' -s EXPORT_ES6=1 -s MODULARIZE=1 -s LLD_REPORT_UNDEFINED=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=_main,_free,_malloc -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,PROXYFS,allocateUTF8,FS_createPath,FS_createDataFile,FS_createPreloadedFile,addRunDependency,removeRunDependency,callMain -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=\$Browser -s LZ4=1 -s STACK_SIZE=5MB -s DEFAULT_PTHREAD_STACK_SIZE=2MB -s MAXIMUM_MEMORY=4GB -lproxyfs.js" \
 emcmake cmake -G Ninja \
     -S $LLVM_SRC/llvm/ \
     -B $LLVM_WASM_BUILD/ \
@@ -27,10 +27,11 @@ emcmake cmake -G Ninja \
     -DLLVM_BUILD_LLVM_DYLIB=OFF \
     -DLLVM_INCLUDE_TESTS=OFF \
     -DLLVM_BUILD_EXAMPLES=ON \
+    -DLLVM_INCLUDE_UTILS=OFF \
+    -DLLVM_PARALLEL_LINK_JOBS=4 \
     -DLLVM_TABLEGEN=$LLVM_NATIVE_BUILD/bin/llvm-tblgen \
     -DCLANG_TABLEGEN=$LLVM_NATIVE_BUILD/bin/clang-tblgen \
     -DMLIR_TABLEGEN=$LLVM_NATIVE_BUILD/bin/mlir-tblgen \
-    -DMLIR_LINALG_ODS_GEN=$LLVM_NATIVE_BUILD/bin/mlir-linalg-ods-gen \
     -DMLIR_LINALG_ODS_YAML_GEN=$LLVM_NATIVE_BUILD/bin/mlir-linalg-ods-yaml-gen
 
 cmake --build $LLVM_WASM_BUILD/ -- install

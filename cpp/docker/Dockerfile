@@ -1,4 +1,9 @@
-FROM emscripten/emsdk:3.1.7
+FROM emscripten/emsdk:3.1.30
+
+LABEL org.opencontainers.image.source=https://github.com/mlir-china/mlir-playground
+LABEL org.opencontainers.image.description="Pre-built clang, lld, & mlir libraries in webassembly for mlir-playground."
+LABEL org.opencontainers.image.base.name="docker.io/emscripten/emsdk:3.1.30"
+LABEL org.opencontainers.image.version="llvmorg-16.0.0"
 
 # Install required packages
 RUN apt-get update && \

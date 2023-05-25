@@ -6,11 +6,11 @@ const defaultCode = `#include "mlir/IR/Dialect.h"
 #include "mlir/InitAllPasses.h"
 #include "mlir/Pass/PassRegistry.h"
 #include "mlir/Pass/Pass.h"
-#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Tools/mlir-opt/MlirOptMain.h"
 
 namespace mlir {
 
-class MyPass : public PassWrapper<MyPass, OperationPass<FuncOp>> {
+class MyPass : public PassWrapper<MyPass, OperationPass<func::FuncOp>> {
     StringRef getArgument() const final {
         return "my-pass";
     }
@@ -22,7 +22,7 @@ class MyPass : public PassWrapper<MyPass, OperationPass<FuncOp>> {
     void runOnOperation() {
         // Implement custom pass logic below.
         // The example pass prints to stderr the name of the function being operated on.
-        FuncOp fn = getOperation();
+        func::FuncOp fn = getOperation();
         llvm::errs() << "Found function: " << fn.getName() << "\\n";
     }
 };

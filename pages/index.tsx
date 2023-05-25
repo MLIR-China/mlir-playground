@@ -41,6 +41,7 @@ import LabeledEditor from "../components/UI/labeledEditor";
 import NavBar, { LocalEnvironmentCachingStatus } from "../components/UI/navbar";
 import WasmCompiler from "../components/WasmCompiler";
 import { AllPlaygroundEvents } from "../components/Utils/Events";
+import { Result, Ok, Err } from "../components/Utils/Result";
 import { RunStatus } from "../components/Utils/RunStatus";
 import {
   PlaygroundPreset,
@@ -58,6 +59,7 @@ import {
 } from "../components/State/StageState";
 
 import { validateAgainstSchema } from "../schema/validation";
+import { resourceLimits } from "worker_threads";
 
 function getInputFileBaseName(stageIndex: number) {
   const prevIndex = stageIndex - 1;
@@ -317,18 +319,29 @@ const Home: NextPage = () => {
           return Promise.reject("Failed to fetch resource.");
         })
         .then((parsedObject) => {
-          let errorMsg = importFromSchemaObject(parsedObject);
-          if (!errorMsg) {
-            toast({
-              title: "Import Success!",
-              description: "Successfully imported from URL.",
-              status: "success",
-              position: "top",
-            });
+          const result = importFromSchemaObject(parsedObject);
+          if (result.ok) {
+            if (!result.warning) {
+              toast({
+                title: "Import Success!",
+                description: "Successfully imported from URL.",
+                status: "success",
+                position: "top",
+              });
+            } else {
+              toast({
+                title: "Import Warning",
+                description: `Warning: ${result.warning}`,
+                status: "warning",
+                position: "top",
+                isClosable: true,
+                duration: null,
+              });
+            }
             logEvent("ImportShareLink", { props: { success: true } });
-            return;
+          } else {
+            return Promise.reject("Failed to parse file: " + result.error);
           }
-          return Promise.reject("Failed to parse file: " + errorMsg);
         })
         .catch((error) => {
           logEvent("ImportShareLink", { props: { success: false } });
@@ -471,21 +484,30 @@ const Home: NextPage = () => {
   };
 
   // Returns an error message if failed. Otherwise returns an empty string.
-  const importFromSchemaObject = (source: any) => {
+  const importFromSchemaObject = (source: any): Result<null> => {
     const validationError = validateAgainstSchema(source);
     if (validationError) {
-      return validationError;
+      return Err(validationError);
+    }
+    const validatedSource: SchemaObjectType = source as SchemaObjectType;
+
+    // Warn user if the imported file is using a different compiler version
+    let warning = undefined;
+    if (validatedSource.environment != compilerEnvironmentVersion) {
+      warning =
+        `Imported playground uses a different compiler environment` +
+        `(${validatedSource.environment}). Code or inputs may not work as is.`;
     }
 
-    const internalState = importFromSchema(source as SchemaObjectType);
-    if (typeof internalState === "string") {
+    const internalState = importFromSchema(validatedSource);
+    if (!internalState.ok) {
       // Error during import
-      return internalState;
+      return Err(internalState.error);
     }
 
-    setInputEditorContent(internalState.input);
-    setStages(internalState.stages);
-    return "";
+    setInputEditorContent(internalState.value.input);
+    setStages(internalState.value.stages);
+    return Ok(null, warning);
   };
 
   return (

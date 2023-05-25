@@ -8,30 +8,30 @@ const defaultCode = `#include "mlir/IR/BuiltinOps.h"
 #include "mlir/InitAllPasses.h"
 #include "mlir/Pass/PassRegistry.h"
 #include "mlir/Pass/Pass.h"
-#include "mlir/Support/MlirOptMain.h"
+#include "mlir/Tools/mlir-opt/MlirOptMain.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
 namespace mlir {
 
-class MyPattern : public OpRewritePattern<ConstantIntOp> {
+class MyPattern : public OpRewritePattern<arith::ConstantIntOp> {
   public:
-    using OpRewritePattern<ConstantIntOp>::OpRewritePattern;
-    LogicalResult matchAndRewrite(ConstantIntOp constant, PatternRewriter &rewriter) const override {
+    using OpRewritePattern<arith::ConstantIntOp>::OpRewritePattern;
+    LogicalResult matchAndRewrite(arith::ConstantIntOp constant, PatternRewriter &rewriter) const override {
         // Implement custom pattern below.
         // The example pattern sets every integer constant to zero.
-        if (constant.getValue() == 0) {
+        if (constant.value() == 0) {
             return failure();
         }
 
         rewriter.setInsertionPoint(constant);
-        ConstantIntOp newConstant =
-            rewriter.create<ConstantIntOp>(constant->getLoc(), 0, constant.getResult().getType());
+        arith::ConstantIntOp newConstant =
+            rewriter.create<arith::ConstantIntOp>(constant->getLoc(), 0, constant.getResult().getType());
         rewriter.replaceOp(constant, {newConstant.getResult()});
         return success();
     }
 };
 
-class MyRewritePass : public PassWrapper<MyRewritePass, OperationPass<FuncOp>> {
+class MyRewritePass : public PassWrapper<MyRewritePass, OperationPass<func::FuncOp>> {
     StringRef getArgument() const final {
         return "my-rewrite-pass";
     }

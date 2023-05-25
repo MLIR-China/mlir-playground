@@ -6,6 +6,7 @@ import {
   getPresetNames,
   presetOption,
 } from "../Presets/PresetFactory";
+import { Result, Ok, Err } from "../Utils/Result";
 
 export type SchemaObjectType = Schema_0_0_1_Type.MLIRPlaygroundState;
 
@@ -41,13 +42,13 @@ export function exportToSchema(
 // Returns either the parsed InternalState, or an error message.
 export function importFromSchema(
   source: SchemaObjectType
-): InternalState | string {
+): Result<InternalState> {
   // Maps each stage into either a parsed StageState, or an error message.
-  const stageResults: Array<StageState | string> = source.stages.map(
-    (stageSource) => {
+  const stageResults: Array<Result<StageState>> = source.stages.map(
+    (stageSource): Result<StageState> => {
       const presetName = stageSource.preset;
       if (!getPresetNames().includes(presetName)) {
-        return `Unknown Preset: ${presetName}`;
+        return Err(`Unknown Preset: ${presetName}`);
       }
 
       let stage = newStageStateFromPreset(presetName as presetOption);
@@ -75,7 +76,7 @@ export function importFromSchema(
         }
       });
       if (editorNameErrors.length > 0) {
-        return editorNameErrors.join("\n");
+        return Err(editorNameErrors.join("\n"));
       }
 
       stage.editorContents = presetProps.getPanes().map((pane) => {
@@ -87,19 +88,26 @@ export function importFromSchema(
         return ""; // Unreachable.
       });
 
-      return stage;
+      return Ok(stage);
     }
   );
 
-  let errorMsgs = stageResults.filter(
-    (stageResult) => typeof stageResult === "string"
-  );
-  if (errorMsgs.length > 0) {
-    return errorMsgs.join(" \n");
+  const [validResults, errorMsg]: [Array<StageState>, string] =
+    stageResults.reduce(
+      ([validResults, errorMsg]: [Array<StageState>, string], stageResult) => {
+        if (stageResult.ok) {
+          return [[...validResults, stageResult.value], errorMsg];
+        }
+        return [validResults, errorMsg + " \n" + stageResult.error];
+      },
+      [[], ""]
+    );
+  if (errorMsg) {
+    return Err(errorMsg);
   }
 
-  return {
+  return Ok({
     input: source.input || "",
-    stages: stageResults as Array<StageState>,
-  };
+    stages: validResults,
+  });
 }
